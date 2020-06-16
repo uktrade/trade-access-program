@@ -1,0 +1,34 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@0.3.0
+
+jobs:
+  build-and-test:
+    docker:
+      - image: circleci/python:3.8.3
+        environment:
+          DJANGO_SETTINGS_MODULE: config.settings.ci
+
+      - image: circleci/postgres:12.3
+        environment:
+          POSTGRES_USER: tap
+          POSTGRES_DB: tap
+          POSTGRES_PASSWORD: tap
+
+    steps:
+      - checkout
+      - python/load-cache:
+          dependency-file: requirements/extra.txt
+      - python/install-deps:
+          dependency-file: requirements/extra.txt
+      - python/save-cache:
+          dependency-file: requirements/extra.txt
+      - run:
+          name: Run linter
+          command: flake8 .
+
+workflows:
+  main:
+    jobs:
+      - build-and-test
