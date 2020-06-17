@@ -1,3 +1,5 @@
+[![Build](https://circleci.com/gh/uktrade/trade-access-program/tree/master.svg?style=shield)](https://circleci.com/gh/uktrade/trade-access-program/tree/master)
+
 # trade-access-program
 A repo to house the trade access program (TAP) service
 
