@@ -3,6 +3,12 @@ version: 2.1
 orbs:
   python: circleci/python@0.3.0
 
+aliases:
+  - &db_env
+      POSTGRES_USER: tap
+      POSTGRES_DB: tap
+      POSTGRES_PASSWORD: tap
+
 jobs:
   build-and-test:
     docker:
@@ -10,17 +16,12 @@ jobs:
         environment:
           DJANGO_SETTINGS_MODULE: config.settings.ci
           SECRET_KEY: ci-secret-key
-          POSTGRES_USER: tap
-          POSTGRES_DB: tap
-          POSTGRES_PASSWORD: tap
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-
+          <<: *db_env
       - image: circleci/postgres:12.3
         environment:
-          POSTGRES_USER: tap
-          POSTGRES_DB: tap
-          POSTGRES_PASSWORD: tap
+          <<: *db_env
 
     steps:
       - checkout
@@ -38,6 +39,6 @@ jobs:
           command: pytest
 
 workflows:
-  main:
+  build-and-test:
     jobs:
       - build-and-test
