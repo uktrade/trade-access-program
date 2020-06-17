@@ -24,14 +24,16 @@ docker-compose run --service-ports web
 ```
 
 ### Testing
-To run tests use either pytest or django test
+To run tests you can use Pytest  
 ```
 pytest
 ```
+or the Django test command
 ```
 python manage.py test
 ```
 
+### Linting
 To run the linter
 ```
 flake8 .
