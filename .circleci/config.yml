@@ -26,11 +26,11 @@ jobs:
     steps:
       - checkout
       - python/load-cache:
-          dependency-file: requirements/extra.txt
+          dependency-file: requirements/dev.txt
       - python/install-deps:
-          dependency-file: requirements/extra.txt
+          dependency-file: requirements/dev.txt
       - python/save-cache:
-          dependency-file: requirements/extra.txt
+          dependency-file: requirements/dev.txt
       - run:
           name: Run linter
           command: flake8 .

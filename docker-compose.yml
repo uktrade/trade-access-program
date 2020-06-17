@@ -14,10 +14,12 @@ services:
       context: .
       dockerfile: Dockerfile
     env_file: .env
+    command: bash -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
       - "8000:8000"
+    restart: always
     depends_on:
       - db
 
