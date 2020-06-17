@@ -9,6 +9,12 @@ jobs:
       - image: circleci/python:3.8.3
         environment:
           DJANGO_SETTINGS_MODULE: config.settings.ci
+          SECRET_KEY: ci-secret-key
+          POSTGRES_USER: tap
+          POSTGRES_DB: tap
+          POSTGRES_PASSWORD: tap
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
 
       - image: circleci/postgres:12.3
         environment:
@@ -27,6 +33,9 @@ jobs:
       - run:
           name: Run linter
           command: flake8 .
+      - run:
+          name: Run Tests
+          command: pytest
 
 workflows:
   main:
