@@ -28,18 +28,28 @@ test:
 lint:
 	docker-compose run web flake8
 
-# Django
-shell:
-	docker-compose run web python manage.py shell
 
-collectstatic:
-	docker-compose run web python manage.py collectstatic
+# Django
+django-%:
+	docker-compose run web python manage.py $*
+
+shell:
+	$(MAKE) manage-shell
+
+collect-static:
+	$(MAKE) manage-collectstatic
+
 
 # pip-tools
-dev-requirements:
+pip-compile-dev:
 	pip-compile --output-file requirements/base.txt requirements/base.in
 	pip-compile --output-file requirements/dev.txt requirements/dev.in
 
-production-requirements:
-	pip-compile --output-file requirements/base.txt requirements.in/base.in
-	pip-compile --output-file requirements/production.txt requirements.in/production.in
+pip-compile-production:
+	pip-compile --output-file requirements/base.txt requirements/base.in
+
+pip-sync-dev:
+	pip-sync requirements/dev.txt
+
+pip-sync-production:
+	pip-sync requirements/base.txt

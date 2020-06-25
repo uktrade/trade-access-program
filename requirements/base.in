@@ -1,2 +1,4 @@
 Django==3.0.7
 psycopg2==2.8.5
+djangorestframework==3.11.0
+django-filter==2.3.0
