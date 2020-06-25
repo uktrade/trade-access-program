@@ -36,7 +36,7 @@ jobs:
           command: flake8 .
       - run:
           name: Run Tests
-          command: pytest
+          command: pytest -p no:sugar -v
 
 workflows:
   build-and-test:

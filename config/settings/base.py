@@ -133,3 +133,6 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
+
+DNB_SERVICE_URL = os.getenv('DNB_SERVICE_URL')
+DNB_SERVICE_TOKEN = os.getenv('DNB_SERVICE_TOKEN')

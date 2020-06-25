@@ -1,13 +1,12 @@
 from uuid import uuid4
 
 from django.db import models
-from django.utils import timezone
 
 
 class BaseMetaModel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    updated = models.DateTimeField(default=timezone.now)
-    created = models.DateTimeField(editable=False, default=timezone.now)
+    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(editable=False, auto_now_add=True)
 
     @property
     def id_str(self):
