@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 TAP_APPS = [
+    'api.apply',
     'api.core',
     'api.companies',
 ]
@@ -128,7 +129,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, '..', 'external_static'),
+]
 
+# https://www.django-rest-framework.org/
 REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],

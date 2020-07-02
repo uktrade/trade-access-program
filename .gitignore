@@ -131,5 +131,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# TAP specific
+# TAP Project
+/static
+/external_static
 /reports

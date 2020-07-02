@@ -13,10 +13,25 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Templates
+    path('apply/', include('api.apply.urls')),
+
+    # APIs
     path('api/', include('api.companies.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns.append(
+        path(
+            'assets/<path:asset_path>',
+            RedirectView.as_view(url='/static/govuk/%(asset_path)s'),
+        )
+    )
