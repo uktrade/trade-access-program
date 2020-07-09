@@ -14,24 +14,25 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.conf import settings
-from django.contrib import admin
+from django.conf.urls import url
 from django.urls import path, include
-from django.views.generic import RedirectView
+from django.views.generic import TemplateView
+from material.frontend import urls as viewflow_frontend_urls
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # Viewflow urls includes django '/admin' and '/accounts'
+    path('', include(viewflow_frontend_urls)),
 
     # Templates
-    path('apply/', include('api.apply.urls')),
+    path('', TemplateView.as_view(template_name='core/index.html')),
+    path('apply/', include('web.apply.urls', namespace='apply')),
 
-    # APIs
-    path('api/', include('api.companies.urls')),
+    # API
+    path('api/', include('web.companies.urls')),
 ]
 
 if settings.DEBUG:
-    urlpatterns.append(
-        path(
-            'assets/<path:asset_path>',
-            RedirectView.as_view(url='/static/govuk/%(asset_path)s'),
-        )
-    )
+    import debug_toolbar
+    urlpatterns = [
+        url('^__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns

@@ -1,0 +1,17 @@
+{% if company %}
+  <!--Company data-->
+  <table class="govuk-table">
+    <tbody class="govuk-table__body">
+      <tr class="govuk-table__row">
+        <th scope="row" class="govuk-table__header">Company Registration Number</th>
+        <td class="govuk-table__cell">{{ company.duns_number }}</td>
+      </tr>
+    </tbody>
+    <tbody class="govuk-table__body">
+      <tr class="govuk-table__row">
+        <th scope="row" class="govuk-table__header">Company Name</th>
+        <td class="govuk-table__cell">{{ company.primary_name }}</td>
+      </tr>
+    </tbody>
+  </table>
+{% endif %}

@@ -5,9 +5,14 @@
 #    pip-compile --output-file=requirements/base.txt requirements/base.in
 #
 asgiref==3.2.9            # via django
-django-filter==2.3.0      # via -r requirements/base.in
-django==3.0.7             # via -r requirements/base.in, django-filter, djangorestframework
+django-annoying==0.10.6   # via django-viewflow
+django-filter==2.3.0      # via -r requirements/base.in, django-viewflow
+django-jsonstore==0.4.1   # via django-viewflow
+django-material==1.6.3    # via -r requirements/base.in
+django-viewflow==1.6.0    # via -r requirements/base.in
+django==3.0.7             # via -r requirements/base.in, django-filter, django-viewflow, djangorestframework
 djangorestframework==3.11.0  # via -r requirements/base.in
 psycopg2==2.8.5           # via -r requirements/base.in
 pytz==2020.1              # via django
+six==1.15.0               # via django-material, django-viewflow
 sqlparse==0.3.1           # via django

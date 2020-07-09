@@ -22,8 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'false').lower() == 'true'
 
 ALLOWED_HOSTS = []
 
@@ -31,12 +30,21 @@ ALLOWED_HOSTS = []
 # Application definition
 
 TAP_APPS = [
-    'api.apply',
-    'api.core',
-    'api.companies',
+    'web.apply',
+    'web.core',
+    'web.companies',
 ]
 
 INSTALLED_APPS = [
+    # material
+    'material',
+    'material.frontend',
+    'material.admin',
+
+    # viewflow
+    'viewflow',
+    'viewflow.frontend',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -142,3 +150,10 @@ REST_FRAMEWORK = {
 
 DNB_SERVICE_URL = os.getenv('DNB_SERVICE_URL')
 DNB_SERVICE_TOKEN = os.getenv('DNB_SERVICE_TOKEN')
+
+MIN_GRANT_VALUE = 500
+MAX_GRANT_VALUE = 2500
+GRANT_VALUE_DECIMAL_PRECISION = {
+    'max_digits': 6,
+    'decimal_places': 2,
+}
