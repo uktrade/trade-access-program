@@ -53,3 +53,7 @@ pip-sync-dev:
 
 pip-sync-production:
 	pip-sync requirements/base.txt
+
+pip-compile-and-sync-dev: pip-compile-dev pip-sync-dev
+
+pip-compile-and-sync-production: pip-compile-production pip-sync-production
