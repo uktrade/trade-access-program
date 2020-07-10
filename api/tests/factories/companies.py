@@ -8,4 +8,4 @@ class CompanyFactory(BaseMetaFactory):
     class Meta:
         model = Company
 
-    registration_number = factory.Sequence(lambda n: n)
+    dnb_service_duns_number = factory.Sequence(lambda n: n)

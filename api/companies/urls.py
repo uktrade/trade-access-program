@@ -1,8 +1,12 @@
+from django.conf.urls import url
 from rest_framework.routers import SimpleRouter
 
-from api.companies.views import CompaniesViewSet
+from api.companies.views import CompaniesViewSet, SearchCompaniesView
 
 router = SimpleRouter()
 router.register('companies', CompaniesViewSet, basename='companies')
 
-urlpatterns = router.urls
+
+urlpatterns = [
+    url(r'^companies/search/$', SearchCompaniesView.as_view(), name='companies-search'),
+] + router.urls

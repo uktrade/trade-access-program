@@ -8,6 +8,8 @@ appnope==0.1.0            # via ipython
 asgiref==3.2.9            # via -r requirements/base.txt, django
 attrs==19.3.0             # via pytest
 backcall==0.2.0           # via ipython
+certifi==2020.6.20        # via requests
+chardet==3.0.4            # via requests
 decorator==4.4.2          # via ipython, traitlets
 django-environ==0.4.5     # via -r requirements/dev.in
 django-filter==2.3.0      # via -r requirements/base.txt
@@ -16,6 +18,8 @@ djangorestframework==3.11.0  # via -r requirements/base.txt
 factory-boy==2.12.0       # via -r requirements/dev.in
 faker==4.1.1              # via factory-boy
 flake8==3.8.3             # via -r requirements/dev.in
+httpretty==1.0.2          # via -r requirements/dev.in
+idna==2.10                # via requests
 ipdb==0.13.3              # via -r requirements/dev.in
 ipython-genutils==0.2.0   # via traitlets
 ipython==7.15.0           # via ipdb
@@ -42,11 +46,13 @@ pytest==5.4.3             # via -r requirements/dev.in, pytest-django, pytest-do
 python-dateutil==2.8.1    # via faker
 python-dotenv==0.13.0     # via pytest-dotenv
 pytz==2020.1              # via -r requirements/base.txt, django
+requests==2.24.0          # via -r requirements/dev.in
 six==1.15.0               # via packaging, python-dateutil, traitlets
 sqlparse==0.3.1           # via -r requirements/base.txt, django
 termcolor==1.1.0          # via pytest-sugar
 text-unidecode==1.3       # via faker
 traitlets==4.3.3          # via ipython
+urllib3==1.25.9           # via requests
 wcwidth==0.2.4            # via prompt-toolkit, pytest
 
 # The following packages are considered to be unsafe in a requirements file:
