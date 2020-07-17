@@ -37,6 +37,10 @@ jobs:
       - run:
           name: Run Tests
           command: pytest -p no:sugar -v
+      - store_artifacts:
+          path: reports
+      - store_test_results:
+          path: reports/coverage/junitxml
 
 workflows:
   build-and-test:
