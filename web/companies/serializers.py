@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
-from api.companies.models import Company
-from api.companies.services import DnbServiceClient
+from web.companies.models import Company
+from web.companies.services import DnbServiceClient
 
 
 class CompanySerializer(serializers.ModelSerializer):

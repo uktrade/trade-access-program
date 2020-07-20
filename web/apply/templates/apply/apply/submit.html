@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% load material_form %}
+
+{% block content %}
+  <h2 class="govuk-heading-m">{{ activation.flow_task.task_title }}</h2>
+
+  {% include "apply/company_table.html" %}
+
+  <form class="form" id="idCompanyForm" action="" method="POST">
+    {% csrf_token %}
+    {% include "core/govt_uk_form.html" %}
+    {{ activation.management_form }}
+    <div class="right">
+      <button type="submit" name="_continue" class="govuk-button" data-module="govuk-button">Submit</button>
+    </div>
+  </form>
+
+{% endblock %}

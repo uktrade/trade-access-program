@@ -13,10 +13,26 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
+from django.conf import settings
+from django.conf.urls import url
 from django.urls import path, include
+from django.views.generic import TemplateView
+from material.frontend import urls as viewflow_frontend_urls
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('api.companies.urls')),
+    # Viewflow urls includes django '/admin' and '/accounts'
+    path('', include(viewflow_frontend_urls)),
+
+    # Templates
+    path('', TemplateView.as_view(template_name='core/index.html')),
+    path('apply/', include('web.apply.urls', namespace='apply')),
+
+    # API
+    path('api/', include('web.companies.urls')),
 ]
+
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        url('^__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns

@@ -1,7 +1,7 @@
 import factory
 
-from api.companies.models import Company
-from api.tests.factories.base import BaseMetaFactory
+from web.companies.models import Company
+from web.tests.factories.base import BaseMetaFactory
 
 
 class CompanyFactory(BaseMetaFactory):

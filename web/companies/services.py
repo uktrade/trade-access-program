@@ -4,6 +4,15 @@ import requests
 from django.conf import settings
 from requests.adapters import HTTPAdapter, Retry
 
+from web.core.exceptions import DnbServiceClientException
+
+
+def _raise_for_status(response):
+    try:
+        response.raise_for_status()
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError):
+        raise DnbServiceClientException
+
 
 class DnbServiceClient:
 
@@ -20,10 +29,10 @@ class DnbServiceClient:
 
     def get_company(self, duns_number):
         response = self.session.post(self.company_url, json={'duns_number': duns_number})
-        response.raise_for_status()
+        _raise_for_status(response)
         return response.json()['results'][0]
 
     def search_companies(self, search_term):
         response = self.session.post(self.company_url, json={'search_term': search_term})
-        response.raise_for_status()
+        _raise_for_status(response)
         return response.json()['results']

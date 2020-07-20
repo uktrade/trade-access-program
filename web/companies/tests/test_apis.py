@@ -3,13 +3,13 @@ from unittest.mock import patch
 from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 
-from api.companies.serializers import DnbServiceClient
-from api.tests.factories.companies import CompanyFactory
-from api.tests.helpers import BaseTestCase
+from web.companies.serializers import DnbServiceClient
+from web.tests.factories.companies import CompanyFactory
+from web.tests.helpers import BaseAPITestCase
 
 
 @patch.object(DnbServiceClient, 'get_company', return_value={'primary_name': 'fake-name'})
-class CompaniesApiTests(BaseTestCase):
+class CompaniesApiTests(BaseAPITestCase):
 
     def setUp(self):
         super().setUpClass()
@@ -42,7 +42,7 @@ class CompaniesApiTests(BaseTestCase):
     'search_companies',
     return_value=[{'primary_name': 'fake-name-1', 'x': 1}, {'primary_name': 'fake-name-2', 'y': 2}]
 )
-class SearchCompaniesApiTests(BaseTestCase):
+class SearchCompaniesApiTests(BaseAPITestCase):
 
     def test_search_company_names(self, *mocks):
         response = self.client.get(reverse('companies-search'), {'search_term': 'fake-name'})

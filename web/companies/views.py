@@ -2,9 +2,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from api.companies.models import Company
-from api.companies.serializers import CompanySerializer, SearchCompaniesSerializer
-from api.companies.services import DnbServiceClient
+from web.companies.models import Company
+from web.companies.serializers import CompanySerializer, SearchCompaniesSerializer
+from web.companies.services import DnbServiceClient
 
 
 class CompaniesViewSet(ModelViewSet):

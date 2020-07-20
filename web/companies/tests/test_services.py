@@ -1,11 +1,11 @@
 import httpretty
-from requests import HTTPError
 
-from api.companies.services import DnbServiceClient
-from api.tests.helpers import BaseTestCase
+from web.companies.services import DnbServiceClient
+from web.core.exceptions import DnbServiceClientException
+from web.tests.helpers import BaseAPITestCase
 
 
-class DnbServiceTests(BaseTestCase):
+class DnbServiceTests(BaseAPITestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -55,11 +55,15 @@ class DnbServiceTests(BaseTestCase):
         self.assertEqual(dnb_company['primary_name'], 'fake-name-1')
 
     @httpretty.activate
-    def test_no_retry_on_400_and_error_raised(self):
+    def test_no_retry_on_400_and_dnb_exception_is_raised(self):
         httpretty.register_uri(
             httpretty.POST,
             self.dnb_service_client.company_url,
             status=400,
             match_querystring=False
         )
-        self.assertRaises(HTTPError, self.dnb_service_client.get_company, duns_number=1)
+        self.assertRaises(
+            DnbServiceClientException,
+            self.dnb_service_client.get_company,
+            duns_number=1
+        )

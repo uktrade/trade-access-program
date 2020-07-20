@@ -1,6 +1,6 @@
 from django.db import models
 
-from api.core.abstract_models import BaseMetaModel
+from web.core.abstract_models import BaseMetaModel
 
 
 class Company(BaseMetaModel):

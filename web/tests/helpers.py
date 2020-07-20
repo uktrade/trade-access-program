@@ -1,3 +1,4 @@
+from django.test import TestCase
 from rest_framework.test import APITestCase
 
 
@@ -19,5 +20,13 @@ class AssertResponseMixin:
             self.assertEqual(data[k], v)
 
 
-class BaseTestCase(AssertResponseMixin, APITestCase):
+class BaseAPITestCase(AssertResponseMixin, APITestCase):
     pass
+
+
+class BaseTestCase(AssertResponseMixin, TestCase):
+
+    def set_session_value(self, key, value):
+        s = self.client.session
+        s[key] = value
+        s.save()
