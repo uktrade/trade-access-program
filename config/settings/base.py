@@ -11,21 +11,25 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import environ
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+env = environ.Env()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = env('SECRET_KEY')
 
-DEBUG = os.getenv('DEBUG', 'false').lower() == 'true'
+DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
+VCAP_SERVICES = env.json('VCAP_SERVICES', default={})
+VCAP_APPLICATION = env.json('VCAP_APPLICATION', default={})
 
 # Application definition
 
@@ -37,6 +41,7 @@ TAP_APPS = [
 
 INSTALLED_APPS = [
     # material
+    'material.theme.bluegrey',
     'material',
     'material.frontend',
     'material.admin',
@@ -56,6 +61,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -88,16 +94,20 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': os.getenv('POSTGRES_HOST'),
-        'PORT': os.getenv('POSTGRES_PORT'),
+if 'postgres' in VCAP_SERVICES:
+    DATABASE_URL = VCAP_SERVICES['postgres'][0]['credentials']['uri']
+    DATABASES = {'default': env.db(default=DATABASE_URL)}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('POSTGRES_DB'),
+            'USER': env('POSTGRES_USER'),
+            'PASSWORD': env('POSTGRES_PASSWORD'),
+            'HOST': env('POSTGRES_HOST'),
+            'PORT': env.int('POSTGRES_PORT'),
+        }
     }
-}
 
 
 # Password validation
@@ -148,8 +158,8 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
 }
 
-DNB_SERVICE_URL = os.getenv('DNB_SERVICE_URL')
-DNB_SERVICE_TOKEN = os.getenv('DNB_SERVICE_TOKEN')
+DNB_SERVICE_URL = env('DNB_SERVICE_URL', default=None)
+DNB_SERVICE_TOKEN = env('DNB_SERVICE_TOKEN', default=None)
 
 MIN_GRANT_VALUE = 500
 MAX_GRANT_VALUE = 2500
