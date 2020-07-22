@@ -6,8 +6,6 @@ pytest-dotenv==0.5.2
 pytest-sugar==0.9.3
 flake8==3.8.3
 factory-boy==2.12.0
-django-environ==0.4.5
 ipdb==0.13.3
 httpretty==1.0.2
-requests==2.24.0
 django-debug-toolbar==2.2
