@@ -19,7 +19,7 @@ jobs:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
           <<: *db_env
-      - image: circleci/postgres:12.3
+      - image: circleci/postgres:11
         environment:
           <<: *db_env
 
