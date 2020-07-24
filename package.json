@@ -1,0 +1,11 @@
+{
+  "name": "trade-access-program",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": "12.18.x"
+  },
+  "dependencies": {
+    "govuk-frontend": "^3.7.0"
+  }
+}

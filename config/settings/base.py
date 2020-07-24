@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'sass_processor',
     'django_filters',
 ] + TAP_APPS
 
@@ -147,9 +148,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+
 STATIC_ROOT = os.path.join(BASE_DIR, '..', 'static')
+
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, '..', 'external_static'),
+    os.path.join(BASE_DIR, '..', 'node_modules/govuk-frontend'),
+]
+
+SASS_PROCESSOR_INCLUDE_DIRS = [
+    os.path.join(BASE_DIR, '..', 'node_modules'),
 ]
 
 # https://www.django-rest-framework.org/

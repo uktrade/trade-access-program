@@ -1,10 +1,13 @@
 Django==3.0.7
-psycopg2==2.8.5
-djangorestframework==3.11.0
+django-compressor==2.4
 django-environ==0.4.5
 django-filter==2.3.0
 django-material==1.6.3
+django-sass-processor==0.8
 django-viewflow==1.6.0
-requests==2.24.0
+djangorestframework==3.11.0
 gunicorn==19.9.0
+libsass==0.20.0
+psycopg2==2.8.5
+requests==2.24.0
 whitenoise==5.1.0

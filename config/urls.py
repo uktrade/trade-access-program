@@ -16,10 +16,17 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url
 from django.urls import path, include
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, RedirectView
 from material.frontend import urls as viewflow_frontend_urls
 
 urlpatterns = [
+    # The govuk-frontend stylesheet requires a specific assets location
+    # eg. node_modules/govuk-frontend/govuk/helpers/_font-faces.scss
+    path(
+        "assets/<path:asset_path>",
+        RedirectView.as_view(url="/static/govuk/assets/%(asset_path)s"),
+    ),
+
     # Viewflow urls includes django '/admin' and '/accounts'
     path('', include(viewflow_frontend_urls)),
 
