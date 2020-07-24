@@ -8,19 +8,25 @@ asgiref==3.2.9            # via django
 certifi==2020.6.20        # via requests
 chardet==3.0.4            # via requests
 django-annoying==0.10.6   # via django-viewflow
+django-appconf==1.0.4     # via django-compressor
+django-compressor==2.4    # via -r requirements/base.in
 django-environ==0.4.5     # via -r requirements/base.in
 django-filter==2.3.0      # via -r requirements/base.in, django-viewflow
 django-jsonstore==0.4.1   # via django-viewflow
 django-material==1.6.3    # via -r requirements/base.in
+django-sass-processor==0.8  # via -r requirements/base.in
 django-viewflow==1.6.0    # via -r requirements/base.in
 django==3.0.7             # via -r requirements/base.in, django-filter, django-viewflow, djangorestframework
 djangorestframework==3.11.0  # via -r requirements/base.in
 gunicorn==19.9.0          # via -r requirements/base.in
 idna==2.10                # via requests
+libsass==0.20.0           # via -r requirements/base.in
 psycopg2==2.8.5           # via -r requirements/base.in
 pytz==2020.1              # via django
+rcssmin==1.0.6            # via django-compressor
 requests==2.24.0          # via -r requirements/base.in
-six==1.15.0               # via django-material, django-viewflow
+rjsmin==1.1.0             # via django-compressor
+six==1.15.0               # via django-compressor, django-material, django-viewflow, libsass
 sqlparse==0.3.1           # via django
 urllib3==1.25.9           # via requests
 whitenoise==5.1.0         # via -r requirements/base.in

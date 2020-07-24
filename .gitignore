@@ -133,5 +133,8 @@ dmypy.json
 
 # TAP Project
 /static
-/external_static
 /reports
+node_modules
+
+#CSS
+web/core/static/core/css/styles.css

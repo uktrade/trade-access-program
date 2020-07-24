@@ -1,7 +1,4 @@
 applications:
-  - name: trade-access-dev
-    instances: 1
-    buildpacks:
+  - buildpacks:
+      - https://github.com/cloudfoundry/nodejs-buildpack.git
       - https://github.com/cloudfoundry/python-buildpack.git
-    services:
-      - pg-trade-access-dev
