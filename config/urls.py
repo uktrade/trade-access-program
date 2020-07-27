@@ -26,6 +26,7 @@ urlpatterns = [
         "assets/<path:asset_path>",
         RedirectView.as_view(url="/static/govuk/assets/%(asset_path)s"),
     ),
+    path('auth/', include('authbroker_client.urls')),
 
     # Viewflow urls includes django '/admin' and '/accounts'
     path('', include(viewflow_frontend_urls)),

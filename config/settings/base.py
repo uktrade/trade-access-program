@@ -14,6 +14,8 @@ import os
 import environ
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from django.urls import reverse_lazy
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 env = environ.Env()
@@ -40,6 +42,8 @@ TAP_APPS = [
 ]
 
 INSTALLED_APPS = [
+    'authbroker_client',  # django-staff-sso-client
+
     # material
     'material.theme.bluegrey',
     'material',
@@ -158,6 +162,20 @@ STATICFILES_DIRS = [
 SASS_PROCESSOR_INCLUDE_DIRS = [
     os.path.join(BASE_DIR, '..', 'node_modules'),
 ]
+
+# authbroker config
+AUTHBROKER_URL = env('AUTHBROKER_URL', default=None)
+AUTHBROKER_CLIENT_ID = env('AUTHBROKER_CLIENT_ID', default=None)
+AUTHBROKER_CLIENT_SECRET = env('AUTHBROKER_CLIENT_SECRET', default=None)
+AUTHBROKER_SCOPES = 'read write'
+
+AUTHENTICATION_BACKENDS = [
+    'authbroker_client.backends.AuthbrokerBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+LOGIN_URL = reverse_lazy('authbroker_client:login')
+LOGIN_REDIRECT_URL = reverse_lazy('viewflow:index')
 
 # https://www.django-rest-framework.org/
 REST_FRAMEWORK = {
