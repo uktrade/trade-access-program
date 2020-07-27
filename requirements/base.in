@@ -10,6 +10,7 @@ django-viewflow==1.6.0
 djangorestframework==3.11.0
 gunicorn==19.9.0
 libsass==0.20.0
+notifications-python-client==5.6.0
 psycopg2==2.8.5
 requests==2.24.0
 sentry-sdk==0.10.2

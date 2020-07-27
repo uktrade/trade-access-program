@@ -198,3 +198,6 @@ GRANT_VALUE_DECIMAL_PRECISION = {
     'max_digits': 6,
     'decimal_places': 2,
 }
+
+NOTIFY_API_KEY = env('NOTIFY_API_KEY', default='')
+NOTIFY_ENABLED = False
