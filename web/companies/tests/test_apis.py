@@ -5,6 +5,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CR
 
 from web.companies.serializers import DnbServiceClient
 from web.tests.factories.companies import CompanyFactory
+from web.tests.factories.users import UserFactory
 from web.tests.helpers import BaseAPITestCase
 
 
@@ -12,7 +13,8 @@ from web.tests.helpers import BaseAPITestCase
 class CompaniesApiTests(BaseAPITestCase):
 
     def setUp(self):
-        super().setUpClass()
+        super().setUp()
+        self.client.force_login(UserFactory())
         self.company = CompanyFactory(dnb_service_duns_number=1)
 
     def test_get_company(self, *mocks):
@@ -43,6 +45,10 @@ class CompaniesApiTests(BaseAPITestCase):
     return_value=[{'primary_name': 'fake-name-1', 'x': 1}, {'primary_name': 'fake-name-2', 'y': 2}]
 )
 class SearchCompaniesApiTests(BaseAPITestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.client.force_login(UserFactory())
 
     def test_search_company_names(self, *mocks):
         response = self.client.get(reverse('companies-search'), {'search_term': 'fake-name'})

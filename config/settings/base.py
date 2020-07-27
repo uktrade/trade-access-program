@@ -43,6 +43,7 @@ TAP_APPS = [
 
 INSTALLED_APPS = [
     'authbroker_client',  # django-staff-sso-client
+    'custom_usermodel',  # django-staff-sso-usermodel
 
     # material
     'material.theme.bluegrey',
@@ -73,6 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'authbroker_client.middleware.ProtectAllViewsMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -94,6 +96,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+
+AUTH_USER_MODEL = 'custom_usermodel.User'
+CAN_ELEVATE_SSO_USER_PERMISSIONS = False
+CAN_CREATE_TEST_USER = False
 
 
 # Database
