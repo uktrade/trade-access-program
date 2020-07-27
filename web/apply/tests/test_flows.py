@@ -1,5 +1,5 @@
 from datetime import timedelta
-from unittest.mock import patch
+from unittest.mock import patch, create_autospec
 from urllib.parse import urlencode
 
 from dateutil.utils import today
@@ -10,10 +10,12 @@ from web.apply.flows import ApplyFlow
 from web.apply.models import ApplicationProcess
 from web.apply.views import ConfirmationView, DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
+from web.core.notify import NotifyService
 from web.tests.factories.users import UserFactory
 from web.tests.helpers import BaseTestCase
 
 
+@patch('web.apply.views.NotifyService')
 @patch.object(DnbServiceClient, 'get_company', return_value={'primary_name': 'company-1'})
 @patch.object(
     DnbServiceClient, 'search_companies',
@@ -101,3 +103,13 @@ class TestApplyFlowSubmit(BaseTestCase):
                 'apply:confirmation', args=(ApplicationProcess.objects.first().pk,)
             )
         )
+
+    def test_submit_page_post_sends_email_notification(self, *mocks):
+        notify_service = create_autospec(NotifyService)
+        mocks[2].return_value = notify_service
+        self.client.post(
+            self.flow_submit_url,
+            data=urlencode(self.flow_submit_post_data),
+            content_type='application/x-www-form-urlencoded',
+        )
+        notify_service.send_application_submitted_email.assert_called()

@@ -9,6 +9,7 @@ from web.companies.models import Company
 from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
 from web.core.mixins import FlowFormSubmitMixin
+from web.core.notify import NotifyService
 
 
 def _get_company_select_choices(search_term):
@@ -85,6 +86,13 @@ class SubmitApplicationView(FlowFormSubmitMixin, StartFlowMixin, FormView):
                 'duns_number': self.request.GET['duns_number'],
             }
         return context
+
+    def form_valid(self, form):
+        NotifyService().send_application_submitted_email(
+            email_address=self.request.user.email,
+            applicant_full_name=form.cleaned_data['applicant_full_name']
+        )
+        return super().form_valid(form)
 
 
 class ConfirmationView(TemplateView):
