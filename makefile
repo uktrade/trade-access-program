@@ -30,7 +30,10 @@ django-%:  ## Run a Django manage command in the web service. eg. `make django-m
 	docker-compose run web python manage.py $*
 
 shell:  ## Open a Django python shell in the web service
-	$(MAKE) manage-shell
+	$(MAKE) django-shell
+
+elevate:  ## Elevate a user account to admin (required because we use django-staff-sso-client and django-staff-sso-usermodel)
+	$(MAKE) django-elevate_sso_user_permissions
 
 
 ##@ pip-tools

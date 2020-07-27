@@ -1,4 +1,5 @@
 Django==3.0.7
+custom-usermodel @ git+https://github.com/uktrade/django-staff-sso-usermodel.git@c8d0c0ed17c2b39464b98b3cf93660a4db7d67a1
 django-compressor==2.4
 django-environ==0.4.5
 django-filter==2.3.0
@@ -11,5 +12,5 @@ gunicorn==19.9.0
 libsass==0.20.0
 psycopg2==2.8.5
 requests==2.24.0
-whitenoise==5.1.0
 sentry-sdk==0.10.2
+whitenoise==5.1.0
