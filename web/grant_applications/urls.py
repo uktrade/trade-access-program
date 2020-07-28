@@ -1,6 +1,6 @@
 from django.urls import path
 
-from web.apply.views import (
+from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, ConfirmationView, SubmitApplicationView
 )
 

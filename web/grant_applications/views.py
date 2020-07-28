@@ -4,8 +4,8 @@ from django.utils.http import urlencode
 from django.views.generic import FormView
 from django.views.generic.base import TemplateView
 
-from web.apply.flows import ApplyFlow
-from web.apply.forms import SubmitApplicationForm, SearchCompanyForm, SelectCompanyForm
+from web.grant_management.flows import GrantApplicationFlow
+from web.grant_applications.forms import SubmitApplicationForm, SearchCompanyForm, SelectCompanyForm
 from web.companies.models import Company
 from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
@@ -31,7 +31,7 @@ class SearchCompanyView(FormView):
     template_name = 'apply/search_company.html'
 
     def get_success_url(self):
-        return reverse('apply:select-company') + f'?{urlencode(self.extra_context)}'
+        return reverse('grant_applications:select-company') + f'?{urlencode(self.extra_context)}'
 
     def form_valid(self, form):
         self.extra_context = {'search_term': form.cleaned_data['search_term']}
@@ -43,7 +43,7 @@ class SelectCompanyView(FormView):
     template_name = 'apply/select_company.html'
 
     def get_success_url(self):
-        return reverse('apply:submit-application') + f'?{urlencode(self.extra_context)}'
+        return reverse('grant_applications:submit-application') + f'?{urlencode(self.kwargs)}'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -60,7 +60,7 @@ class SelectCompanyView(FormView):
     def form_valid(self, form):
         duns_number = form.cleaned_data['duns_number']
         Company.objects.get_or_create(dnb_service_duns_number=duns_number)
-        self.extra_context = {'duns_number': duns_number}
+        self.kwargs['duns_number'] = duns_number
         return super().form_valid(form)
 
 
@@ -69,7 +69,7 @@ class SubmitApplicationView(FormView):
     template_name = 'apply/submit_application.html'
 
     def get_success_url(self):
-        return reverse('apply:confirmation', kwargs=self.kwargs)
+        return reverse('grant_applications:confirmation', kwargs=self.kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -86,7 +86,7 @@ class SubmitApplicationView(FormView):
 
     def form_valid(self, form):
         with transaction.atomic():
-            process = ApplyFlow.start.run(fields=form.cleaned_data)
+            process = GrantApplicationFlow.start.run(fields=form.cleaned_data)
             self.kwargs['process_pk'] = process.pk
             return super().form_valid(form)
 

@@ -12,7 +12,7 @@ def is_in_future(value):
         raise ValidationError('Event date must be in the future.')
 
 
-class ApplicationProcess(Process):
+class GrantApplicationProcess(Process):
     company = models.ForeignKey('companies.Company', on_delete=PROTECT, null=True)
 
     applicant_full_name = models.TextField(null=True)

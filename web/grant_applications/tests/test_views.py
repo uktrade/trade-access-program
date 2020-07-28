@@ -7,9 +7,11 @@ from django.forms import Field
 from django.urls import reverse, resolve
 from rest_framework.status import HTTP_200_OK, HTTP_302_FOUND
 
-from web.apply.models import ApplicationProcess
-from web.apply.views import SearchCompanyView, SelectCompanyView, DnbServiceClient, ConfirmationView
 from web.core.exceptions import DnbServiceClientException
+from web.grant_applications.views import (
+    SearchCompanyView, SelectCompanyView, DnbServiceClient, ConfirmationView
+)
+from web.grant_management.models import GrantApplicationProcess
 from web.tests.factories.users import UserFactory
 from web.tests.helpers import BaseTestCase
 
@@ -96,13 +98,13 @@ class TestSelectCompanyView(BaseTestCase):
         self.assertTemplateUsed(response, 'apply/submit_application.html')
 
 
-@patch('web.apply.flows.NotifyService')
+@patch('web.grant_management.flows.NotifyService')
 @patch.object(DnbServiceClient, 'get_company', return_value={'primary_name': 'company-1'})
 @patch.object(
     DnbServiceClient, 'search_companies',
     return_value=[{'primary_name': 'company-1', 'duns_number': 1}]
 )
-class TestApplyFlowSubmit(BaseTestCase):
+class TestGrantApplicationFlowSubmit(BaseTestCase):
 
     def setUp(self):
         self.user = UserFactory()
@@ -149,7 +151,7 @@ class TestApplyFlowSubmit(BaseTestCase):
 
         self.assertEqual(response.status_code, HTTP_302_FOUND)
         redirect_kwargs = resolve(response.url).kwargs
-        apply_process = ApplicationProcess.objects.get(pk=redirect_kwargs['process_pk'])
+        apply_process = GrantApplicationProcess.objects.get(pk=redirect_kwargs['process_pk'])
 
         self.assertEqual(apply_process.applicant_full_name, 'A Name')
         self.assertEqual(apply_process.applicant_email, 'test@test.com')
@@ -177,6 +179,6 @@ class TestApplyFlowSubmit(BaseTestCase):
         self.assertRedirects(
             response=response,
             expected_url=reverse(
-                'apply:confirmation', args=(ApplicationProcess.objects.first().pk,)
+                'apply:confirmation', args=(GrantApplicationProcess.objects.first().pk,)
             )
         )
