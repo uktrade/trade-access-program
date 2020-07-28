@@ -35,10 +35,19 @@ class SubmitApplicationForm(forms.ModelForm):
 
     class Meta:
         model = ApplicationProcess
-        fields = ['applicant_full_name', 'event_name', 'event_date', 'requested_amount']
+        fields = [
+            'applicant_full_name', 'applicant_email', 'event_name', 'event_date',
+            'requested_amount'
+        ]
         widgets = {
             'applicant_full_name': forms.TextInput(
                 attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+            ),
+            'applicant_email': forms.TextInput(
+                attrs={
+                    'class': 'govuk-input govuk-!-width-two-thirds',
+                    'type': 'email',
+                }
             ),
             'event_name': forms.TextInput(
                 attrs={'class': 'govuk-input govuk-!-width-two-thirds'}

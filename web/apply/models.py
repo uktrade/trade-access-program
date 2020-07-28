@@ -16,6 +16,7 @@ class ApplicationProcess(Process):
     company = models.ForeignKey('companies.Company', on_delete=PROTECT, null=True)
 
     applicant_full_name = models.TextField(null=True)
+    applicant_email = models.EmailField(null=True)
     event_name = models.TextField(null=True)
     event_date = models.DateField(null=True, validators=[is_in_future])
     requested_amount = models.DecimalField(
@@ -28,4 +29,3 @@ class ApplicationProcess(Process):
     )
 
     approved = models.BooleanField(default=False)
-    approved_at = models.DateTimeField(null=True)
