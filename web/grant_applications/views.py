@@ -28,7 +28,7 @@ def _get_company_select_choices(search_term):
 
 class SearchCompanyView(FormView):
     form_class = SearchCompanyForm
-    template_name = 'apply/search_company.html'
+    template_name = 'grant_applications/search_company.html'
 
     def get_success_url(self):
         return reverse('grant_applications:select-company') + f'?{urlencode(self.extra_context)}'
@@ -40,7 +40,7 @@ class SearchCompanyView(FormView):
 
 class SelectCompanyView(FormView):
     form_class = SelectCompanyForm
-    template_name = 'apply/select_company.html'
+    template_name = 'grant_applications/select_company.html'
 
     def get_success_url(self):
         return reverse('grant_applications:submit-application') + f'?{urlencode(self.kwargs)}'
@@ -66,7 +66,7 @@ class SelectCompanyView(FormView):
 
 class SubmitApplicationView(FormView):
     form_class = SubmitApplicationForm
-    template_name = 'apply/submit_application.html'
+    template_name = 'grant_applications/submit_application.html'
 
     def get_success_url(self):
         return reverse('grant_applications:confirmation', kwargs=self.kwargs)
@@ -92,4 +92,4 @@ class SubmitApplicationView(FormView):
 
 
 class ConfirmationView(TemplateView):
-    template_name = 'apply/confirmation.html'
+    template_name = 'grant_applications/confirmation.html'
