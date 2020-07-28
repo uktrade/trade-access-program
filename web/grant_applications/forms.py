@@ -1,6 +1,6 @@
 from django import forms
 
-from web.apply.models import ApplicationProcess
+from web.grant_management.models import GrantApplicationProcess
 
 
 class SearchCompanyForm(forms.Form):
@@ -34,7 +34,7 @@ class SelectCompanyForm(forms.Form):
 class SubmitApplicationForm(forms.ModelForm):
 
     class Meta:
-        model = ApplicationProcess
+        model = GrantApplicationProcess
         fields = [
             'applicant_full_name', 'applicant_email', 'event_name', 'event_date',
             'requested_amount'

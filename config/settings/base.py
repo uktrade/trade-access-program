@@ -36,9 +36,10 @@ VCAP_APPLICATION = env.json('VCAP_APPLICATION', default={})
 # Application definition
 
 TAP_APPS = [
-    'web.apply',
-    'web.core',
     'web.companies',
+    'web.core',
+    'web.grant_applications',
+    'web.grant_management',
 ]
 
 INSTALLED_APPS = [

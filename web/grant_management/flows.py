@@ -3,13 +3,13 @@ from viewflow import flow, frontend
 from viewflow.base import this, Flow
 from viewflow.flow.views import UpdateProcessView
 
-from web.apply.models import ApplicationProcess
+from web.grant_management.models import GrantApplicationProcess
 from web.core.notify import NotifyService
 
 
 @frontend.register
-class ApplyFlow(Flow):
-    process_class = ApplicationProcess
+class GrantApplicationFlow(Flow):
+    process_class = GrantApplicationProcess
 
     start = flow.StartFunction(
         this.start_callback, task_title='Submit your application.'
