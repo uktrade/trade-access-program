@@ -26,7 +26,7 @@ class TestSearchCompanyView(BaseTestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.url = reverse('apply:search-company')
+        self.url = reverse('grant_applications:search-company')
 
     def test_search_company_get_template(self, *mocks):
         response = self.client.get(self.url)
@@ -42,7 +42,7 @@ class TestSearchCompanyView(BaseTestCase):
         self.assertEqual(response.status_code, HTTP_302_FOUND)
         self.assertRedirects(
             response,
-            expected_url=reverse('apply:select-company') + '?search_term=company-1'
+            expected_url=reverse('grant_applications:select-company') + '?search_term=company-1'
         )
 
     def test_search_company_post_form_redirect_template(self, *mocks):
@@ -61,7 +61,7 @@ class TestSelectCompanyView(BaseTestCase):
     def setUp(self):
         self.user = UserFactory()
         self.client.force_login(self.user)
-        self.url = reverse('apply:select-company')
+        self.url = reverse('grant_applications:select-company')
 
     def test_select_company_get_template(self, *mocks):
         response = self.client.get(self.url, data={'search_term': 'company-1'})
@@ -88,14 +88,14 @@ class TestSelectCompanyView(BaseTestCase):
         self.assertEqual(response.status_code, HTTP_302_FOUND)
         self.assertRedirects(
             response,
-            expected_url=reverse('apply:submit-application') + '?duns_number=1'
+            expected_url=reverse('grant_applications:submit-application') + '?duns_number=1'
         )
 
     def test_select_company_post_form_redirect_template(self, *mocks):
         self.set_session_value('search_term', 'company-1')
         response = self.client.post(self.url, {'duns_number': 1}, follow=True)
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertTemplateUsed(response, 'apply/submit_application.html')
+        self.assertTemplateUsed(response, 'grant_applications/submit_application.html')
 
 
 @patch('web.grant_management.flows.NotifyService')
@@ -110,7 +110,7 @@ class TestGrantApplicationFlowSubmit(BaseTestCase):
         self.user = UserFactory()
         self.client.force_login(self.user)
 
-        self.url = reverse('apply:submit-application') + '?duns_number=1'
+        self.url = reverse('grant_applications:submit-application') + '?duns_number=1'
         self.tomorrow = today() + timedelta(days=1)
         self.flow_submit_post_data = {
             'applicant_full_name': 'A Name',
@@ -125,7 +125,7 @@ class TestGrantApplicationFlowSubmit(BaseTestCase):
     def test_submit_page_get(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertTemplateUsed(response, 'apply/submit_application.html')
+        self.assertTemplateUsed(response, 'grant_applications/submit_application.html')
 
     def test_submit_page_get_dnb_service_exception(self, *mocks):
         mocks[1].side_effect = [DnbServiceClientException]
@@ -151,13 +151,13 @@ class TestGrantApplicationFlowSubmit(BaseTestCase):
 
         self.assertEqual(response.status_code, HTTP_302_FOUND)
         redirect_kwargs = resolve(response.url).kwargs
-        apply_process = GrantApplicationProcess.objects.get(pk=redirect_kwargs['process_pk'])
+        process = GrantApplicationProcess.objects.get(pk=redirect_kwargs['process_pk'])
 
-        self.assertEqual(apply_process.applicant_full_name, 'A Name')
-        self.assertEqual(apply_process.applicant_email, 'test@test.com')
-        self.assertEqual(apply_process.event_date, self.tomorrow.date())
-        self.assertEqual(apply_process.event_name, 'An Event')
-        self.assertEqual(apply_process.requested_amount, 500)
+        self.assertEqual(process.applicant_full_name, 'A Name')
+        self.assertEqual(process.applicant_email, 'test@test.com')
+        self.assertEqual(process.event_date, self.tomorrow.date())
+        self.assertEqual(process.event_name, 'An Event')
+        self.assertEqual(process.requested_amount, 500)
 
     def test_submit_page_post_redirects(self, *mocks):
         response = self.client.post(
@@ -179,6 +179,7 @@ class TestGrantApplicationFlowSubmit(BaseTestCase):
         self.assertRedirects(
             response=response,
             expected_url=reverse(
-                'apply:confirmation', args=(GrantApplicationProcess.objects.first().pk,)
+                'grant_applications:confirmation',
+                args=(GrantApplicationProcess.objects.first().pk,)
             )
         )

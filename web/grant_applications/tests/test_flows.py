@@ -39,7 +39,7 @@ class TestGrantApplicationFlow(BaseTestCase):
     def test_submit_page_is_start_of_process(self, *mocks):
         self.assertTrue(GrantApplicationFlow.start.task_type, 'START')
 
-    def test_submit_page_starts_apply_flow_process(self, *mocks):
+    def test_submit_page_starts_grant_applications_flow_process(self, *mocks):
         response = self.client.post(
             self.url,
             data=urlencode(self.flow_submit_post_data),

@@ -4,7 +4,7 @@ from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, ConfirmationView, SubmitApplicationView
 )
 
-app_name = 'apply'
+app_name = 'grant_applications'
 
 urlpatterns = [
     path('search-company/', SearchCompanyView.as_view(), name='search-company'),
