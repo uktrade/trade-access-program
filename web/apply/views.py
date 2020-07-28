@@ -1,15 +1,14 @@
+from django.db import transaction
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.views.generic import FormView
 from django.views.generic.base import TemplateView
-from viewflow.flow.views import StartFlowMixin
 
+from web.apply.flows import ApplyFlow
 from web.apply.forms import SubmitApplicationForm, SearchCompanyForm, SelectCompanyForm
 from web.companies.models import Company
 from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
-from web.core.mixins import FlowFormSubmitMixin
-from web.core.notify import NotifyService
 
 
 def _get_company_select_choices(search_term):
@@ -44,7 +43,7 @@ class SelectCompanyView(FormView):
     template_name = 'apply/select_company.html'
 
     def get_success_url(self):
-        return reverse('viewflow:apply:apply:submit') + f'?{urlencode(self.extra_context)}'
+        return reverse('apply:submit-application') + f'?{urlencode(self.extra_context)}'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -65,14 +64,12 @@ class SelectCompanyView(FormView):
         return super().form_valid(form)
 
 
-class SubmitApplicationView(FlowFormSubmitMixin, StartFlowMixin, FormView):
+class SubmitApplicationView(FormView):
     form_class = SubmitApplicationForm
+    template_name = 'apply/submit_application.html'
 
     def get_success_url(self):
-        """Send user outside of viewflow urls confirmation page."""
-        if '_continue' in self.request.POST and self.activation.process.pk:
-            return reverse('apply:confirmation', args=(self.activation.process.pk,))
-        return super().get_success_url()
+        return reverse('apply:confirmation', kwargs=self.kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -88,11 +85,10 @@ class SubmitApplicationView(FlowFormSubmitMixin, StartFlowMixin, FormView):
         return context
 
     def form_valid(self, form):
-        NotifyService().send_application_submitted_email(
-            email_address=self.request.user.email,
-            applicant_full_name=form.cleaned_data['applicant_full_name']
-        )
-        return super().form_valid(form)
+        with transaction.atomic():
+            process = ApplyFlow.start.run(fields=form.cleaned_data)
+            self.kwargs['process_pk'] = process.pk
+            return super().form_valid(form)
 
 
 class ConfirmationView(TemplateView):
