@@ -1,26 +1,22 @@
 {% extends "core/base.html" %}
 
-{% block title %}Confirmation page example{% endblock %}
-
 {% block content %}
 
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
 
       <div class="govuk-panel govuk-panel--confirmation">
-        <h1 class="govuk-panel__title">Application complete</h1>
+        <h1 class="govuk-panel__title">{{ page.panel_title }}</h1>
         <div class="govuk-panel__body">
-          Your reference number<br><strong>{{ view.kwargs.process_pk }}</strong>
+          {{ page.panel_ref_text }}<br><strong>{{ view.kwargs.process_pk }}</strong>
         </div>
       </div>
 
-      <p>
-        We have sent you a confirmation email.
-      </p>
+      <p>{{ page.confirmation_email_text }}</p>
 
-      <h2 class="govuk-heading-m">What happens next</h2>
-      <p>We've sent your application to the Trade Access Program team.</p>
-      <p>They will contact you either to confirm your registration, or to ask for more information.</p>
+      <h2 class="govuk-heading-m">{{ page.next_steps_heading }}</h2>
+      <p>{{ page.next_steps_line_1 }}</p>
+      <p>{{ page.next_steps_line_2 }}</p>
 
     </div>
   </div>

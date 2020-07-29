@@ -3,7 +3,7 @@
 
 {% block content %}
 
-  <h2 class="govuk-heading-m">Application Form</h2>
+  <h2 class="govuk-heading-m">{{ page.page_heading }}</h2>
 
   {% include "grant_applications/company_table.html" %}
 
@@ -12,7 +12,9 @@
     {% include "core/govt_uk_form.html" %}
     {{ activation.management_form }}
     <div class="right">
-      <button type="submit" name="_continue" class="govuk-button" data-module="govuk-button">Submit</button>
+      <button class="govuk-button" data-module="govuk-button">
+        {{ page.button_text | default:"Continue" }}
+      </button>
     </div>
   </form>
 

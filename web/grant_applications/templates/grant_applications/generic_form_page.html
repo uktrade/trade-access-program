@@ -1,0 +1,15 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+
+  <h2 class="govuk-heading-m">{{ page.page_heading }}</h2>
+
+  <form class="form" method="POST">
+    {% csrf_token %}
+    {% include "core/govt_uk_form.html" %}
+    <button class="govuk-button" data-module="govuk-button">
+      {{ page.button_text | default:"Continue" }}
+    </button>
+  </form>
+
+{% endblock %}

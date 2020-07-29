@@ -9,10 +9,9 @@ from rest_framework.status import HTTP_200_OK, HTTP_302_FOUND
 
 from web.core.exceptions import DnbServiceClientException
 from web.grant_applications.views import (
-    SearchCompanyView, SelectCompanyView, DnbServiceClient, ConfirmationView
+    SearchCompanyView, SelectCompanyView, DnbServiceClient, ConfirmationView, SubmitApplicationView
 )
 from web.grant_management.models import GrantApplicationProcess
-from web.tests.factories.users import UserFactory
 from web.tests.helpers import BaseTestCase
 
 
@@ -24,8 +23,6 @@ from web.tests.helpers import BaseTestCase
 class TestSearchCompanyView(BaseTestCase):
 
     def setUp(self):
-        self.user = UserFactory()
-        self.client.force_login(self.user)
         self.url = reverse('grant_applications:search-company')
 
     def test_search_company_get_template(self, *mocks):
@@ -59,8 +56,6 @@ class TestSearchCompanyView(BaseTestCase):
 class TestSelectCompanyView(BaseTestCase):
 
     def setUp(self):
-        self.user = UserFactory()
-        self.client.force_login(self.user)
         self.url = reverse('grant_applications:select-company')
 
     def test_select_company_get_template(self, *mocks):
@@ -95,7 +90,7 @@ class TestSelectCompanyView(BaseTestCase):
         self.set_session_value('search_term', 'company-1')
         response = self.client.post(self.url, {'duns_number': 1}, follow=True)
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertTemplateUsed(response, 'grant_applications/submit_application.html')
+        self.assertTemplateUsed(response, SubmitApplicationView.template_name)
 
 
 @patch('web.grant_management.flows.NotifyService')
@@ -107,9 +102,6 @@ class TestSelectCompanyView(BaseTestCase):
 class TestGrantApplicationFlowSubmit(BaseTestCase):
 
     def setUp(self):
-        self.user = UserFactory()
-        self.client.force_login(self.user)
-
         self.url = reverse('grant_applications:submit-application') + '?duns_number=1'
         self.tomorrow = today() + timedelta(days=1)
         self.flow_submit_post_data = {
@@ -125,7 +117,7 @@ class TestGrantApplicationFlowSubmit(BaseTestCase):
     def test_submit_page_get(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertTemplateUsed(response, 'grant_applications/submit_application.html')
+        self.assertTemplateUsed(response, SubmitApplicationView.template_name)
 
     def test_submit_page_get_dnb_service_exception(self, *mocks):
         mocks[1].side_effect = [DnbServiceClientException]

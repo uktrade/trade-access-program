@@ -14,7 +14,6 @@ class CompaniesApiTests(BaseAPITestCase):
 
     def setUp(self):
         super().setUp()
-        self.client.force_login(UserFactory())
         self.company = CompanyFactory(dnb_service_duns_number=1)
 
     def test_get_company(self, *mocks):
