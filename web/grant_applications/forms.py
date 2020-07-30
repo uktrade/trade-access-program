@@ -89,3 +89,16 @@ class AboutTheEventForm(forms.ModelForm):
         label=_('Will you receive or are you applying for any other'
                 'financial support for this event?')
     )
+
+
+class PreviousApplicationsForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplication
+        fields = ['has_previously_applied']
+
+    has_previously_applied = forms.BooleanField(
+        required=True,
+        widget=widgets.BooleanRadioSelect(),
+        label=_('Is this the first time you have applied for a TAP grant?')
+    )

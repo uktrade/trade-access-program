@@ -10,3 +10,4 @@ class GrantApplication(BaseMetaModel):
     event = models.TextField(null=True)
     is_already_committed_to_event = models.BooleanField(null=True)
     is_intending_on_other_financial_support = models.BooleanField(null=True)
+    has_previously_applied = models.BooleanField(null=True)
