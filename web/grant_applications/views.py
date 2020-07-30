@@ -1,17 +1,17 @@
-from django.db import transaction
+from django.forms import models as model_forms
 from django.urls import reverse
 from django.utils.http import urlencode
-from django.views.generic import FormView
+from django.utils.translation import gettext_lazy as _
+from django.views.generic import FormView, UpdateView, CreateView
 from django.views.generic.base import TemplateView
 
-from web.core.view_mixins import PageContextMixin
-from web.grant_management.flows import GrantApplicationFlow
-from web.grant_applications.forms import SubmitApplicationForm, SearchCompanyForm, SelectCompanyForm
-from web.companies.models import Company
 from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
-
-from django.utils.translation import gettext_lazy as _
+from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin
+from web.grant_applications.forms import SearchCompanyForm, SelectCompanyForm, AboutYouForm, \
+    AboutTheEventForm
+from web.grant_applications.models import GrantApplication
+from web.grant_management.flows import GrantApplicationFlow
 
 
 def _get_company_select_choices(search_term):
@@ -33,74 +33,114 @@ class SearchCompanyView(PageContextMixin, FormView):
     form_class = SearchCompanyForm
     template_name = 'grant_applications/generic_form_page.html'
     page = {
-        'page_heading': _('Search for your company')
+        'heading': _('Search for your company')
     }
 
     def get_success_url(self):
         return reverse('grant_applications:select-company') + f'?{urlencode(self.extra_context)}'
 
     def form_valid(self, form):
+        self.request.session['search_term'] = form.cleaned_data['search_term']
         self.extra_context = {'search_term': form.cleaned_data['search_term']}
         return super().form_valid(form)
 
 
-class SelectCompanyView(PageContextMixin, FormView):
+class SelectCompanyView(PageContextMixin, SuccessUrlObjectPkMixin, CreateView):
     form_class = SelectCompanyForm
     template_name = 'grant_applications/generic_form_page.html'
+    success_url_name = 'grant_applications:about-your-business'
     page = {
-        'page_heading': _('Select your company')
+        'heading': _('Select your company')
     }
-
-    def get_success_url(self):
-        return reverse('grant_applications:submit-application') + f'?{urlencode(self.kwargs)}'
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-
-        if self.request.method == 'GET':
-            self.request.session['search_term'] = self.request.GET['search_term']
-
         kwargs['company_choices'] = _get_company_select_choices(
-            search_term=self.request.session['search_term']
+            search_term=self.request.GET.get('search_term') or self.request.session['search_term']
         )
-
         return kwargs
 
-    def form_valid(self, form):
-        duns_number = form.cleaned_data['duns_number']
-        Company.objects.get_or_create(dnb_service_duns_number=duns_number)
-        self.kwargs['duns_number'] = duns_number
-        return super().form_valid(form)
 
-
-class SubmitApplicationView(PageContextMixin, FormView):
-    form_class = SubmitApplicationForm
-    template_name = 'grant_applications/submit_application.html'
+class AboutYourBusinessView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
+    model = GrantApplication
+    fields = []
+    template_name = 'grant_applications/about_your_business.html'
+    success_url_name = 'grant_applications:about-you'
     page = {
-        'page_heading': _('Application Form')
+        'heading': _('About your business')
     }
-
-    def get_success_url(self):
-        return reverse('grant_applications:confirmation', kwargs=self.kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         try:
             context['company'] = DnbServiceClient().get_company(
-                duns_number=self.request.GET['duns_number']
+                duns_number=self.object.duns_number
             )
         except DnbServiceClientException:
             context['company'] = {
                 'primary_name': 'Could not retrieve company name.',
-                'duns_number': self.request.GET['duns_number'],
+                'duns_number': self.object.duns_number,
             }
         return context
 
+
+class AboutYouView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
+    model = GrantApplication
+    form_class = AboutYouForm
+    template_name = 'grant_applications/generic_form_page.html'
+    success_url_name = 'grant_applications:about-the-event'
+    page = {
+        'heading': _('About you')
+    }
+
+
+class AboutTheEventView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
+    model = GrantApplication
+    form_class = AboutTheEventForm
+    template_name = 'grant_applications/generic_form_page.html'
+    success_url_name = 'grant_applications:application-review'
+    page = {
+        'heading': _('What event are you intending to exhibit at?')
+    }
+
+
+class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
+    model = GrantApplication
+    fields = []
+    template_name = 'grant_applications/application_review.html'
+    page = {
+        'heading': _('Review your application')
+    }
+
+    def get_success_url(self):
+        return reverse(
+            'grant_applications:confirmation',
+            kwargs={
+                'pk': self.object.pk,
+                'process_pk': self.process.pk,
+            }
+        )
+
+    def _generate_summary_list(self):
+        ga_form = model_forms.modelform_factory(GrantApplication, fields='__all__')
+        summary_list = [
+            {'key': v.label, 'value': getattr(self.object, k)}
+            for k, v in ga_form.base_fields.items()
+        ]
+        summary_list[-1]['action'] = {
+            'text': _('Change'),
+            'url': reverse('grant_applications:search-company'),
+        }
+        return summary_list
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['summary_list'] = self._generate_summary_list()
+        return context
+
     def form_valid(self, form):
-        with transaction.atomic():
-            process = GrantApplicationFlow.start.run(fields=form.cleaned_data)
-            self.kwargs['process_pk'] = process.pk
-            return super().form_valid(form)
+        self.process = GrantApplicationFlow.start.run(grant_application=self.object)
+        return super().form_valid(form)
 
 
 class ConfirmationView(PageContextMixin, TemplateView):

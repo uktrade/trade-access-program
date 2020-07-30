@@ -1,0 +1,26 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+
+<h2 class="govuk-heading-m">{{ page.heading }}</h2>
+
+<dl class="govuk-summary-list">
+  {% for row in summary_list %}
+    <div class="govuk-summary-list__row">
+      <dt class="govuk-summary-list__key">{{ row.key }}</dt>
+      <dd class="govuk-summary-list__value">{{ row.value }}</dd>
+      <dd class="govuk-summary-list__actions">
+        <a class="govuk-link" href="{{ row.action.url }}">
+          {{ row.action.text }}<span class="govuk-visually-hidden"> {{ row.key }}</span>
+        </a>
+      </dd>
+    </div>
+  {% endfor %}
+
+  <p></p>
+
+  {% include "grant_applications/generic_form.html" %}
+
+</dl>
+
+{% endblock %}

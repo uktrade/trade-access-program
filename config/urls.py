@@ -33,7 +33,7 @@ urlpatterns = [
 
     # Templates
     path('', TemplateView.as_view(template_name='core/index.html')),
-    path('grant-applications/', include('web.grant_applications.urls', namespace='grant_applications')),
+    path('grant-applications/', include('web.grant_applications.urls', namespace='grant-applications')),
 
     # API
     path('api/', include('web.companies.urls')),
