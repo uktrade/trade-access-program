@@ -1,11 +1,10 @@
 Django==3.0.7
-custom-usermodel @ git+https://github.com/uktrade/django-staff-sso-usermodel.git@c8d0c0ed17c2b39464b98b3cf93660a4db7d67a1
 django-compressor==2.4
 django-environ==0.4.5
 django-filter==2.3.0
 django-material==1.6.3
 django-sass-processor==0.8
-django-staff-sso-client==2.2.0
+git+https://github.com/uktrade/django-staff-sso-client.git@add_email_id_support#egg=django-staff-sso-client
 django-viewflow==1.6.0
 djangorestframework==3.11.0
 gunicorn==19.9.0
