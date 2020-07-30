@@ -19,7 +19,7 @@
         <label class="govuk-label" for="{{ field.name }}">
             {{ field.label }}{% if field.field.required == False %} (optional){% endif %}
         </label>
-        <span id="company-registration-number-hint" class="govuk-hint">
+        <span id="{{ field.name }}-hint" class="govuk-hint">
           {{ field.help_text }}{% if field.field.required == False %} (optional){% endif %}
         </span>
         {% if field.errors %}

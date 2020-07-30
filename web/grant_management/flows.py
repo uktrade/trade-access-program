@@ -26,18 +26,14 @@ class GrantApplicationFlow(Flow):
     end = flow.End()
 
     @method_decorator(flow.flow_start_func)
-    def start_callback(self, activation, fields):
+    def start_callback(self, activation, grant_application):
         activation.prepare()
-
-        for field, value in fields.items():
-            setattr(activation.process, field, value)
-
+        activation.process.grant_application = grant_application
         activation.done()
-
         return activation.process
 
     def send_application_submitted_email_callback(self, activation):
         NotifyService().send_application_submitted_email(
-            email_address=activation.process.applicant_email,
-            applicant_full_name=activation.process.applicant_full_name
+            email_address=activation.process.grant_application.applicant_email,
+            applicant_full_name=activation.process.grant_application.applicant_full_name
         )

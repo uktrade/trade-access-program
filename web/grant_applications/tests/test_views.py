@@ -8,10 +8,11 @@ from django.urls import reverse, resolve
 from rest_framework.status import HTTP_200_OK, HTTP_302_FOUND
 
 from web.core.exceptions import DnbServiceClientException
+from web.grant_applications.models import GrantApplication
 from web.grant_applications.views import (
-    SearchCompanyView, SelectCompanyView, DnbServiceClient, ConfirmationView, SubmitApplicationView
+    SearchCompanyView, SelectCompanyView, DnbServiceClient, AboutYourBusinessView,
+    AboutYouView
 )
-from web.grant_management.models import GrantApplicationProcess
 from web.tests.helpers import BaseTestCase
 
 
@@ -79,18 +80,19 @@ class TestSelectCompanyView(BaseTestCase):
 
     def test_select_company_post_form_redirect_path(self, *mocks):
         self.set_session_value('search_term', 'company-1')
-        response = self.client.post(self.url, {'duns_number': 1})
+        response = self.client.post(self.url, data={'duns_number': 1})
         self.assertEqual(response.status_code, HTTP_302_FOUND)
+        ga = GrantApplication.objects.get(duns_number=1)
         self.assertRedirects(
             response,
-            expected_url=reverse('grant_applications:submit-application') + '?duns_number=1'
+            expected_url=reverse('grant_applications:about-your-business', kwargs={'pk': ga.pk})
         )
 
     def test_select_company_post_form_redirect_template(self, *mocks):
         self.set_session_value('search_term', 'company-1')
         response = self.client.post(self.url, {'duns_number': 1}, follow=True)
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertTemplateUsed(response, SubmitApplicationView.template_name)
+        self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
 
 
 @patch('web.grant_management.flows.NotifyService')
@@ -99,79 +101,133 @@ class TestSelectCompanyView(BaseTestCase):
     DnbServiceClient, 'search_companies',
     return_value=[{'primary_name': 'company-1', 'duns_number': 1}]
 )
-class TestGrantApplicationFlowSubmit(BaseTestCase):
+class TestAboutYourBusinessView(BaseTestCase):
 
     def setUp(self):
-        self.url = reverse('grant_applications:submit-application') + '?duns_number=1'
+        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.url = reverse('grant_applications:about-your-business', kwargs={'pk': self.ga.pk})
         self.tomorrow = today() + timedelta(days=1)
-        self.flow_submit_post_data = {
-            'applicant_full_name': 'A Name',
-            'applicant_email': 'test@test.com',
-            'event_date_day': self.tomorrow.day,
-            'event_date_month': self.tomorrow.month,
-            'event_date_year': self.tomorrow.year,
-            'event_name': 'An Event',
-            'requested_amount': '500'
-        }
 
-    def test_submit_page_get(self, *mocks):
+    def test_get(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertTemplateUsed(response, SubmitApplicationView.template_name)
+        self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
 
-    def test_submit_page_get_dnb_service_exception(self, *mocks):
+    def test_get_dnb_service_exception(self, *mocks):
         mocks[1].side_effect = [DnbServiceClientException]
         response = self.client.get(self.url)
         self.assertIn('Could not retrieve company name.', response.content.decode())
 
-    def test_submit_page_post_event_date_in_future(self, *mocks):
-        yesterday = today() - timedelta(days=1)
-        self.flow_submit_post_data['event_date_day'] = yesterday.day
-        response = self.client.post(
-            self.url,
-            data=urlencode(self.flow_submit_post_data),
-            content_type='application/x-www-form-urlencoded'
-        )
-        self.assertIn('Event date must be in the future.', response.content.decode())
-
-    def test_submit_page_post_data_is_saved(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data=urlencode(self.flow_submit_post_data),
-            content_type='application/x-www-form-urlencoded'
-        )
-
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
-        redirect_kwargs = resolve(response.url).kwargs
-        process = GrantApplicationProcess.objects.get(pk=redirect_kwargs['process_pk'])
-
-        self.assertEqual(process.applicant_full_name, 'A Name')
-        self.assertEqual(process.applicant_email, 'test@test.com')
-        self.assertEqual(process.event_date, self.tomorrow.date())
-        self.assertEqual(process.event_name, 'An Event')
-        self.assertEqual(process.requested_amount, 500)
-
     def test_submit_page_post_redirects(self, *mocks):
         response = self.client.post(
-            self.url,
-            data=urlencode(self.flow_submit_post_data),
-            content_type='application/x-www-form-urlencoded'
+            self.url, content_type='application/x-www-form-urlencoded'
         )
         self.assertEqual(response.status_code, HTTP_302_FOUND)
 
     def test_submit_page_post_redirects_to_confirmation_page(self, *mocks):
         response = self.client.post(
             self.url,
-            data=urlencode(self.flow_submit_post_data),
             content_type='application/x-www-form-urlencoded',
             follow=True
         )
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertTemplateUsed(response, ConfirmationView.template_name)
+        self.assertTemplateUsed(response, AboutYouView.template_name)
         self.assertRedirects(
             response=response,
-            expected_url=reverse(
-                'grant_applications:confirmation',
-                args=(GrantApplicationProcess.objects.first().pk,)
-            )
+            expected_url=reverse('grant_applications:about-you', kwargs={'pk': self.ga.pk})
         )
+
+
+class TestAboutYouView(BaseTestCase):
+
+    def setUp(self):
+        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.url = reverse('grant_applications:about-you', kwargs={'pk': self.ga.pk})
+
+    def test_post_redirects(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'applicant_full_name': 'A Name',
+                'applicant_email': 'test@test.com',
+            })
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+
+    def test_post_data_is_saved(self, *mocks):
+        self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'applicant_full_name': 'A Name',
+                'applicant_email': 'test@test.com',
+            })
+        )
+        self.ga.refresh_from_db()
+        self.assertEqual(self.ga.applicant_full_name, 'A Name')
+        self.assertEqual(self.ga.applicant_email, 'test@test.com')
+
+
+class TestTheEventView(BaseTestCase):
+
+    def setUp(self):
+        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.url = reverse('grant_applications:about-the-event', kwargs={'pk': self.ga.pk})
+
+    def test_post_redirects(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'event': 'Event',
+                'is_already_committed_to_event': True,
+                'is_intending_on_other_financial_support': True,
+            })
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+
+    def test_post_data_is_saved(self, *mocks):
+        self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'event': 'An Event',
+                'is_already_committed_to_event': True,
+                'is_intending_on_other_financial_support': True,
+            })
+        )
+        self.ga.refresh_from_db()
+        self.assertEqual(self.ga.event, 'An Event')
+        self.assertTrue(self.ga.is_already_committed_to_event)
+        self.assertTrue(self.ga.is_intending_on_other_financial_support)
+
+
+@patch('web.grant_management.flows.NotifyService')
+class TestApplicationReviewView(BaseTestCase):
+
+    def setUp(self):
+        self.ga = GrantApplication.objects.create(
+            duns_number=1,
+            applicant_full_name='A Name',
+            applicant_email='test@test.com',
+            event='An Event',
+            is_already_committed_to_event=True,
+            is_intending_on_other_financial_support=False,
+        )
+        self.url = reverse('grant_applications:application-review', kwargs={'pk': self.ga.pk})
+
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertIn('<dl class="govuk-summary-list">', response.content.decode())
+
+    def test_post_redirects(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded'
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        redirect = resolve(response.url)
+        self.assertEqual(redirect.kwargs['pk'], self.ga.id_str)
+        self.assertEqual(redirect.kwargs['process_pk'], str(self.ga.grantapplicationprocess.pk))

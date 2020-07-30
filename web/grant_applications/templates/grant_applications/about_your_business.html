@@ -1,8 +1,10 @@
 {% extends 'core/base.html' %}
+{% load material_form %}
 
 {% block content %}
 
   <h2 class="govuk-heading-m">{{ page.heading }}</h2>
+  {% include "grant_applications/company_table.html" %}
   {% include "grant_applications/generic_form.html" %}
 
 {% endblock %}

@@ -1,62 +1,40 @@
 from datetime import timedelta
 from unittest.mock import patch, create_autospec
-from urllib.parse import urlencode
 
 from dateutil.utils import today
 from django.urls import reverse, resolve
 
-from web.grant_management.flows import GrantApplicationFlow
-from web.grant_applications.views import DnbServiceClient
 from web.core.notify import NotifyService
-from web.tests.factories.users import UserFactory
+from web.grant_applications.models import GrantApplication
+from web.grant_management.flows import GrantApplicationFlow
 from web.tests.helpers import BaseTestCase
 
 
 @patch('web.grant_management.flows.NotifyService')
-@patch.object(DnbServiceClient, 'get_company', return_value={'primary_name': 'company-1'})
-@patch.object(
-    DnbServiceClient, 'search_companies',
-    return_value=[{'primary_name': 'company-1', 'duns_number': 1}]
-)
 class TestGrantApplicationFlow(BaseTestCase):
 
     def setUp(self):
-        self.user = UserFactory()
-        self.client.force_login(self.user)
-
-        self.url = reverse('grant_applications:submit-application') + '?duns_number=1'
+        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.url = reverse('grant_applications:application-review', kwargs={'pk': self.ga.pk})
         self.tomorrow = today() + timedelta(days=1)
-        self.flow_submit_post_data = {
-            'applicant_full_name': 'A Name',
-            'applicant_email': 'test@test.com',
-            'event_date_day': self.tomorrow.day,
-            'event_date_month': self.tomorrow.month,
-            'event_date_year': self.tomorrow.year,
-            'event_name': 'An Event',
-            'requested_amount': '500'
-        }
 
-    def test_submit_page_is_start_of_process(self, *mocks):
+    def test_is_start_of_process(self, *mocks):
         self.assertTrue(GrantApplicationFlow.start.task_type, 'START')
 
-    def test_submit_page_starts_grant_applications_flow_process(self, *mocks):
+    def test_starts_grant_applications_flow_process(self, *mocks):
         response = self.client.post(
-            self.url,
-            data=urlencode(self.flow_submit_post_data),
-            content_type='application/x-www-form-urlencoded'
+            self.url, content_type='application/x-www-form-urlencoded'
         )
-        redirect_kwargs = resolve(response.url).kwargs
-        queryset = GrantApplicationFlow.process_class.objects.filter(
-            pk=redirect_kwargs['process_pk']
-        )
-        self.assertTrue(queryset.exists())
+        self.assertTrue(hasattr(self.ga, 'grantapplicationprocess'))
+        redirect = resolve(response.url)
+        self.assertEqual(redirect.kwargs['pk'], self.ga.id_str)
+        self.assertEqual(redirect.kwargs['process_pk'], str(self.ga.grantapplicationprocess.pk))
 
-    def test_submit_page_post_sends_email_notification(self, *mocks):
+    def test_post_sends_email_notification(self, *mocks):
         notify_service = create_autospec(NotifyService)
-        mocks[2].return_value = notify_service
+        mocks[0].return_value = notify_service
         self.client.post(
             self.url,
-            data=urlencode(self.flow_submit_post_data),
             content_type='application/x-www-form-urlencoded',
         )
         notify_service.send_application_submitted_email.assert_called()
