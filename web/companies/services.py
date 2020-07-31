@@ -1,3 +1,4 @@
+import logging
 from urllib.parse import urljoin
 
 import requests
@@ -6,11 +7,14 @@ from requests.adapters import HTTPAdapter, Retry
 
 from web.core.exceptions import DnbServiceClientException
 
+logger = logging.getLogger()
+
 
 def _raise_for_status(response):
     try:
         response.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError):
+    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+        logger.error(str(e), exc_info=e)
         raise DnbServiceClientException
 
 
