@@ -162,10 +162,10 @@ class BusinessInformationForm(forms.ModelForm):
             'business_name_at_exhibit': forms.TextInput(
                 attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
             ),
-            'turnover': forms.TextInput(
+            'turnover': forms.NumberInput(
                 attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
             ),
-            'number_of_employees': forms.TextInput(
+            'number_of_employees': forms.NumberInput(
                 attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
             ),
             'sector': forms.TextInput(
@@ -207,7 +207,7 @@ class StateAidForm(forms.ModelForm):
             'de_minimis_aid_date_awarded': forms.widgets.SelectDateWidget(
                 attrs={'class': 'govuk-date-input__item govuk-input govuk-input--width-4'},
             ),
-            'de_minimis_aid_amount': forms.TextInput(
+            'de_minimis_aid_amount': forms.NumberInput(
                 attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
             ),
             'de_minimis_aid_description': forms.Textarea(
