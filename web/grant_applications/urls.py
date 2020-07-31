@@ -2,7 +2,8 @@ from django.urls import path
 
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, ConfirmationView, AboutYourBusinessView, AboutYouView,
-    AboutTheEventView, ApplicationReviewView, PreviousApplicationsView, EventIntentionView
+    AboutTheEventView, ApplicationReviewView, PreviousApplicationsView, EventIntentionView,
+    BusinessInformationView
 )
 
 app_name = 'grant_applications'
@@ -19,6 +20,11 @@ urlpatterns = [
         name='previous-applications'
     ),
     path('<pk>/event-intention/', EventIntentionView.as_view(), name='event-intention'),
+    path(
+        '<pk>/business-information/',
+        BusinessInformationView.as_view(),
+        name='business-information'
+    ),
     path('<pk>/application-review/', ApplicationReviewView.as_view(), name='application-review'),
     path('<pk>/confirmation/<process_pk>/', ConfirmationView.as_view(), name='confirmation'),
 ]

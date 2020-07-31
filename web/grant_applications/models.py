@@ -19,3 +19,9 @@ class GrantApplication(BaseMetaModel):
     number_of_times_exhibited_at_event = models.IntegerField(
         null=True, validators=[MinValueValidator(0)]
     )
+    goods_and_services_description = models.TextField(null=True)
+    business_name_at_exhibit = models.CharField(null=True, max_length=500)
+    turnover = models.IntegerField(null=True, validators=[MinValueValidator(1)])
+    number_of_employees = models.IntegerField(null=True, validators=[MinValueValidator(1)])
+    sector = models.CharField(null=True, max_length=500)
+    website = models.CharField(null=True, max_length=500)

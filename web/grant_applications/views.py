@@ -9,7 +9,7 @@ from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
 from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin
 from web.grant_applications.forms import SearchCompanyForm, SelectCompanyForm, AboutYouForm, \
-    AboutTheEventForm, PreviousApplicationsForm, EventIntentionForm
+    AboutTheEventForm, PreviousApplicationsForm, EventIntentionForm, BusinessInformationForm
 from web.grant_applications.models import GrantApplication
 from web.grant_management.flows import GrantApplicationFlow
 
@@ -118,7 +118,7 @@ class EventIntentionView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
     model = GrantApplication
     form_class = EventIntentionForm
     template_name = 'grant_applications/generic_form_page.html'
-    success_url_name = 'grant_applications:application-review'
+    success_url_name = 'grant_applications:business-information'
     page = {
         'heading': _('Your application')
     }
@@ -134,6 +134,16 @@ class EventIntentionView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
             event=self.object.event
         )
         return context
+
+
+class BusinessInformationView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
+    model = GrantApplication
+    form_class = BusinessInformationForm
+    template_name = 'grant_applications/generic_form_page.html'
+    success_url_name = 'grant_applications:application-review'
+    page = {
+        'heading': _('About your business')
+    }
 
 
 class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
