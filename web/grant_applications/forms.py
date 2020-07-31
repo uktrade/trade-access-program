@@ -156,7 +156,7 @@ class BusinessInformationForm(forms.ModelForm):
             'business_name_at_exhibit': _('Business name that you will use on the stand'),
         }
         widgets = {
-            'goods_and_services_description': forms.TextInput(
+            'goods_and_services_description': forms.Textarea(
                 attrs={'class': 'govuk-textarea govuk-!-width-two-thirds'}
             ),
             'business_name_at_exhibit': forms.TextInput(
@@ -173,5 +173,50 @@ class BusinessInformationForm(forms.ModelForm):
             ),
             'website': forms.TextInput(
                 attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+            ),
+        }
+
+
+class StateAidForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplication
+        fields = [
+            'has_received_de_minimis_aid', 'de_minimis_aid_public_authority',
+            'de_minimis_aid_date_awarded', 'de_minimis_aid_amount', 'de_minimis_aid_description',
+            'de_minimis_aid_recipient', 'de_minimis_aid_date_received'
+        ]
+        labels = {
+            'has_received_de_minimis_aid': _(
+                'Have you received any de minimis aid (whether de minimis aid from or '
+                'attributable to DIT or any other public authority) during the current and two '
+                'previous Fiscal Years?'
+            ),
+            'de_minimis_aid_public_authority': _('Authority'),
+            'de_minimis_aid_date_awarded': _('Date awarded'),
+            'de_minimis_aid_amount': _('Total amount of aid'),
+            'de_minimis_aid_description': _('Description of aid'),
+            'de_minimis_aid_recipient': _('Recipient'),
+            'de_minimis_aid_date_received': _('Date of received aid')
+        }
+        widgets = {
+            'has_received_de_minimis_aid': widgets.RadioSelect(),
+            'de_minimis_aid_public_authority': forms.TextInput(
+                attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+            ),
+            'de_minimis_aid_date_awarded': forms.widgets.SelectDateWidget(
+                attrs={'class': 'govuk-date-input__item govuk-input govuk-input--width-4'},
+            ),
+            'de_minimis_aid_amount': forms.TextInput(
+                attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
+            ),
+            'de_minimis_aid_description': forms.Textarea(
+                attrs={'class': 'govuk-textarea govuk-!-width-two-thirds'}
+            ),
+            'de_minimis_aid_recipient': forms.TextInput(
+                attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+            ),
+            'de_minimis_aid_date_received': forms.widgets.SelectDateWidget(
+                attrs={'class': 'govuk-date-input__item govuk-input govuk-input--width-4'},
             ),
         }
