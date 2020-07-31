@@ -1,7 +1,10 @@
 import logging
 
+import requests
 from django.conf import settings
 from notifications_python_client import NotificationsAPIClient
+
+logger = logging.getLogger()
 
 
 class NotifyService:
@@ -32,11 +35,15 @@ class NotifyService:
         template_id = self.templates.get(template_name, {}).get('id')
 
         if settings.NOTIFY_ENABLED:
-            return self.api_client.send_email_notification(
-                email_address=email_address,
-                template_id=template_id,
-                personalisation=personalisation
-            )
+            try:
+                return self.api_client.send_email_notification(
+                    email_address=email_address,
+                    template_id=template_id,
+                    personalisation=personalisation
+                )
+            except requests.exceptions.HTTPError as e:
+                logger.error(e, exc_info=e)
+                return
 
         return self._preview_and_log(
             template_id=template_id,
