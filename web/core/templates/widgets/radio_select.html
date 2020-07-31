@@ -1,0 +1,21 @@
+
+<div class="govuk-form-group">
+  <fieldset class="govuk-fieldset">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend--l">
+    </legend>
+    <div class="{{ widget.attrs.radios_class|default:'govuk-radios' }}">
+      {% for _, item, _ in widget.optgroups %}
+        {% for item_data in item %}
+
+      <div class="govuk-radios__item">
+        <input class="govuk-radios__input" id="{{ item_data.attrs.id }}" name="{{ widget.name }}" type="radio" value="{{ item_data.value }}">
+        <label class="govuk-label govuk-radios__label" for="{{ item_data.attrs.id }}">
+          {{ item_data.label }}
+        </label>
+      </div>
+
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </fieldset>
+</div>
