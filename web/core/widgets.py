@@ -1,6 +1,6 @@
 from django import forms
 
 
-class BooleanRadioSelect(forms.widgets.RadioSelect):
+class RadioSelect(forms.widgets.RadioSelect):
     input_type = 'radio'
-    template_name = 'widgets/boolean_radio_select.html'
+    template_name = 'widgets/radio_select.html'

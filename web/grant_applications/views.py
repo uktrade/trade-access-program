@@ -9,7 +9,7 @@ from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
 from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin
 from web.grant_applications.forms import SearchCompanyForm, SelectCompanyForm, AboutYouForm, \
-    AboutTheEventForm
+    AboutTheEventForm, PreviousApplicationsForm, EventIntentionForm
 from web.grant_applications.models import GrantApplication
 from web.grant_management.flows import GrantApplicationFlow
 
@@ -98,10 +98,42 @@ class AboutTheEventView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
     model = GrantApplication
     form_class = AboutTheEventForm
     template_name = 'grant_applications/generic_form_page.html'
-    success_url_name = 'grant_applications:application-review'
+    success_url_name = 'grant_applications:previous-applications'
     page = {
         'heading': _('What event are you intending to exhibit at?')
     }
+
+
+class PreviousApplicationsView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
+    model = GrantApplication
+    form_class = PreviousApplicationsForm
+    template_name = 'grant_applications/generic_form_page.html'
+    success_url_name = 'grant_applications:event-intention'
+    page = {
+        'heading': _('Your application')
+    }
+
+
+class EventIntentionView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
+    model = GrantApplication
+    form_class = EventIntentionForm
+    template_name = 'grant_applications/generic_form_page.html'
+    success_url_name = 'grant_applications:application-review'
+    page = {
+        'heading': _('Your application')
+    }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'].format_label(
+            field_name='is_first_exhibit_at_event',
+            event=self.object.event
+        )
+        context['form'].format_label(
+            field_name='number_of_times_exhibited_at_event',
+            event=self.object.event
+        )
+        return context
 
 
 class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
@@ -109,7 +141,8 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
     fields = []
     template_name = 'grant_applications/application_review.html'
     page = {
-        'heading': _('Review your application')
+        'heading': _('Review your application'),
+        'form_button_text': _('Accept and send'),
     }
 
     def get_success_url(self):

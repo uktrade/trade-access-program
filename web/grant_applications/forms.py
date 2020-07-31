@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 
 from web.grant_applications.models import GrantApplication
 from web.core import widgets
@@ -77,15 +78,64 @@ class AboutTheEventForm(forms.ModelForm):
         label=_('Select event'),
     )
 
-    is_already_committed_to_event = forms.BooleanField(
+    is_already_committed_to_event = forms.ChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
         required=True,
-        widget=widgets.BooleanRadioSelect(),
+        widget=widgets.RadioSelect(),
         label=_('Have you already committed to attending this event?'),
     )
 
-    is_intending_on_other_financial_support = forms.BooleanField(
+    is_intending_on_other_financial_support = forms.ChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
         required=True,
-        widget=widgets.BooleanRadioSelect(),
+        widget=widgets.RadioSelect(),
         label=_('Will you receive or are you applying for any other'
                 'financial support for this event?')
     )
+
+
+class PreviousApplicationsForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplication
+        fields = ['has_previously_applied', 'previous_applications']
+
+    has_previously_applied = forms.ChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        required=True,
+        widget=widgets.RadioSelect(),
+        label=_('Is this the first time you have applied for a TAP grant?')
+    )
+
+    previous_applications = forms.ChoiceField(
+        choices=[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, '6 or more')],
+        required=True,
+        widget=widgets.RadioSelect(),
+        label=_('How many TAP grants have you received since 1 April 2009?'),
+    )
+
+
+class EventIntentionForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplication
+        fields = ['is_first_exhibit_at_event', 'number_of_times_exhibited_at_event']
+
+    is_first_exhibit_at_event = forms.ChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        required=True,
+        widget=widgets.RadioSelect(),
+        label=_('Is this the first time you intend to exhibit at {event}?')
+    )
+
+    number_of_times_exhibited_at_event = forms.IntegerField(
+        min_value=0,
+        required=True,
+        label=_('How many times have you exhibited at {event} previously?'),
+        widget=forms.NumberInput(
+            attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
+        )
+    )
+
+    def format_label(self, field_name, **kwargs):
+        self[field_name].label = self[field_name].label.format(**kwargs)

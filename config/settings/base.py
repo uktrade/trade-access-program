@@ -97,9 +97,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-STAFF_SSO_ID_FIELD = "email_user_id"
+STAFF_SSO_ID_FIELD = 'email_user_id'
 STAFF_SSO_USER_CREATE_FUNC = lambda profile: dict(
-    is_active=True, first_name=profile["first_name"], last_name=profile["last_name"]
+    is_active=True, first_name=profile['first_name'], last_name=profile['last_name'],
+    email=profile['email']
 )
 
 CAN_ELEVATE_SSO_USER_PERMISSIONS = False
@@ -205,3 +206,5 @@ GRANT_VALUE_DECIMAL_PRECISION = {
 
 NOTIFY_API_KEY = env('NOTIFY_API_KEY', default='')
 NOTIFY_ENABLED = False
+
+BOOLEAN_CHOICES = [(True, 'Yes'), (False, 'No')]

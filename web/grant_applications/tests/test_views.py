@@ -11,7 +11,7 @@ from web.core.exceptions import DnbServiceClientException
 from web.grant_applications.models import GrantApplication
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, DnbServiceClient, AboutYourBusinessView,
-    AboutYouView
+    AboutYouView, AboutTheEventView, PreviousApplicationsView
 )
 from web.tests.helpers import BaseTestCase
 
@@ -144,6 +144,11 @@ class TestAboutYouView(BaseTestCase):
         self.ga = GrantApplication.objects.create(duns_number=1)
         self.url = reverse('grant_applications:about-you', kwargs={'pk': self.ga.pk})
 
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertTemplateUsed(response, AboutYouView.template_name)
+
     def test_post_redirects(self, *mocks):
         response = self.client.post(
             self.url,
@@ -175,6 +180,11 @@ class TestTheEventView(BaseTestCase):
         self.ga = GrantApplication.objects.create(duns_number=1)
         self.url = reverse('grant_applications:about-the-event', kwargs={'pk': self.ga.pk})
 
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertTemplateUsed(response, AboutTheEventView.template_name)
+
     def test_post_redirects(self, *mocks):
         response = self.client.post(
             self.url,
@@ -194,13 +204,65 @@ class TestTheEventView(BaseTestCase):
             data=urlencode({
                 'event': 'An Event',
                 'is_already_committed_to_event': True,
-                'is_intending_on_other_financial_support': True,
+                'is_intending_on_other_financial_support': False,
             })
         )
         self.ga.refresh_from_db()
         self.assertEqual(self.ga.event, 'An Event')
         self.assertTrue(self.ga.is_already_committed_to_event)
-        self.assertTrue(self.ga.is_intending_on_other_financial_support)
+        self.assertFalse(self.ga.is_intending_on_other_financial_support)
+
+
+class TestPreviousApplicationsView(BaseTestCase):
+
+    def setUp(self):
+        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.url = reverse('grant_applications:previous-applications', kwargs={'pk': self.ga.pk})
+
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertTemplateUsed(response, PreviousApplicationsView.template_name)
+
+    def test_post(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'has_previously_applied': False,
+                'previous_applications': 1
+            })
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.ga.refresh_from_db()
+        self.assertFalse(self.ga.has_previously_applied)
+        self.assertEqual(self.ga.previous_applications, 1)
+
+
+class TestEventIntentionView(BaseTestCase):
+
+    def setUp(self):
+        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.url = reverse('grant_applications:event-intention', kwargs={'pk': self.ga.pk})
+
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertTemplateUsed(response, PreviousApplicationsView.template_name)
+
+    def test_post(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'is_first_exhibit_at_event': False,
+                'number_of_times_exhibited_at_event': 1,
+            })
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.ga.refresh_from_db()
+        self.assertFalse(self.ga.is_first_exhibit_at_event)
+        self.assertEqual(self.ga.number_of_times_exhibited_at_event, 1)
 
 
 @patch('web.grant_management.flows.NotifyService')
@@ -230,4 +292,4 @@ class TestApplicationReviewView(BaseTestCase):
         self.assertEqual(response.status_code, HTTP_302_FOUND)
         redirect = resolve(response.url)
         self.assertEqual(redirect.kwargs['pk'], self.ga.id_str)
-        self.assertEqual(redirect.kwargs['process_pk'], str(self.ga.grantapplicationprocess.pk))
+        self.assertEqual(redirect.kwargs['process_pk'], str(self.ga.grant_application_process.pk))
