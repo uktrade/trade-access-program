@@ -139,3 +139,39 @@ class EventIntentionForm(forms.ModelForm):
 
     def format_label(self, field_name, **kwargs):
         self[field_name].label = self[field_name].label.format(**kwargs)
+
+
+class BusinessInformationForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplication
+        fields = [
+            'goods_and_services_description', 'business_name_at_exhibit', 'turnover',
+            'number_of_employees', 'sector', 'website'
+        ]
+        labels = {
+            'goods_and_services_description': _(
+                'Description of goods or services, and whether they are from UK origin'
+            ),
+            'business_name_at_exhibit': _('Business name that you will use on the stand'),
+        }
+        widgets = {
+            'goods_and_services_description': forms.TextInput(
+                attrs={'class': 'govuk-textarea govuk-!-width-two-thirds'}
+            ),
+            'business_name_at_exhibit': forms.TextInput(
+                attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+            ),
+            'turnover': forms.TextInput(
+                attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
+            ),
+            'number_of_employees': forms.TextInput(
+                attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
+            ),
+            'sector': forms.TextInput(
+                attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
+            ),
+            'website': forms.TextInput(
+                attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+            ),
+        }

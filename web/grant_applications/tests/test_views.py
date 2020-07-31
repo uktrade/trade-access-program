@@ -11,7 +11,7 @@ from web.core.exceptions import DnbServiceClientException
 from web.grant_applications.models import GrantApplication
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, DnbServiceClient, AboutYourBusinessView,
-    AboutYouView, AboutTheEventView, PreviousApplicationsView
+    AboutYouView, AboutTheEventView, PreviousApplicationsView, BusinessInformationView
 )
 from web.tests.helpers import BaseTestCase
 
@@ -263,6 +263,40 @@ class TestEventIntentionView(BaseTestCase):
         self.ga.refresh_from_db()
         self.assertFalse(self.ga.is_first_exhibit_at_event)
         self.assertEqual(self.ga.number_of_times_exhibited_at_event, 1)
+
+
+class TestBusinessInformationView(BaseTestCase):
+
+    def setUp(self):
+        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.url = reverse('grant_applications:business-information', kwargs={'pk': self.ga.pk})
+
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertTemplateUsed(response, BusinessInformationView.template_name)
+
+    def test_post(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'goods_and_services_description': 'A description',
+                'business_name_at_exhibit': 'A name',
+                'turnover': 1234,
+                'number_of_employees': 2,
+                'sector': 'A sector',
+                'website': 'A website',
+            })
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.ga.refresh_from_db()
+        self.assertEqual(self.ga.goods_and_services_description, 'A description')
+        self.assertEqual(self.ga.business_name_at_exhibit, 'A name')
+        self.assertEqual(self.ga.turnover, 1234)
+        self.assertEqual(self.ga.number_of_employees, 2)
+        self.assertEqual(self.ga.sector, 'A sector')
+        self.assertEqual(self.ga.website, 'A website')
 
 
 @patch('web.grant_management.flows.NotifyService')
