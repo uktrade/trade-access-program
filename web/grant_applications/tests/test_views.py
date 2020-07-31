@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, date
 from unittest.mock import patch
 from urllib.parse import urlencode
 
@@ -11,7 +11,7 @@ from web.core.exceptions import DnbServiceClientException
 from web.grant_applications.models import GrantApplication
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, DnbServiceClient, AboutYourBusinessView,
-    AboutYouView, AboutTheEventView, PreviousApplicationsView, BusinessInformationView
+    AboutYouView, AboutTheEventView, PreviousApplicationsView, BusinessInformationView, StateAidView
 )
 from web.tests.helpers import BaseTestCase
 
@@ -297,6 +297,42 @@ class TestBusinessInformationView(BaseTestCase):
         self.assertEqual(self.ga.number_of_employees, 2)
         self.assertEqual(self.ga.sector, 'A sector')
         self.assertEqual(self.ga.website, 'A website')
+
+
+class TestStateAidView(BaseTestCase):
+
+    def setUp(self):
+        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.url = reverse('grant_applications:state-aid', kwargs={'pk': self.ga.pk})
+
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertTemplateUsed(response, StateAidView.template_name)
+
+    def test_post(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'has_received_de_minimis_aid': True,
+                'de_minimis_aid_public_authority': 'An authority',
+                'de_minimis_aid_date_awarded': date(2020, 6, 20),
+                'de_minimis_aid_amount': 2000,
+                'de_minimis_aid_description': 'A description',
+                'de_minimis_aid_recipient': 'A recipient',
+                'de_minimis_aid_date_received': date(2020, 6, 25),
+            })
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.ga.refresh_from_db()
+        self.assertTrue(self.ga.has_received_de_minimis_aid)
+        self.assertEqual(self.ga.de_minimis_aid_public_authority, 'An authority')
+        self.assertEqual(self.ga.de_minimis_aid_date_awarded, date(2020, 6, 20))
+        self.assertEqual(self.ga.de_minimis_aid_amount, 2000)
+        self.assertEqual(self.ga.de_minimis_aid_description, 'A description')
+        self.assertEqual(self.ga.de_minimis_aid_recipient, 'A recipient')
+        self.assertEqual(self.ga.de_minimis_aid_date_received, date(2020, 6, 25))
 
 
 @patch('web.grant_management.flows.NotifyService')

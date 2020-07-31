@@ -3,7 +3,7 @@ from django.urls import path
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, ConfirmationView, AboutYourBusinessView, AboutYouView,
     AboutTheEventView, ApplicationReviewView, PreviousApplicationsView, EventIntentionView,
-    BusinessInformationView
+    BusinessInformationView, StateAidView
 )
 
 app_name = 'grant_applications'
@@ -25,6 +25,7 @@ urlpatterns = [
         BusinessInformationView.as_view(),
         name='business-information'
     ),
+    path('<pk>/state-aid/', StateAidView.as_view(), name='state-aid'),
     path('<pk>/application-review/', ApplicationReviewView.as_view(), name='application-review'),
     path('<pk>/confirmation/<process_pk>/', ConfirmationView.as_view(), name='confirmation'),
 ]

@@ -9,7 +9,8 @@ from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
 from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin
 from web.grant_applications.forms import SearchCompanyForm, SelectCompanyForm, AboutYouForm, \
-    AboutTheEventForm, PreviousApplicationsForm, EventIntentionForm, BusinessInformationForm
+    AboutTheEventForm, PreviousApplicationsForm, EventIntentionForm, BusinessInformationForm, \
+    StateAidForm
 from web.grant_applications.models import GrantApplication
 from web.grant_management.flows import GrantApplicationFlow
 
@@ -140,9 +141,19 @@ class BusinessInformationView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateV
     model = GrantApplication
     form_class = BusinessInformationForm
     template_name = 'grant_applications/generic_form_page.html'
-    success_url_name = 'grant_applications:application-review'
+    success_url_name = 'grant_applications:state-aid'
     page = {
         'heading': _('About your business')
+    }
+
+
+class StateAidView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
+    model = GrantApplication
+    form_class = StateAidForm
+    template_name = 'grant_applications/generic_form_page.html'
+    success_url_name = 'grant_applications:application-review'
+    page = {
+        'heading': _('State aid restrictions')
     }
 
 
