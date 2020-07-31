@@ -24,7 +24,7 @@ urlpatterns = [
     # eg. node_modules/govuk-frontend/govuk/helpers/_font-faces.scss
     path(
         "assets/<path:asset_path>",
-        RedirectView.as_view(url="/static/govuk/assets/%(asset_path)s"),
+        RedirectView.as_view(url='/static/govuk/assets/%(asset_path)s'),
     ),
     path('auth/', include('authbroker_client.urls')),
 
@@ -32,7 +32,7 @@ urlpatterns = [
     path('', include(viewflow_frontend_urls)),
 
     # Templates
-    path('', TemplateView.as_view(template_name='core/index.html')),
+    path('', RedirectView.as_view(url='grant-applications/')),
     path('grant-applications/', include('web.grant_applications.urls', namespace='grant-applications')),
 
     # API

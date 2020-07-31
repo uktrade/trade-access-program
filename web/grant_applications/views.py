@@ -183,7 +183,7 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
         ]
         summary_list[-1]['action'] = {
             'text': _('Change'),
-            'url': reverse('grant_applications:search-company'),
+            'url': reverse('grant_applications:about-your-business', args=(self.object.pk,)),
         }
         return summary_list
 

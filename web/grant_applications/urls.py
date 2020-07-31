@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import TemplateView
 
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, ConfirmationView, AboutYourBusinessView, AboutYouView,
@@ -9,6 +10,7 @@ from web.grant_applications.views import (
 app_name = 'grant_applications'
 
 urlpatterns = [
+    path('', TemplateView.as_view(template_name='grant_applications/index.html'), name='index'),
     path('search-company/', SearchCompanyView.as_view(), name='search-company'),
     path('select-company/', SelectCompanyView.as_view(), name='select-company'),
     path('<pk>/about-your-business/', AboutYourBusinessView.as_view(), name='about-your-business'),
