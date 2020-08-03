@@ -11,7 +11,8 @@ from web.core.exceptions import DnbServiceClientException
 from web.grant_applications.models import GrantApplication
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, DnbServiceClient, AboutYourBusinessView,
-    AboutYouView, AboutTheEventView, PreviousApplicationsView, BusinessInformationView, StateAidView
+    AboutYouView, AboutTheEventView, PreviousApplicationsView, BusinessInformationView,
+    StateAidView, ExportExperienceView
 )
 from web.tests.factories.events import EventFactory
 from web.tests.factories.grant_applications import GrantApplicationFactory
@@ -300,6 +301,34 @@ class TestBusinessInformationView(BaseTestCase):
         self.assertEqual(self.ga.number_of_employees, 2)
         self.assertEqual(self.ga.sector, 'A sector')
         self.assertEqual(self.ga.website, 'A website')
+
+
+class TestExportExperienceView(BaseTestCase):
+
+    def setUp(self):
+        self.ga = GrantApplicationFactory(duns_number=1)
+        self.url = reverse('grant_applications:export-experience', kwargs={'pk': self.ga.pk})
+
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertTemplateUsed(response, ExportExperienceView.template_name)
+
+    def test_post(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'has_exported_before': True,
+                'is_planning_to_grow_exports': True,
+                'is_seeking_export_opportunities': False,
+            })
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.ga.refresh_from_db()
+        self.assertTrue(self.ga.has_exported_before)
+        self.assertTrue(self.ga.is_planning_to_grow_exports)
+        self.assertFalse(self.ga.is_seeking_export_opportunities)
 
 
 class TestStateAidView(BaseTestCase):

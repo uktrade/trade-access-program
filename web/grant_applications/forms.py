@@ -184,6 +184,37 @@ class BusinessInformationForm(forms.ModelForm):
         }
 
 
+class ExportExperienceForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplication
+        fields = [
+            'has_exported_before', 'is_planning_to_grow_exports', 'is_seeking_export_opportunities'
+        ]
+
+    has_exported_before = forms.ChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        required=True,
+        widget=widgets.RadioSelect(),
+        label=_('Have you exported before?'),
+    )
+
+    is_planning_to_grow_exports = forms.ChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        required=True,
+        widget=widgets.RadioSelect(),
+        label=_('Are you planning to grow your exports in up to six countries within '
+                'the European Union or beyond?')
+    )
+
+    is_seeking_export_opportunities = forms.ChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        required=True,
+        widget=widgets.RadioSelect(),
+        label=_('Are you actively investigating export opportunities for your business?')
+    )
+
+
 class StateAidForm(forms.ModelForm):
 
     class Meta:
