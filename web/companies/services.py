@@ -31,12 +31,22 @@ class DnbServiceClient:
         retry_adapter = HTTPAdapter(max_retries=retry_strategy)
         self.session.mount(self.base_url, retry_adapter)
 
+    @staticmethod
+    def _filter_gb(results):
+        return [
+            r for r in results
+            if (r.get('registered_address_country') or r.get('address_country')) == 'GB'
+        ]
+
     def get_company(self, duns_number):
         response = self.session.post(self.company_url, json={'duns_number': duns_number})
         _raise_for_status(response)
-        return response.json()['results'][0]
+        results = self._filter_gb(response.json()['results'])
+        if results:
+            return results[0]
+        return None
 
     def search_companies(self, search_term):
         response = self.session.post(self.company_url, json={'search_term': search_term})
         _raise_for_status(response)
-        return response.json()['results']
+        return self._filter_gb(results=response.json()['results'])

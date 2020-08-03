@@ -11,24 +11,50 @@ class DnbServiceTests(BaseAPITestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.dnb_service_client = DnbServiceClient()
-        cls.response_body = '{' \
-                            '  "results": [' \
-                            '    {"primary_name": "fake-name-1", "duns_number": 1},' \
-                            '    {"primary_name": "fake-name-2", "duns_number": 2}' \
-                            '  ]' \
-                            '}'
+        cls.search_response_body = \
+            '{' \
+            '  "results": [' \
+            '    {"primary_name": "name-1","duns_number": 1,"registered_address_country": "GB"},' \
+            '    {"primary_name": "name-2","duns_number": 2,"registered_address_country": "GB"},' \
+            '    {"primary_name": "name-3","duns_number": 3,"registered_address_country": "PL"}' \
+            '  ]' \
+            '}'
 
     @httpretty.activate
     def test_get_company(self):
+        response_body = \
+            '{' \
+            '  "results": [' \
+            '    {"primary_name": "name-1","duns_number": 1,"registered_address_country": "GB"}' \
+            '  ]' \
+            '}'
         httpretty.register_uri(
             httpretty.POST,
             self.dnb_service_client.company_url,
             status=200,
-            body=self.response_body,
+            body=response_body,
             match_querystring=False
         )
         dnb_company = self.dnb_service_client.get_company(duns_number=1)
-        self.assertEqual(dnb_company['primary_name'], 'fake-name-1')
+        self.assertEqual(dnb_company['primary_name'], 'name-1')
+
+    @httpretty.activate
+    def test_get_non_gb_company_returns_none(self):
+        response_body = \
+            '{' \
+            '  "results": [' \
+            '    {"primary_name": "name-3","duns_number": 3,"registered_address_country": "PL"}' \
+            '  ]' \
+            '}'
+        httpretty.register_uri(
+            httpretty.POST,
+            self.dnb_service_client.company_url,
+            status=200,
+            body=response_body,
+            match_querystring=False
+        )
+        dnb_company = self.dnb_service_client.get_company(duns_number=3)
+        self.assertIsNone(dnb_company)
 
     @httpretty.activate
     def test_search_companies(self):
@@ -36,11 +62,24 @@ class DnbServiceTests(BaseAPITestCase):
             httpretty.POST,
             self.dnb_service_client.company_url,
             status=200,
-            body=self.response_body,
+            body=self.search_response_body,
             match_querystring=False
         )
-        dnb_companies = self.dnb_service_client.search_companies(search_term='fake-name')
+        dnb_companies = self.dnb_service_client.search_companies(search_term='name')
         self.assertEqual(len(dnb_companies), 2)
+
+    @httpretty.activate
+    def test_search_returns_UK_companies_only(self):
+        httpretty.register_uri(
+            httpretty.POST,
+            self.dnb_service_client.company_url,
+            status=200,
+            body=self.search_response_body,
+            match_querystring=False
+        )
+        dnb_companies = self.dnb_service_client.search_companies(search_term='name')
+        for company in dnb_companies:
+            self.assertEqual(company['registered_address_country'], 'GB')
 
     @httpretty.activate
     def test_retry_on_500(self):
@@ -48,11 +87,11 @@ class DnbServiceTests(BaseAPITestCase):
             httpretty.POST, self.dnb_service_client.company_url, match_querystring=False,
             responses=[
                 httpretty.Response(status=500, body=''),
-                httpretty.Response(status=200, body=self.response_body)
+                httpretty.Response(status=200, body=self.search_response_body)
             ]
         )
         dnb_company = self.dnb_service_client.get_company(duns_number=1)
-        self.assertEqual(dnb_company['primary_name'], 'fake-name-1')
+        self.assertEqual(dnb_company['primary_name'], 'name-1')
 
     @httpretty.activate
     def test_no_retry_on_400_and_dnb_exception_is_raised(self):
