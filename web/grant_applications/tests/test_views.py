@@ -13,6 +13,8 @@ from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, DnbServiceClient, AboutYourBusinessView,
     AboutYouView, AboutTheEventView, PreviousApplicationsView, BusinessInformationView, StateAidView
 )
+from web.tests.factories.events import EventFactory
+from web.tests.factories.grant_applications import GrantApplicationFactory
 from web.tests.helpers import BaseTestCase
 
 
@@ -104,7 +106,7 @@ class TestSelectCompanyView(BaseTestCase):
 class TestAboutYourBusinessView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.ga = GrantApplicationFactory(duns_number=1)
         self.url = reverse('grant_applications:about-your-business', kwargs={'pk': self.ga.pk})
         self.tomorrow = today() + timedelta(days=1)
 
@@ -141,7 +143,7 @@ class TestAboutYourBusinessView(BaseTestCase):
 class TestAboutYouView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.ga = GrantApplicationFactory(duns_number=1)
         self.url = reverse('grant_applications:about-you', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -174,10 +176,11 @@ class TestAboutYouView(BaseTestCase):
         self.assertEqual(self.ga.applicant_email, 'test@test.com')
 
 
-class TestTheEventView(BaseTestCase):
+class TestAboutTheEventView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.event = EventFactory(name='An event')
+        self.ga = GrantApplicationFactory(duns_number=1)
         self.url = reverse('grant_applications:about-the-event', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -190,7 +193,7 @@ class TestTheEventView(BaseTestCase):
             self.url,
             content_type='application/x-www-form-urlencoded',
             data=urlencode({
-                'event': 'Event',
+                'event': self.event.pk,
                 'is_already_committed_to_event': True,
                 'is_intending_on_other_financial_support': True,
             })
@@ -202,13 +205,13 @@ class TestTheEventView(BaseTestCase):
             self.url,
             content_type='application/x-www-form-urlencoded',
             data=urlencode({
-                'event': 'An Event',
+                'event': self.event.pk,
                 'is_already_committed_to_event': True,
                 'is_intending_on_other_financial_support': False,
             })
         )
         self.ga.refresh_from_db()
-        self.assertEqual(self.ga.event, 'An Event')
+        self.assertEqual(self.ga.event, self.event)
         self.assertTrue(self.ga.is_already_committed_to_event)
         self.assertFalse(self.ga.is_intending_on_other_financial_support)
 
@@ -216,7 +219,7 @@ class TestTheEventView(BaseTestCase):
 class TestPreviousApplicationsView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.ga = GrantApplicationFactory(duns_number=1)
         self.url = reverse('grant_applications:previous-applications', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -242,7 +245,7 @@ class TestPreviousApplicationsView(BaseTestCase):
 class TestEventIntentionView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.ga = GrantApplicationFactory(duns_number=1)
         self.url = reverse('grant_applications:event-intention', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -268,7 +271,7 @@ class TestEventIntentionView(BaseTestCase):
 class TestBusinessInformationView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.ga = GrantApplicationFactory(duns_number=1)
         self.url = reverse('grant_applications:business-information', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -302,7 +305,7 @@ class TestBusinessInformationView(BaseTestCase):
 class TestStateAidView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.ga = GrantApplicationFactory(duns_number=1)
         self.url = reverse('grant_applications:state-aid', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -339,11 +342,11 @@ class TestStateAidView(BaseTestCase):
 class TestApplicationReviewView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplication.objects.create(
+        self.ga = GrantApplicationFactory(
             duns_number=1,
             applicant_full_name='A Name',
             applicant_email='test@test.com',
-            event='An Event',
+            event__name='An Event',
             is_already_committed_to_event=True,
             is_intending_on_other_financial_support=False,
         )

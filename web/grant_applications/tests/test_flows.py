@@ -5,8 +5,8 @@ from dateutil.utils import today
 from django.urls import reverse, resolve
 
 from web.core.notify import NotifyService
-from web.grant_applications.models import GrantApplication
 from web.grant_management.flows import GrantApplicationFlow
+from web.tests.factories.grant_applications import GrantApplicationFactory
 from web.tests.helpers import BaseTestCase
 
 
@@ -14,7 +14,7 @@ from web.tests.helpers import BaseTestCase
 class TestGrantApplicationFlow(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplication.objects.create(duns_number=1)
+        self.ga = GrantApplicationFactory(duns_number=1)
         self.url = reverse('grant_applications:application-review', kwargs={'pk': self.ga.pk})
         self.tomorrow = today() + timedelta(days=1)
 
