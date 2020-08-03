@@ -10,7 +10,7 @@ from web.core.exceptions import DnbServiceClientException
 from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin
 from web.grant_applications.forms import SearchCompanyForm, SelectCompanyForm, AboutYouForm, \
     AboutTheEventForm, PreviousApplicationsForm, EventIntentionForm, BusinessInformationForm, \
-    StateAidForm
+    StateAidForm, ExportExperienceForm
 from web.grant_applications.models import GrantApplication
 from web.grant_management.flows import GrantApplicationFlow
 from web.trade_events.models import Event
@@ -142,9 +142,19 @@ class BusinessInformationView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateV
     model = GrantApplication
     form_class = BusinessInformationForm
     template_name = 'grant_applications/generic_form_page.html'
-    success_url_name = 'grant_applications:state-aid'
+    success_url_name = 'grant_applications:export-experience'
     page = {
         'heading': _('About your business')
+    }
+
+
+class ExportExperienceView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
+    model = GrantApplication
+    form_class = ExportExperienceForm
+    template_name = 'grant_applications/generic_form_page.html'
+    success_url_name = 'grant_applications:state-aid'
+    page = {
+        'heading': _('About your export experience')
     }
 
 
