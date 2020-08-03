@@ -19,6 +19,9 @@ from django.urls import path, include
 from django.views.generic import TemplateView, RedirectView
 from material.frontend import urls as viewflow_frontend_urls
 
+handler404 = 'web.core.views.handler404'
+handler500 = 'web.core.views.handler500'
+
 urlpatterns = [
     # The govuk-frontend stylesheet requires a specific assets location
     # eg. node_modules/govuk-frontend/govuk/helpers/_font-faces.scss
