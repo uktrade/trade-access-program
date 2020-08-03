@@ -1,9 +1,0 @@
-<form class="form" method="POST">
-
-  {% csrf_token %}
-  {% include "core/govt_uk_form.html" %}
-  <button class="govuk-button" data-module="govuk-button">
-    {{ page.form_button_text | default:"Continue" }}
-  </button>
-
-</form>
