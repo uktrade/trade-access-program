@@ -13,6 +13,7 @@ from web.grant_applications.forms import SearchCompanyForm, SelectCompanyForm, A
     StateAidForm
 from web.grant_applications.models import GrantApplication
 from web.grant_management.flows import GrantApplicationFlow
+from web.trade_events.models import Event
 
 
 def _get_company_select_choices(search_term):
@@ -175,12 +176,27 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
             }
         )
 
+    def _serialize(self, prop):
+        value = getattr(self.object, prop)
+
+        if isinstance(value, bool):
+            if value is True:
+                return 'Yes'
+            return 'No'
+
+        if isinstance(value, Event):
+            return value.display_name
+
+        return value
+
     def _generate_summary_list(self):
         ga_form = model_forms.modelform_factory(GrantApplication, fields='__all__')
         summary_list = [
-            {'key': v.label, 'value': getattr(self.object, k)}
+            {'key': v.label, 'value': self._serialize(prop=k)}
             for k, v in ga_form.base_fields.items()
         ]
+
+        # Include Change link (for now just go back to beginning of flow)
         summary_list[-1]['action'] = {
             'text': _('Change'),
             'url': reverse('grant_applications:about-your-business', args=(self.object.pk,)),

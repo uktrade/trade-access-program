@@ -6,6 +6,8 @@ from web.core import widgets
 
 from django.utils.translation import gettext_lazy as _
 
+from web.trade_events.models import Event
+
 
 class SearchCompanyForm(forms.Form):
 
@@ -61,6 +63,11 @@ class AboutYouForm(forms.ModelForm):
         }
 
 
+class EventChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.display_name
+
+
 class AboutTheEventForm(forms.ModelForm):
 
     class Meta:
@@ -69,10 +76,10 @@ class AboutTheEventForm(forms.ModelForm):
             'event', 'is_already_committed_to_event', 'is_intending_on_other_financial_support'
         ]
 
-    event = forms.CharField(
+    event = EventChoiceField(
+        queryset=Event.objects.all().order_by('country', 'city'),
+        empty_label='Select the event...',
         widget=forms.Select(
-            # TODO: select event choices from db model
-            choices=[('Event 1', 'Event 1'), ('Event 2', 'Event 2')],
             attrs={'class': 'govuk-select govuk-!-width-two-thirds'}
         ),
         label=_('Select event'),
@@ -89,7 +96,7 @@ class AboutTheEventForm(forms.ModelForm):
         choices=settings.BOOLEAN_CHOICES,
         required=True,
         widget=widgets.RadioSelect(),
-        label=_('Will you receive or are you applying for any other'
+        label=_('Will you receive or are you applying for any other'
                 'financial support for this event?')
     )
 
@@ -125,13 +132,13 @@ class EventIntentionForm(forms.ModelForm):
         choices=settings.BOOLEAN_CHOICES,
         required=True,
         widget=widgets.RadioSelect(),
-        label=_('Is this the first time you intend to exhibit at {event}?')
+        label=_("Is this the first time you intend to exhibit at '{event.name}'?")
     )
 
     number_of_times_exhibited_at_event = forms.IntegerField(
         min_value=0,
         required=True,
-        label=_('How many times have you exhibited at {event} previously?'),
+        label=_("How many times have you exhibited at '{event.name}' previously?"),
         widget=forms.NumberInput(
             attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
         )
@@ -187,11 +194,6 @@ class StateAidForm(forms.ModelForm):
             'de_minimis_aid_recipient', 'de_minimis_aid_date_received'
         ]
         labels = {
-            'has_received_de_minimis_aid': _(
-                'Have you received any de minimis aid (whether de minimis aid from or '
-                'attributable to DIT or any other public authority) during the current and two '
-                'previous Fiscal Years?'
-            ),
             'de_minimis_aid_public_authority': _('Authority'),
             'de_minimis_aid_date_awarded': _('Date awarded'),
             'de_minimis_aid_amount': _('Total amount of aid'),
@@ -200,7 +202,6 @@ class StateAidForm(forms.ModelForm):
             'de_minimis_aid_date_received': _('Date of received aid')
         }
         widgets = {
-            'has_received_de_minimis_aid': widgets.RadioSelect(),
             'de_minimis_aid_public_authority': forms.TextInput(
                 attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
             ),
@@ -220,3 +221,13 @@ class StateAidForm(forms.ModelForm):
                 attrs={'class': 'govuk-date-input__item govuk-input govuk-input--width-4'},
             ),
         }
+
+    has_received_de_minimis_aid = forms.ChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        widget=widgets.RadioSelect(),
+        label=_(
+            'Have you received any de minimis aid (whether de minimis aid from or '
+            'attributable to DIT or any other public authority) during the current and two '
+            'previous Fiscal Years?'
+        )
+    )

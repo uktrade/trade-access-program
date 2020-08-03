@@ -13,7 +13,7 @@ class GrantApplicationFactory(factory.DjangoModelFactory):
     duns_number = factory.Sequence(lambda n: n)
     applicant_full_name = factory.Sequence(lambda n: f'name-{n}')
     applicant_email = factory.Sequence(lambda n: f'test{n}@test.com')
-    event = factory.Sequence(lambda n: f'event-{n}')
+    event = factory.SubFactory('web.tests.factories.events.EventFactory')
     is_already_committed_to_event = True
     is_intending_on_other_financial_support = True
     has_previously_applied = True

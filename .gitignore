@@ -135,6 +135,7 @@ dmypy.json
 /static
 /reports
 node_modules
+*.csv
 
 #CSS
 web/core/static/core/css/styles.css

@@ -40,6 +40,7 @@ TAP_APPS = [
     'web.core',
     'web.grant_applications',
     'web.grant_management',
+    'web.trade_events',
 ]
 
 INSTALLED_APPS = [
