@@ -1,4 +1,3 @@
-from django.forms import models as model_forms
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
@@ -8,9 +7,11 @@ from django.views.generic.base import TemplateView
 from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
 from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin
-from web.grant_applications.forms import SearchCompanyForm, SelectCompanyForm, AboutYouForm, \
-    AboutTheEventForm, PreviousApplicationsForm, EventIntentionForm, BusinessInformationForm, \
+from web.grant_applications.forms import (
+    SearchCompanyForm, SelectCompanyForm, AboutYouForm,
+    AboutTheEventForm, PreviousApplicationsForm, EventIntentionForm, BusinessInformationForm,
     StateAidForm, ExportExperienceForm
+)
 from web.grant_applications.models import GrantApplication
 from web.grant_management.flows import GrantApplicationFlow
 from web.trade_events.models import Event
@@ -176,6 +177,15 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
         'heading': _('Review your application'),
         'form_button_text': _('Accept and send'),
     }
+    views_to_review = [
+        AboutYouView,
+        AboutTheEventView,
+        PreviousApplicationsView,
+        EventIntentionView,
+        BusinessInformationView,
+        ExportExperienceView,
+        StateAidView
+    ]
 
     def get_success_url(self):
         return reverse(
@@ -186,9 +196,7 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
             }
         )
 
-    def _serialize(self, prop):
-        value = getattr(self.object, prop)
-
+    def _serialize(self, value):
         if isinstance(value, bool):
             if value is True:
                 return 'Yes'
@@ -199,23 +207,31 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
 
         return value
 
-    def _generate_summary_list(self):
-        ga_form = model_forms.modelform_factory(GrantApplication, fields='__all__')
-        summary_list = [
-            {'key': v.label, 'value': self._serialize(prop=k)}
-            for k, v in ga_form.base_fields.items()
-        ]
+    def _generate_summary_list(self, view_class):
+        instance_form = view_class.form_class(instance=self.object)
+        data_form = view_class.form_class(data=instance_form.initial)
+        data_form.is_valid()
 
-        # Include Change link (for now just go back to beginning of flow)
-        summary_list[-1]['action'] = {
-            'text': _('Change'),
-            'url': reverse('grant_applications:about-your-business', args=(self.object.pk,)),
-        }
+        summary_list = []
+
+        for key, value in data_form.cleaned_data.items():
+            summary_list.append({
+                'key': key,
+                'value': self._serialize(value),
+                'action': {
+                    'text': _('Change'),
+                    'url': view_class(object=self.object).get_success_url(),
+                }
+            })
+
         return summary_list
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['summary_list'] = self._generate_summary_list()
+        context['summary_list'] = []
+        for view_class in self.views_to_review:
+            context['summary_list'] += self._generate_summary_list(view_class)
+
         return context
 
     def form_valid(self, form):
