@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models import PROTECT
 
 from web.core.abstract_models import BaseMetaModel
+from web.grant_management import services as gm_services
 
 
 class GrantApplication(BaseMetaModel):
@@ -38,3 +39,6 @@ class GrantApplication(BaseMetaModel):
     de_minimis_aid_recipient = models.CharField(null=True, max_length=500)
     de_minimis_aid_date_received = models.DateField(null=True)
     application_summary = JSONField(default=list)
+
+    def send_for_review(self):
+        return gm_services.start_flow(grant_application=self)
