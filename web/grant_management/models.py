@@ -9,4 +9,5 @@ class GrantManagementProcess(Process):
         related_name='grant_application_process'
     )
     acknowledge_application = models.BooleanField(default=False)
+    employee_count_is_verified = models.BooleanField(default=False)
     approved = models.BooleanField(default=False)

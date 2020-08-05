@@ -1,10 +1,10 @@
 from django.utils.decorators import method_decorator
 from viewflow import flow, frontend
 from viewflow.base import this, Flow
-from viewflow.flow.views import UpdateProcessView
 
 from web.core.notify import NotifyService
 from web.grant_management.models import GrantManagementProcess
+from web.grant_management.views import ApplicationAcknowledgementView, VerifyEmployeeCountView
 
 
 @frontend.register
@@ -21,7 +21,11 @@ class GrantManagementFlow(Flow):
     ).Next(this.application_acknowledgement)
 
     application_acknowledgement = flow.View(
-        UpdateProcessView
+        ApplicationAcknowledgementView
+    ).Next(this.verify_employee_count)
+
+    verify_employee_count = flow.View(
+        VerifyEmployeeCountView
     ).Next(this.end)
 
     end = flow.End()

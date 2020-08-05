@@ -13,19 +13,56 @@
 {% block left-panel %}
 <div class="left-panel">
   <div class="card">
+    <div class="card-content">
+      <div class="card-title">
+        {{ activation.task.summary|default:activation.task.flow_task }}
+        <h6>{{ activation.process.summary }}</h6>
+      </div>
+    </div>
+  </div>
+
+  {% if data_card %}
+  <div class="card">
+    <div class="card-content">
+      <div class="card-title">
+        {% trans 'Supporting Information' %}
+      </div>
+      {% if data_card.table %}
+        {% include 'grant_management/grantmanagement/table.html' with table=data_card.table %}
+      {% endif %}
+
+      {% if data_card.list %}
+      <ul class="collection">
+        {% for li in data_card.list %}
+          <li class="collection-item">{{ li }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card">
     <dmc-form>
       <form role="form" method="POST" enctype="multipart/form-data">
+        {% block task_form %}
+        {% if form.fields %}
         <div class="card-content">
           <div class="card-title">
-            {{ activation.task.summary|default:activation.task.flow_task }}
-            <h6>{{ activation.process.summary }}</h6>
+            {% trans 'Actions' %}
           </div>
-          {% block task_form %}
           {% csrf_token %}
           {% form form=form %}{% endform %}
           {{ activation.management_form }}
-          {% endblock %}
         </div>
+        {% else %}
+          {% csrf_token %}
+          {% form form=form %}{% endform %}
+          {{ activation.management_form }}
+        {% endif %}
+        {% endblock %}
+
         <div class="card-action">
           <div class="row">
             {% block task_actions %}
