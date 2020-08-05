@@ -1,0 +1,19 @@
+{% load i18n viewflow viewflow_frontend material_form material_frontend %}
+
+<table class="striped">
+  <thead>
+    <tr class="flow-text">
+      {% for header in table.headers %}
+        <th>{{ header }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+  {% for row in table.rows %}
+    <tr>
+      <td>{{ row.key }}</td>
+      <td>{{ row.value }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

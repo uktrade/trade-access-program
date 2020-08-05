@@ -15,7 +15,7 @@ from web.grant_applications.forms import (
 )
 from web.grant_applications.models import GrantApplication
 from web.grant_applications.services import generate_application_summary
-from web.grant_management import services as gm_services
+from web.grant_management.flows import GrantManagementFlow
 
 
 def _get_company_select_choices(search_term):
@@ -213,7 +213,7 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
         with transaction.atomic():
             self.object.application_summary = self.request.session['application_summary']
             self.object.save()
-            self.process = gm_services.start_flow(grant_application=self.object)
+            self.process = GrantManagementFlow.start.run(grant_application=self.object)
         return super().form_valid(form)
 
 
