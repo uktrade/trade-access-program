@@ -387,6 +387,7 @@ class TestApplicationReviewView(BaseTestCase):
         self.assertIn('<dl class="govuk-summary-list">', response.content.decode())
 
     def test_post_redirects(self, *mocks):
+        self.set_session_value(key='application_summary', value=self.ga.application_summary)
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded'

@@ -3,13 +3,14 @@ from viewflow import flow, frontend
 from viewflow.base import this, Flow
 from viewflow.flow.views import UpdateProcessView
 
-from web.grant_management.models import GrantApplicationProcess
 from web.core.notify import NotifyService
+from web.grant_management.models import GrantManagementProcess
 
 
 @frontend.register
-class GrantApplicationFlow(Flow):
-    process_class = GrantApplicationProcess
+class GrantManagementFlow(Flow):
+    summary_template = "{{ flow_class.process_title }} [{{ process.status }}]"
+    process_class = GrantManagementProcess
 
     start = flow.StartFunction(
         this.start_callback, task_title='Submit your application.'
@@ -17,10 +18,10 @@ class GrantApplicationFlow(Flow):
 
     send_application_submitted_email = flow.Handler(
         this.send_application_submitted_email_callback
-    ).Next(this.approval)
+    ).Next(this.application_acknowledgement)
 
-    approval = flow.View(
-        UpdateProcessView, fields=['approved']
+    application_acknowledgement = flow.View(
+        UpdateProcessView
     ).Next(this.end)
 
     end = flow.End()

@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
@@ -10,11 +11,11 @@ from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, AboutYouForm,
     AboutTheEventForm, PreviousApplicationsForm, EventIntentionForm, BusinessInformationForm,
-    StateAidForm, ExportExperienceForm
+    StateAidForm, ExportExperienceForm, AboutYourBusinessForm, ApplicationReviewForm
 )
 from web.grant_applications.models import GrantApplication
-from web.grant_management.flows import GrantApplicationFlow
-from web.trade_events.models import Event
+from web.grant_applications.services import generate_application_summary
+from web.grant_management import services as gm_services
 
 
 def _get_company_select_choices(search_term):
@@ -66,7 +67,7 @@ class SelectCompanyView(PageContextMixin, SuccessUrlObjectPkMixin, CreateView):
 
 class AboutYourBusinessView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
     model = GrantApplication
-    fields = []
+    form_class = AboutYourBusinessForm
     template_name = 'grant_applications/about_your_business.html'
     success_url_name = 'grant_applications:about-you'
     page = {
@@ -171,13 +172,16 @@ class StateAidView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
 
 class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
     model = GrantApplication
-    fields = []
+    form_class = ApplicationReviewForm
     template_name = 'grant_applications/application_review.html'
     page = {
         'heading': _('Review your application'),
         'form_button_text': _('Accept and send'),
     }
-    views_to_review = [
+    grant_application_view_classes = [
+        SearchCompanyView,
+        SelectCompanyView,
+        AboutYourBusinessView,
         AboutYouView,
         AboutTheEventView,
         PreviousApplicationsView,
@@ -196,46 +200,20 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
             }
         )
 
-    def _serialize(self, value):
-        if isinstance(value, bool):
-            if value is True:
-                return 'Yes'
-            return 'No'
-
-        if isinstance(value, Event):
-            return value.display_name
-
-        return value
-
-    def _generate_summary_list(self, view_class):
-        instance_form = view_class.form_class(instance=self.object)
-        data_form = view_class.form_class(data=instance_form.initial)
-        data_form.is_valid()
-
-        summary_list = []
-
-        for key, value in data_form.cleaned_data.items():
-            summary_list.append({
-                'key': key,
-                'value': self._serialize(value),
-                'action': {
-                    'text': _('Change'),
-                    'url': view_class(object=self.object).get_success_url(),
-                }
-            })
-
-        return summary_list
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['summary_list'] = []
-        for view_class in self.views_to_review:
-            context['summary_list'] += self._generate_summary_list(view_class)
-
+        context['application_summary'] = generate_application_summary(
+            view_classes=self.grant_application_view_classes,
+            grant_application=self.object
+        )
+        self.request.session['application_summary'] = context['application_summary']
         return context
 
     def form_valid(self, form):
-        self.process = GrantApplicationFlow.start.run(grant_application=self.object)
+        with transaction.atomic():
+            self.object.application_summary = self.request.session['application_summary']
+            self.object.save()
+            self.process = gm_services.start_flow(grant_application=self.object)
         return super().form_valid(form)
 
 

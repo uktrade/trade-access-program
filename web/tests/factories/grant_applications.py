@@ -32,7 +32,8 @@ class GrantApplicationFactory(factory.DjangoModelFactory):
     has_received_de_minimis_aid = False
     de_minimis_aid_public_authority = factory.Sequence(lambda n: f'authority-{n}')
     de_minimis_aid_date_awarded = factory.Sequence(lambda n: today() + timedelta(n))
-    de_minimis_aid_amount = 0
+    de_minimis_aid_amount = 1
     de_minimis_aid_description = factory.Sequence(lambda n: f'description-{n}')
     de_minimis_aid_recipient = factory.Sequence(lambda n: f'recipient-{n}')
     de_minimis_aid_date_received = factory.Sequence(lambda n: today() + timedelta(n))
+    application_summary = ['An application summary']
