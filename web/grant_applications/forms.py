@@ -1,11 +1,9 @@
 from django import forms
 from django.conf import settings
-
-from web.grant_applications.models import GrantApplication
-from web.core import widgets
-
 from django.utils.translation import gettext_lazy as _
 
+from web.core import widgets
+from web.grant_applications.models import GrantApplication
 from web.trade_events.models import Event
 
 
@@ -39,6 +37,12 @@ class SelectCompanyForm(forms.ModelForm):
     class Meta:
         model = GrantApplication
         fields = ['duns_number']
+
+
+class AboutYourBusinessForm(forms.ModelForm):
+    class Meta:
+        model = GrantApplication
+        fields = []
 
 
 class AboutYouForm(forms.ModelForm):
@@ -262,3 +266,10 @@ class StateAidForm(forms.ModelForm):
             'previous Fiscal Years?'
         )
     )
+
+
+class ApplicationReviewForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplication
+        fields = []

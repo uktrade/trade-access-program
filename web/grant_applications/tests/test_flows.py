@@ -5,21 +5,18 @@ from dateutil.utils import today
 from django.urls import reverse, resolve
 
 from web.core.notify import NotifyService
-from web.grant_management.flows import GrantApplicationFlow
 from web.tests.factories.grant_applications import GrantApplicationFactory
 from web.tests.helpers import BaseTestCase
 
 
 @patch('web.grant_management.flows.NotifyService')
-class TestGrantApplicationFlow(BaseTestCase):
+class TestGrantManagementFlow(BaseTestCase):
 
     def setUp(self):
         self.ga = GrantApplicationFactory(duns_number=1)
         self.url = reverse('grant_applications:application-review', kwargs={'pk': self.ga.pk})
         self.tomorrow = today() + timedelta(days=1)
-
-    def test_is_start_of_process(self, *mocks):
-        self.assertTrue(GrantApplicationFlow.start.task_type, 'START')
+        self.set_session_value(key='application_summary', value=self.ga.application_summary)
 
     def test_starts_grant_applications_flow_process(self, *mocks):
         response = self.client.post(

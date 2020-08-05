@@ -1,8 +1,8 @@
 import factory
 
-from web.grant_management.models import GrantApplicationProcess
+from web.grant_management.models import GrantManagementProcess
 
 
 class ApplicationProcessFactory(factory.DjangoModelFactory):
     class Meta:
-        model = GrantApplicationProcess
+        model = GrantManagementProcess

@@ -9,6 +9,7 @@ INTERNAL_IPS = ['localhost', '0.0.0.0', '127.0.0.1', DOCKER_NETWORK_IP]
 
 INSTALLED_APPS += [
     'debug_toolbar',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
