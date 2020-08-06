@@ -35,6 +35,8 @@ shell:  ## Open a Django python shell in the web service
 elevate:  ## Elevate a user account to admin (required because we use django-staff-sso-client and django-staff-sso-usermodel)
 	$(MAKE) django-elevate_sso_user_permissions
 
+seed-db:  # Seed the database with some fake data
+	$(MAKE) django-seed_db
 
 ##@ pip-tools
 pip-compile-dev:  ## Generate dev requirements file: `requirements/dev.txt`
