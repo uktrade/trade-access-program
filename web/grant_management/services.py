@@ -19,10 +19,15 @@ class SupportingInformationContent:
     @property
     def application_acknowledgement_content(self):
         return {
-            'table': {
-                'headers': [_('Question'), _('Answer')],
-                'rows': self.grant_application.application_summary,
-            }
+            'tables': [
+                {
+                    'class': 'striped',
+                    'headers': [_('Question'), _('Answer')],
+                    'rows': [
+                        [i['key'], i['value']] for i in self.grant_application.application_summary
+                    ]
+                }
+            ]
         }
 
     @property
@@ -36,19 +41,35 @@ class SupportingInformationContent:
             e_or_r = 'estimates'
 
         return {
-            'list': [
-                _(f"The applicant indicated that the company has "
-                  f"{self.grant_application.number_of_employees} employees."),
-                _(f"Dun & Bradstreet {e_or_r} that this company has "
-                  f"{self.company['employee_number']} employees."),
+            'tables': [
+                {
+                    'headers': [_('Evidence')],
+                    'rows': [
+                        [_(f"The applicant indicated that the company has "
+                           f"{self.grant_application.number_of_employees} employees.")],
+                        [_(f"Dun & Bradstreet {e_or_r} that this company has "
+                           f"{self.company['employee_number']} employees.")],
+                    ]
+                }
             ]
         }
 
     @property
     def turnover_content(self):
         return {
-            'list': [
-                _(f"The applicant indicated that the company has a turnover of "
-                  f"£{self.grant_application.turnover}"),
+            'tables': [
+                {
+                    'headers': [_('Eligibility')],
+                    'rows': [
+                        [_('Annual Turnover should be between £83,000 and £5 million.')]
+                    ]
+                },
+                {
+                    'headers': [_('Evidence')],
+                    'rows': [
+                        [_(f"The applicant indicated that the company has a turnover of "
+                           f"£{self.grant_application.turnover}")],
+                    ]
+                }
             ]
         }

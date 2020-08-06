@@ -27,17 +27,14 @@
       <div class="card-title">
         {% trans 'Supporting Information' %}
       </div>
-      {% if supporting_information.table %}
-        {% include 'grant_management/grantmanagement/table.html' with table=supporting_information.table %}
+
+      {% if supporting_information.text %}
+        <p>{{ supporting_information.text }}</p>
       {% endif %}
 
-      {% if supporting_information.list %}
-      <ul class="collection">
-        {% for li in supporting_information.list %}
-          <li class="collection-item">{{ li }}</li>
-        {% endfor %}
-      </ul>
-      {% endif %}
+      {% for table in supporting_information.tables %}
+        {% include 'grant_management/grantmanagement/table.html' with table=table %}
+      {% endfor %}
 
     </div>
   </div>
