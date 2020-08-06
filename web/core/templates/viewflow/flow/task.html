@@ -21,19 +21,19 @@
     </div>
   </div>
 
-  {% if data_card %}
+  {% if supporting_information_card %}
   <div class="card">
     <div class="card-content">
       <div class="card-title">
         {% trans 'Supporting Information' %}
       </div>
-      {% if data_card.table %}
-        {% include 'grant_management/grantmanagement/table.html' with table=data_card.table %}
+      {% if supporting_information_card.table %}
+        {% include 'grant_management/grantmanagement/table.html' with table=supporting_information_card.table %}
       {% endif %}
 
-      {% if data_card.list %}
+      {% if supporting_information_card.list %}
       <ul class="collection">
-        {% for li in data_card.list %}
+        {% for li in supporting_information_card.list %}
           <li class="collection-item">{{ li }}</li>
         {% endfor %}
       </ul>

@@ -1,12 +1,18 @@
 from web.companies.services import DnbServiceClient
 
 
-def get_dnb_company_employee_count_content(duns_number):
-    company = DnbServiceClient().get_company(duns_number)
+class SupportingInformation:
 
-    e_or_r = 'reports'
-    if company['is_employees_number_estimated']:
-        e_or_r = 'estimates'
+    @staticmethod
+    def get_employee_count_content(grant_application):
+        c = DnbServiceClient().get_company(grant_application.duns_number)
 
-    return f"Dun and Bradstreet {e_or_r} that this company has {company['employee_number']} " \
-           f"employees."
+        e_or_r = 'reports'
+        if c['is_employees_number_estimated']:
+            e_or_r = 'estimates'
+
+        return [
+            f"The applicant indicated that the company has {grant_application.number_of_employees} "
+            f"employees.",
+            f"Dun & Bradstreet {e_or_r} that this company has {c['employee_number']} employees.",
+        ]
