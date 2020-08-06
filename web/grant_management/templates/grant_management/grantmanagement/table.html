@@ -1,6 +1,6 @@
 {% load i18n viewflow viewflow_frontend material_form material_frontend %}
 
-<table class="striped">
+<table class="{{ table.class|default:'default' }}">
   <thead>
     <tr class="flow-text">
       {% for header in table.headers %}
@@ -9,11 +9,12 @@
     </tr>
   </thead>
   <tbody>
-  {% for row in table.rows %}
-    <tr>
-      <td>{{ row.key }}</td>
-      <td>{{ row.value }}</td>
-    </tr>
-  {% endfor %}
+    {% for row in table.rows %}
+      <tr>
+        {% for item in row %}
+          <td>{{ item }}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
   </tbody>
 </table>

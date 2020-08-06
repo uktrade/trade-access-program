@@ -21,9 +21,7 @@ class Command(BaseCommand):
             user = get_user_model()
 
             if email:
-                sso_user = user.objects.get(
-                    email=email,
-                )
+                sso_user = user.objects.get(email=email)
             else:
                 sso_user = user.objects.exclude(
                     email="AnonymousUser",
@@ -35,9 +33,7 @@ class Command(BaseCommand):
             sso_user.save()
             self.stdout.write(
                 self.style.SUCCESS(
-                    "Successfully elevated user permission for user {}".format(
-                        sso_user.email
-                    )
+                    f"Successfully elevated permissions for user {sso_user.email}"
                 )
             )
         else:
