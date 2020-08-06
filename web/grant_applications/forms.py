@@ -100,7 +100,7 @@ class AboutTheEventForm(forms.ModelForm):
         choices=settings.BOOLEAN_CHOICES,
         required=True,
         widget=widgets.RadioSelect(),
-        label=_('Will you receive or are you applying for any other'
+        label=_('Will you receive or are you applying for any other '
                 'financial support for this event?')
     )
 
