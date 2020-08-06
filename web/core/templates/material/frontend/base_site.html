@@ -1,0 +1,27 @@
+{% extends 'material/frontend/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% trans "TAP"%}{% endblock %}
+
+{% block favicon %}
+<link href="{% static 'govuk/assets/images/favicon.ico' %}" rel="shortcut icon">
+{% endblock %}
+
+{% block sidenav_header %}
+<li>
+  <div class="user-view">
+    <div class="background" >
+      <img src="{% static 'material/imgs/sidenav.svg' %}">
+    </div>
+    {% block userphoto %}
+    {% if user.photo.url %}
+    <a href="#"><img class="circle" src="{{ user.photo.url }}"></a>
+    {% else %}
+    <a href="#"><img class="circle" src="{% static 'material/imgs/user.png' %}"></a>
+    {% endif %}
+    {% endblock %}
+    <a href="#"><span class="white-text name">{{ request.user.get_full_name|title }}</span></a>
+    <a href="#"><span class="white-text email">{{ request.user.email }}</span></a>
+  </div>
+</li>
+{% endblock %}
