@@ -2,12 +2,11 @@ from django.utils.translation import gettext_lazy as _
 from viewflow.flow.views import UpdateProcessView
 
 from web.grant_management.mixins import SupportingInformationMixin
-from web.grant_management.services import SupportingInformation
 
 
 class ApplicationAcknowledgementView(SupportingInformationMixin, UpdateProcessView):
 
-    def get_supporting_information_card(self):
+    def get_supporting_information(self):
         return {
             'table': {
                 'headers': [_('Question'), _('Answer')],
@@ -19,7 +18,16 @@ class ApplicationAcknowledgementView(SupportingInformationMixin, UpdateProcessVi
 class VerifyEmployeeCountView(SupportingInformationMixin, UpdateProcessView):
     fields = ['employee_count_is_verified']
 
-    def get_supporting_information_card(self):
+    def get_supporting_information(self):
         return {
-            'list': SupportingInformation.get_employee_count_content(self.object.grant_application)
+            'list': self.supporting_information.employee_count_content
+        }
+
+
+class VerifyTurnoverView(SupportingInformationMixin, UpdateProcessView):
+    fields = ['turnover_is_verified']
+
+    def get_supporting_information(self):
+        return {
+            'list': self.supporting_information.turnover_count_content
         }

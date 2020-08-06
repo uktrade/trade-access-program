@@ -4,7 +4,8 @@ from viewflow.base import this, Flow
 
 from web.core.notify import NotifyService
 from web.grant_management.models import GrantManagementProcess
-from web.grant_management.views import ApplicationAcknowledgementView, VerifyEmployeeCountView
+from web.grant_management.views import ApplicationAcknowledgementView, VerifyEmployeeCountView, \
+    VerifyTurnoverView
 
 
 @frontend.register
@@ -26,6 +27,10 @@ class GrantManagementFlow(Flow):
 
     verify_employee_count = flow.View(
         VerifyEmployeeCountView
+    ).Next(this.verify_turnover)
+
+    verify_turnover = flow.View(
+        VerifyTurnoverView
     ).Next(this.end)
 
     end = flow.End()
