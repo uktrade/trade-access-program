@@ -17,21 +17,38 @@ class SupportingInformationContent:
         return self._company
 
     @property
+    def application_acknowledgement_content(self):
+        return {
+            'table': {
+                'headers': [_('Question'), _('Answer')],
+                'rows': self.grant_application.application_summary,
+            }
+        }
+
+    @property
     def employee_count_content(self):
+        if not self.company:
+            return None
+
         e_or_r = 'reports'
+
         if self.company['is_employees_number_estimated']:
             e_or_r = 'estimates'
 
-        return [
-            _(f"The applicant indicated that the company has "
-              f"{self.grant_application.number_of_employees} employees."),
-            _(f"Dun & Bradstreet {e_or_r} that this company has {self.company['employee_number']}"
-              f" employees."),
-        ]
+        return {
+            'list': [
+                _(f"The applicant indicated that the company has "
+                  f"{self.grant_application.number_of_employees} employees."),
+                _(f"Dun & Bradstreet {e_or_r} that this company has "
+                  f"{self.company['employee_number']} employees."),
+            ]
+        }
 
     @property
-    def turnover_count_content(self):
-        return [
-            _(f"The applicant indicated that the company has a turnover of "
-              f"£{self.grant_application.turnover}"),
-        ]
+    def turnover_content(self):
+        return {
+            'list': [
+                _(f"The applicant indicated that the company has a turnover of "
+                  f"£{self.grant_application.turnover}"),
+            ]
+        }
