@@ -78,6 +78,10 @@ class TestGrantManagementFlow(BaseTestCase):
         next_task = self._assign_next_task(ga_process, 'verify_employee_count')
         self._complete_task(ga_process, next_task)
 
+        # Complete verify turnover task
+        next_task = self._assign_next_task(ga_process, 'verify_turnover')
+        self._complete_task(ga_process, next_task)
+
         # All tasks should be completed
         self.assertFalse(ga_process.active_tasks().exists())
 
