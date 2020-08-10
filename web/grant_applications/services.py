@@ -28,7 +28,7 @@ def generate_summary_of_form_fields(form_class, url, grant_application):
 
     for key, value in data_form.cleaned_data.items():
         summary_list.append({
-            'key': key,
+            'key': str(data_form.fields[key].label),
             'value': _serialize_field(value),
             'action': {
                 'text': 'Change',
