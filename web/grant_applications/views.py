@@ -207,11 +207,16 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
         next_url = SearchCompanyView().get_success_url()
 
         for view_class in self.grant_application_flow:
-            context['application_summary'] += generate_summary_of_form_fields(
+            summary = generate_summary_of_form_fields(
                 form_class=view_class.form_class,
                 url=next_url,
                 grant_application=self.object
             )
+            if summary:
+                context['application_summary'].append({
+                    'heading': str(view_class.page.get('heading', '')),
+                    'summary': summary
+                })
             next_url = view_class(object=self.object).get_success_url()
 
         self.request.session['application_summary'] = context['application_summary']
