@@ -14,7 +14,7 @@ from web.grant_applications.forms import (
     StateAidForm, ExportExperienceForm, AboutYourBusinessForm, ApplicationReviewForm
 )
 from web.grant_applications.models import GrantApplication
-from web.grant_applications.services import generate_application_summary
+from web.grant_applications.services import generate_summary_of_form_fields
 from web.grant_management.flows import GrantManagementFlow
 
 
@@ -41,7 +41,8 @@ class SearchCompanyView(PageContextMixin, FormView):
     }
 
     def get_success_url(self):
-        return reverse('grant_applications:select-company') + f'?{urlencode(self.extra_context)}'
+        return reverse('grant_applications:select-company') + \
+               f'?{urlencode(self.extra_context or {})}'
 
     def form_valid(self, form):
         self.request.session['search_term'] = form.cleaned_data['search_term']
@@ -178,8 +179,7 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
         'heading': _('Review your application'),
         'form_button_text': _('Accept and send'),
     }
-    grant_application_view_classes = [
-        SearchCompanyView,
+    grant_application_flow = [
         SelectCompanyView,
         AboutYourBusinessView,
         AboutYouView,
@@ -188,7 +188,7 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
         EventIntentionView,
         BusinessInformationView,
         ExportExperienceView,
-        StateAidView
+        StateAidView,
     ]
 
     def get_success_url(self):
@@ -202,10 +202,18 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['application_summary'] = generate_application_summary(
-            view_classes=self.grant_application_view_classes,
-            grant_application=self.object
-        )
+        context['application_summary'] = []
+
+        next_url = SearchCompanyView().get_success_url()
+
+        for view_class in self.grant_application_flow:
+            context['application_summary'] += generate_summary_of_form_fields(
+                form_class=view_class.form_class,
+                url=next_url,
+                grant_application=self.object
+            )
+            next_url = view_class(object=self.object).get_success_url()
+
         self.request.session['application_summary'] = context['application_summary']
         return context
 

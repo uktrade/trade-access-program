@@ -19,14 +19,11 @@ def _serialize_field(value):
     return value
 
 
-def _generate_summary(view_class, grant_application):
-    if not hasattr(view_class, 'model') or not getattr(view_class, 'model'):
-        return []
-
+def generate_summary_of_form_fields(form_class, url, grant_application):
     summary_list = []
 
-    instance_form = view_class.form_class(instance=grant_application)
-    data_form = view_class.form_class(data=instance_form.initial)
+    instance_form = form_class(instance=grant_application)
+    data_form = form_class(data=instance_form.initial)
     data_form.is_valid()
 
     for key, value in data_form.cleaned_data.items():
@@ -35,16 +32,7 @@ def _generate_summary(view_class, grant_application):
             'value': _serialize_field(value),
             'action': {
                 'text': 'Change',
-                'url': view_class(object=grant_application).get_success_url(),
+                'url': url,
             }
         })
-    return summary_list
-
-
-def generate_application_summary(view_classes, grant_application):
-    summary_list = []
-
-    for view_class in view_classes:
-        summary_list += _generate_summary(view_class, grant_application)
-
     return summary_list

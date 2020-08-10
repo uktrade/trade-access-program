@@ -21,7 +21,7 @@ class SearchCompanyForm(forms.Form):
 class SelectCompanyForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
-        company_choices = kwargs.pop('company_choices')
+        company_choices = kwargs.pop('company_choices', [])
         super().__init__(*args, **kwargs)
         self.fields['duns_number'] = forms.ChoiceField(
             label='',
