@@ -47,5 +47,5 @@ class GrantApplication(BaseMetaModel):
     def answers(self):
         _answers = []
         for summary in self.application_summary:
-            _answers += [item for sublist in summary for item in sublist]
+            _answers += [[row['key'], row['value']] for row in summary['summary']]
         return _answers
