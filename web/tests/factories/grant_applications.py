@@ -37,7 +37,13 @@ class GrantApplicationFactory(factory.DjangoModelFactory):
     de_minimis_aid_recipient = factory.Sequence(lambda n: f'recipient-{n}')
     de_minimis_aid_date_received = factory.Sequence(lambda n: today() + timedelta(n))
     application_summary = [{
-        'key': f'Question {n}',
-        'value': f'Answer {n}',
-        'action': {'text': f'Action {n}', 'url': f'/action-url-{n}'}
+        'heading': 'About you',
+        'summary': [{
+            'key': f'Question {n}',
+            'value': f'Answer {n}',
+            'action': {
+                'text': f'Action {n}',
+                'url': f'/action-url-{n}',
+            }
+        }],
     } for n in range(10)]

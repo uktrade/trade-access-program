@@ -23,9 +23,7 @@ class SupportingInformationContent:
                 {
                     'class': 'striped',
                     'headers': [_('Question'), _('Answer')],
-                    'rows': [
-                        [i['key'], i['value']] for i in self.grant_application.application_summary
-                    ]
+                    'rows': self.grant_application.answers
                 }
             ]
         }
