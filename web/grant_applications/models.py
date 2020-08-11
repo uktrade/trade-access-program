@@ -42,3 +42,10 @@ class GrantApplication(BaseMetaModel):
 
     def send_for_review(self):
         return GrantManagementFlow.start.run(grant_application=self)
+
+    @property
+    def answers(self):
+        _answers = []
+        for summary in self.application_summary:
+            _answers += [item for sublist in summary for item in sublist]
+        return _answers
