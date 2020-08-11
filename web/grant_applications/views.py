@@ -200,9 +200,8 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
             }
         )
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['application_summary'] = []
+    def generate_application_summary(self, grant_application=None):
+        application_summary = []
 
         next_url = SearchCompanyView().get_success_url()
 
@@ -210,15 +209,20 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
             summary = generate_summary_of_form_fields(
                 form_class=view_class.form_class,
                 url=next_url,
-                grant_application=self.object
+                grant_application=grant_application or self.object
             )
             if summary:
-                context['application_summary'].append({
+                application_summary.append({
                     'heading': str(view_class.page.get('heading', '')),
                     'summary': summary
                 })
-            next_url = view_class(object=self.object).get_success_url()
+            next_url = view_class(object=grant_application or self.object).get_success_url()
 
+        return application_summary
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['application_summary'] = self.generate_application_summary()
         self.request.session['application_summary'] = context['application_summary']
         return context
 
