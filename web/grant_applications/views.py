@@ -1,10 +1,10 @@
 from django.db import transaction
 from django.urls import reverse
-from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import FormView, UpdateView, CreateView
+from django.views.generic import UpdateView, CreateView
 from django.views.generic.base import TemplateView
 
+from web.companies.serializers import CompanySerializer
 from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
 from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin
@@ -33,24 +33,17 @@ def _get_company_select_choices(search_term):
     return choices
 
 
-class SearchCompanyView(PageContextMixin, FormView):
+class SearchCompanyView(PageContextMixin, SuccessUrlObjectPkMixin, CreateView):
     form_class = SearchCompanyForm
     template_name = 'grant_applications/generic_form_page.html'
+    success_url_name = 'grant_applications:select-company'
     page = {
         'heading': _('Search for your company')
     }
 
-    def get_success_url(self):
-        return reverse('grant_applications:select-company') + \
-               f'?{urlencode(self.extra_context or {})}'
 
-    def form_valid(self, form):
-        self.request.session['search_term'] = form.cleaned_data['search_term']
-        self.extra_context = {'search_term': form.cleaned_data['search_term']}
-        return super().form_valid(form)
-
-
-class SelectCompanyView(PageContextMixin, SuccessUrlObjectPkMixin, CreateView):
+class SelectCompanyView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
+    model = GrantApplication
     form_class = SelectCompanyForm
     template_name = 'grant_applications/generic_form_page.html'
     success_url_name = 'grant_applications:about-your-business'
@@ -60,9 +53,7 @@ class SelectCompanyView(PageContextMixin, SuccessUrlObjectPkMixin, CreateView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['company_choices'] = _get_company_select_choices(
-            search_term=self.request.GET.get('search_term') or self.request.session['search_term']
-        )
+        kwargs['company_choices'] = _get_company_select_choices(search_term=self.object.search_term)
         return kwargs
 
 
@@ -77,15 +68,7 @@ class AboutYourBusinessView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        try:
-            context['company'] = DnbServiceClient().get_company(
-                duns_number=self.object.duns_number
-            )
-        except DnbServiceClientException:
-            context['company'] = {
-                'primary_name': 'Could not retrieve company name.',
-                'duns_number': self.object.duns_number,
-            }
+        context['company'] = CompanySerializer(instance=self.object.company).data
         return context
 
 
@@ -203,7 +186,7 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
     def generate_application_summary(self, grant_application=None):
         application_summary = []
 
-        next_url = SearchCompanyView().get_success_url()
+        next_url = SearchCompanyView(object=self.object).get_success_url()
 
         for view_class in self.grant_application_flow:
             summary = generate_summary_of_form_fields(

@@ -41,9 +41,10 @@ class TestSearchCompanyView(BaseTestCase):
     def test_search_company_post_form_redirect_path(self, *mocks):
         response = self.client.post(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, HTTP_302_FOUND)
+        ga = GrantApplication.objects.get(search_term='company-1')
         self.assertRedirects(
             response,
-            expected_url=reverse('grant_applications:select-company') + '?search_term=company-1'
+            expected_url=reverse('grant_applications:select-company', kwargs={'pk': ga.pk})
         )
 
     def test_search_company_post_form_redirect_template(self, *mocks):
@@ -60,45 +61,53 @@ class TestSearchCompanyView(BaseTestCase):
 class TestSelectCompanyView(BaseTestCase):
 
     def setUp(self):
-        self.url = reverse('grant_applications:select-company')
+        self.ga = GrantApplicationFactory()
+        self.url = reverse('grant_applications:select-company', kwargs={'pk': self.ga.pk})
 
-    def test_select_company_get_template(self, *mocks):
-        response = self.client.get(self.url, data={'search_term': 'company-1'})
+    def test_get_template(self, *mocks):
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertTemplateUsed(response, SelectCompanyView.template_name)
         self.assertIn('company-1-name', response.content.decode())
 
-    def test_select_company_get_template_on_dnb_service_exception(self, *mocks):
+    def test_get_template_on_dnb_service_exception(self, *mocks):
         mocks[0].side_effect = [DnbServiceClientException]
-        response = self.client.get(self.url, data={'search_term': 'company-1'})
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertNotIn('company-1-name', response.content.decode())
 
     def test_required_fields(self, *mocks):
-        self.set_session_value('search_term', 'company-1')
         response = self.client.post(self.url)
         self.assertFormError(
             response, 'form', 'duns_number', Field.default_error_messages['required']
         )
 
-    def test_select_company_post_form_redirect_path(self, *mocks):
-        self.set_session_value('search_term', 'company-1')
+    def test_post_form_redirect_path(self, *mocks):
         response = self.client.post(self.url, data={'duns_number': 1})
         self.assertEqual(response.status_code, HTTP_302_FOUND)
-        ga = GrantApplication.objects.get(duns_number=1)
         self.assertRedirects(
             response,
-            expected_url=reverse('grant_applications:about-your-business', kwargs={'pk': ga.pk})
+            expected_url=reverse('grant_applications:about-your-business', args=(self.ga.pk,))
         )
 
-    def test_select_company_post_form_redirect_template(self, *mocks):
-        self.set_session_value('search_term', 'company-1')
+    def test_post_form_redirect_template(self, *mocks):
         response = self.client.post(self.url, {'duns_number': 1}, follow=True)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
 
+    def test_post_creates_company_relation_to_grant_application(self, *mocks):
+        response = self.client.post(self.url, data={'duns_number': 1})
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.ga.refresh_from_db()
+        self.assertIsNotNone(self.ga.company)
+        self.assertEqual(self.ga.company.dnb_service_duns_number, 1)
 
-@patch('web.grant_management.flows.NotifyService')
+    def test_get_dnb_service_exception(self, *mocks):
+        mocks[1].side_effect = [DnbServiceClientException]
+        response = self.client.post(self.url, data={'duns_number': 1}, follow=True)
+        self.assertIn('Could not retrieve company name.', response.content.decode())
+
+
 @patch.object(DnbServiceClient, 'get_company', return_value={'primary_name': 'company-1'})
 @patch.object(
     DnbServiceClient, 'search_companies',
@@ -107,7 +116,7 @@ class TestSelectCompanyView(BaseTestCase):
 class TestAboutYourBusinessView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplicationFactory(duns_number=1)
+        self.ga = GrantApplicationFactory()
         self.url = reverse('grant_applications:about-your-business', kwargs={'pk': self.ga.pk})
         self.tomorrow = today() + timedelta(days=1)
 
@@ -116,18 +125,13 @@ class TestAboutYourBusinessView(BaseTestCase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
 
-    def test_get_dnb_service_exception(self, *mocks):
-        mocks[1].side_effect = [DnbServiceClientException]
-        response = self.client.get(self.url)
-        self.assertIn('Could not retrieve company name.', response.content.decode())
-
-    def test_submit_page_post_redirects(self, *mocks):
+    def test_post_redirects(self, *mocks):
         response = self.client.post(
             self.url, content_type='application/x-www-form-urlencoded'
         )
         self.assertEqual(response.status_code, HTTP_302_FOUND)
 
-    def test_submit_page_post_redirects_to_confirmation_page(self, *mocks):
+    def test_post_redirect_template(self, *mocks):
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
@@ -144,7 +148,7 @@ class TestAboutYourBusinessView(BaseTestCase):
 class TestAboutYouView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplicationFactory(duns_number=1)
+        self.ga = GrantApplicationFactory()
         self.url = reverse('grant_applications:about-you', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -181,7 +185,7 @@ class TestAboutTheEventView(BaseTestCase):
 
     def setUp(self):
         self.event = EventFactory(name='An event')
-        self.ga = GrantApplicationFactory(duns_number=1)
+        self.ga = GrantApplicationFactory()
         self.url = reverse('grant_applications:about-the-event', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -220,7 +224,7 @@ class TestAboutTheEventView(BaseTestCase):
 class TestPreviousApplicationsView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplicationFactory(duns_number=1)
+        self.ga = GrantApplicationFactory()
         self.url = reverse('grant_applications:previous-applications', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -246,7 +250,7 @@ class TestPreviousApplicationsView(BaseTestCase):
 class TestEventIntentionView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplicationFactory(duns_number=1)
+        self.ga = GrantApplicationFactory()
         self.url = reverse('grant_applications:event-intention', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -272,7 +276,7 @@ class TestEventIntentionView(BaseTestCase):
 class TestBusinessInformationView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplicationFactory(duns_number=1)
+        self.ga = GrantApplicationFactory()
         self.url = reverse('grant_applications:business-information', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -306,7 +310,7 @@ class TestBusinessInformationView(BaseTestCase):
 class TestExportExperienceView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplicationFactory(duns_number=1)
+        self.ga = GrantApplicationFactory()
         self.url = reverse('grant_applications:export-experience', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -334,7 +338,7 @@ class TestExportExperienceView(BaseTestCase):
 class TestStateAidView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplicationFactory(duns_number=1)
+        self.ga = GrantApplicationFactory()
         self.url = reverse('grant_applications:state-aid', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -371,14 +375,7 @@ class TestStateAidView(BaseTestCase):
 class TestApplicationReviewView(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplicationFactory(
-            duns_number=1,
-            applicant_full_name='A Name',
-            applicant_email='test@test.com',
-            event__name='An Event',
-            is_already_committed_to_event=True,
-            is_intending_on_other_financial_support=False,
-        )
+        self.ga = GrantApplicationFactory()
         self.url = reverse('grant_applications:application-review', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):

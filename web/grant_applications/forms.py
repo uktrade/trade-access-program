@@ -1,21 +1,32 @@
 from django import forms
 from django.conf import settings
+from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 
+from web.companies.models import Company
+from web.companies.services import DnbServiceClient
 from web.core import widgets
+from web.core.exceptions import DnbServiceClientException
 from web.grant_applications.models import GrantApplication
 from web.trade_events.models import Event
 
 
-class SearchCompanyForm(forms.Form):
+class SearchCompanyForm(forms.ModelForm):
 
-    search_term = forms.CharField(
-        label='',
-        widget=forms.TextInput(attrs={
-            'class': 'govuk-input govuk-!-width-two-thirds',
-            'placeholder': 'Search...',
-        })
-    )
+    class Meta:
+        model = GrantApplication
+        fields = ['search_term']
+        labels = {
+            'search_term': ''
+        }
+        widgets = {
+            'search_term': forms.TextInput(
+                attrs={
+                    'class': 'govuk-input govuk-!-width-two-thirds',
+                    'placeholder': 'Search...',
+                }
+            )
+        }
 
 
 class SelectCompanyForm(forms.ModelForm):
@@ -36,7 +47,23 @@ class SelectCompanyForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplication
-        fields = ['duns_number']
+        fields = []
+
+    def save(self, *args, **kwargs):
+        try:
+            dnb_company = DnbServiceClient().get_company(
+                duns_number=self.cleaned_data['duns_number']
+            )
+        except DnbServiceClientException:
+            dnb_company = {}
+
+        with transaction.atomic():
+            self.instance.company, _ = Company.objects.get_or_create(
+                dnb_service_duns_number=self.cleaned_data['duns_number'],
+                name=dnb_company.get('primary_name', 'Could not retrieve company name.')
+            )
+            instance = super().save(*args, **kwargs)
+        return instance
 
 
 class AboutYourBusinessForm(forms.ModelForm):

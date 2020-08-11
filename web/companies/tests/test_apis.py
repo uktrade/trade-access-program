@@ -3,18 +3,17 @@ from unittest.mock import patch
 from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 
-from web.companies.serializers import DnbServiceClient
+from web.companies.views import DnbServiceClient
 from web.tests.factories.companies import CompanyFactory
 from web.tests.factories.users import UserFactory
 from web.tests.helpers import BaseAPITestCase
 
 
-@patch.object(DnbServiceClient, 'get_company', return_value={'primary_name': 'fake-name'})
 class CompaniesApiTests(BaseAPITestCase):
 
     def setUp(self):
         super().setUp()
-        self.company = CompanyFactory(dnb_service_duns_number=1)
+        self.company = CompanyFactory(dnb_service_duns_number=1, name='fake-name')
 
     def test_get_company(self, *mocks):
         path = reverse('companies-detail', args=(self.company.id,))
@@ -22,7 +21,11 @@ class CompaniesApiTests(BaseAPITestCase):
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assert_response_data_contains(
             response,
-            data_contains={'id': self.company.id_str, 'name': 'fake-name'}
+            data_contains={
+                'id': self.company.id_str,
+                'dnb_service_duns_number': 1,
+                'name': 'fake-name'
+            }
         )
 
     def test_list_companies(self, *mocks):
@@ -33,7 +36,7 @@ class CompaniesApiTests(BaseAPITestCase):
 
     def test_create_new_company(self, *mocks):
         path = reverse('companies-list')
-        response = self.client.post(path, {'dnb_service_duns_number': 2})
+        response = self.client.post(path, {'dnb_service_duns_number': 2, 'name': 'fake-name'})
         self.assertEqual(response.status_code, HTTP_201_CREATED, msg=response.data)
         self.assert_response_data_contains(response, data_contains={'dnb_service_duns_number': 2})
 

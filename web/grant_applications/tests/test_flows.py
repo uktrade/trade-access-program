@@ -13,7 +13,7 @@ from web.tests.helpers import BaseTestCase
 class TestGrantManagementFlow(BaseTestCase):
 
     def setUp(self):
-        self.ga = GrantApplicationFactory(duns_number=1)
+        self.ga = GrantApplicationFactory()
         self.url = reverse('grant_applications:application-review', kwargs={'pk': self.ga.pk})
         self.tomorrow = today() + timedelta(days=1)
         self.set_session_value(key='application_summary', value=self.ga.application_summary)
