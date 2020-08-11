@@ -10,7 +10,8 @@ class GrantApplicationFactory(factory.DjangoModelFactory):
     class Meta:
         model = GrantApplication
 
-    duns_number = 239896579
+    search_term = factory.Sequence(lambda n: f'search_term-{n}')
+    company = factory.SubFactory('web.tests.factories.companies.CompanyFactory')
     applicant_full_name = factory.Sequence(lambda n: f'name-{n}')
     applicant_email = factory.Sequence(lambda n: f'test{n}@test.com')
     event = factory.SubFactory('web.tests.factories.events.EventFactory')

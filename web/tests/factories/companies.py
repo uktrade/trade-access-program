@@ -9,3 +9,4 @@ class CompanyFactory(BaseMetaFactory):
         model = Company
 
     dnb_service_duns_number = factory.Sequence(lambda n: n)
+    name = factory.Sequence(lambda n: f'name-{n}')

@@ -8,7 +8,8 @@ from web.grant_management.flows import GrantManagementFlow
 
 
 class GrantApplication(BaseMetaModel):
-    duns_number = models.IntegerField()
+    search_term = models.CharField(max_length=500)
+    company = models.ForeignKey('companies.Company', on_delete=PROTECT, null=True)
     applicant_full_name = models.CharField(null=True, max_length=500)
     applicant_email = models.EmailField(null=True)
     event = models.ForeignKey('trade_events.Event', on_delete=PROTECT, null=True)

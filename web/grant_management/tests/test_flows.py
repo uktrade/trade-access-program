@@ -23,7 +23,7 @@ class TestGrantManagementFlow(BaseTestCase):
     def setUp(self):
         super().setUp()
         self.user = UserFactory(is_superuser=True)
-        self.ga = GrantApplicationFactory(duns_number=1)
+        self.ga = GrantApplicationFactory()
 
     def test_is_start_of_process(self, *mocks):
         self.assertTrue(GrantManagementFlow.start.task_type, 'START')
