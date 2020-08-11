@@ -13,5 +13,11 @@
         <td class="govuk-table__cell">{{ company.name }}</td>
       </tr>
     </tbody>
+    <tbody class="govuk-table__body">
+      <tr class="govuk-table__row">
+        <th scope="row" class="govuk-table__header">Previous Applications</th>
+        <td class="govuk-table__cell">{{ company.grantapplication_set|length }}</td>
+      </tr>
+    </tbody>
   </table>
 {% endif %}

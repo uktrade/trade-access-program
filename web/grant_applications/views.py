@@ -4,7 +4,6 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import UpdateView, CreateView
 from django.views.generic.base import TemplateView
 
-from web.companies.serializers import CompanySerializer
 from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
 from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin
@@ -14,6 +13,7 @@ from web.grant_applications.forms import (
     StateAidForm, ExportExperienceForm, AboutYourBusinessForm, ApplicationReviewForm
 )
 from web.grant_applications.models import GrantApplication
+from web.grant_applications.serializers import CompanySerializer
 from web.grant_applications.services import generate_summary_of_form_fields
 from web.grant_management.flows import GrantManagementFlow
 
@@ -68,7 +68,8 @@ class AboutYourBusinessView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['company'] = CompanySerializer(instance=self.object.company).data
+        company_serializer = CompanySerializer(instance=self.object.company)
+        context['company'] = company_serializer.data
         return context
 
 
