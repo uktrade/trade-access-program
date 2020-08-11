@@ -125,6 +125,17 @@ class TestAboutYourBusinessView(BaseTestCase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
 
+        response_html = response.content.decode()
+        table_cell_html = '<td class="govuk-table__cell">{}</td>'
+
+        self.assertInHTML(table_cell_html.format(self.ga.company.name), response_html)
+        self.assertInHTML(
+            table_cell_html.format(self.ga.company.dnb_service_duns_number), response_html
+        )
+        self.assertInHTML(
+            table_cell_html.format(self.ga.company.grantapplication_set.count()), response_html
+        )
+
     def test_post_redirects(self, *mocks):
         response = self.client.post(
             self.url, content_type='application/x-www-form-urlencoded'
