@@ -19,23 +19,25 @@
   </div>
   {% endif %}
   {% for field in form %}
-      <div class="govuk-form-group{% if field.errors %} govuk-form-group--error{% endif %}">
-          <label class="govuk-label" for="{{ field.name }}">
-              {{ field.label }}{% if field.field.required == False %} (optional){% endif %}
-          </label>
-          <span id="{{ field.name }}-hint" class="govuk-hint">
-            {{ field.help_text }}{% if field.field.required == False %} (optional){% endif %}
+    <div class="govuk-form-group{% if field.errors %} govuk-form-group--error{% endif %}">
+      <label class="govuk-label" for="{{ field.name }}">
+        {{ field.label }}{% if field.field.required == False %} (optional){% endif %}
+      </label>
+      <span id="{{ field.name }}-hint" class="govuk-hint">
+        {{ field.help_text }}{% if field.field.required == False %} (optional){% endif %}
+      </span>
+      {% if field.errors %}
+        {% for error in field.errors %}
+          <span id="{{ field.name }}-issued-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">
+              Error:
+            </span>
+            {{ error|escape }}
           </span>
-          {% if field.errors %}
-              {% for error in field.errors %}
-                  <span id="{{ field.name }}-issued-error" class="govuk-error-message">
-                      <span class="govuk-visually-hidden">Error:</span>
-                      {{ error|escape }}
-                  </span>
-              {% endfor %}
-          {% endif %}
-          {{ field }}
-      </div>
+        {% endfor %}
+      {% endif %}
+      {{ field }}
+    </div>
   {% endfor %}
 
   <button class="govuk-button" data-module="govuk-button">

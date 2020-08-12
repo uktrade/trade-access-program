@@ -12,7 +12,7 @@ from web.grant_applications.models import GrantApplication
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, DnbServiceClient, AboutYourBusinessView,
     AboutYouView, AboutTheEventView, PreviousApplicationsView, BusinessInformationView,
-    StateAidView, ExportExperienceView
+    StateAidView, ExportExperienceView, EventIntentionView
 )
 from web.tests.factories.events import EventFactory
 from web.tests.factories.grant_applications import GrantApplicationFactory
@@ -248,14 +248,27 @@ class TestPreviousApplicationsView(BaseTestCase):
             self.url,
             content_type='application/x-www-form-urlencoded',
             data=urlencode({
-                'has_previously_applied': False,
+                'has_previously_applied': True,
                 'previous_applications': 1
             })
         )
         self.assertEqual(response.status_code, HTTP_302_FOUND)
         self.ga.refresh_from_db()
-        self.assertFalse(self.ga.has_previously_applied)
+        self.assertTrue(self.ga.has_previously_applied)
         self.assertEqual(self.ga.previous_applications, 1)
+
+    def test_false_has_previously_applied_gives_0_previous_applications(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'has_previously_applied': False,
+            })
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.ga.refresh_from_db()
+        self.assertFalse(self.ga.has_previously_applied)
+        self.assertEqual(self.ga.previous_applications, 0)
 
 
 class TestEventIntentionView(BaseTestCase):
@@ -267,7 +280,7 @@ class TestEventIntentionView(BaseTestCase):
     def test_get(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertTemplateUsed(response, PreviousApplicationsView.template_name)
+        self.assertTemplateUsed(response, EventIntentionView.template_name)
 
     def test_post(self, *mocks):
         response = self.client.post(
