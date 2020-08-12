@@ -12,7 +12,7 @@ class SupportingInformationContent:
 
     @property
     def dnb_company(self):
-        if self._dnb_company is None:
+        if self._dnb_company is None and self.grant_application.company:
             self._dnb_company = self.dnb_client.get_company(
                 self.grant_application.company.dnb_service_duns_number
             )
