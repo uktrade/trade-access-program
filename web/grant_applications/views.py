@@ -13,7 +13,7 @@ from web.grant_applications.forms import (
     StateAidForm, ExportExperienceForm, AboutYourBusinessForm, ApplicationReviewForm
 )
 from web.grant_applications.models import GrantApplication
-from web.grant_applications.serializers import CompanySerializer
+from web.grant_applications.serializers import AboutYourBusinessTableSerializer
 from web.grant_applications.services import generate_summary_of_form_fields
 from web.grant_management.flows import GrantManagementFlow
 
@@ -68,8 +68,11 @@ class AboutYourBusinessView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        company_serializer = CompanySerializer(instance=self.object.company)
-        context['company'] = company_serializer.data
+        serializer = AboutYourBusinessTableSerializer(instance=self.object.company)
+        context['table'] = [{
+            'label': serializer.fields[key].label,
+            'value': value
+            } for key, value in serializer.data.items()]
         return context
 
 

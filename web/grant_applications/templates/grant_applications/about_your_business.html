@@ -4,7 +4,7 @@
 {% block content %}
 
   <h2 class="govuk-heading-m">{{ page.heading }}</h2>
-  {% include "grant_applications/company_table.html" %}
+  {% include "core/govt_table.html" with table=table%}
   {% include "core/govt_uk_form.html" %}
 
 {% endblock %}
