@@ -99,11 +99,21 @@ class AboutTheEventView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
 class PreviousApplicationsView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
     model = GrantApplication
     form_class = PreviousApplicationsForm
-    template_name = 'grant_applications/generic_form_page.html'
+    template_name = 'grant_applications/previous_applications.html'
     success_url_name = 'grant_applications:event-intention'
     page = {
         'heading': _('Your application')
     }
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.request.method in ('POST', 'PUT'):
+            if kwargs['data'].get('has_previously_applied') == 'False':
+                kwargs['data'] = {
+                    'has_previously_applied': False,
+                    'previous_applications': 0
+                }
+        return kwargs
 
 
 class EventIntentionView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
