@@ -209,7 +209,7 @@ class BusinessInformationForm(forms.ModelForm):
             'sector': forms.TextInput(
                 attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
             ),
-            'website': forms.TextInput(
+            'website': forms.URLInput(
                 attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
             ),
         }

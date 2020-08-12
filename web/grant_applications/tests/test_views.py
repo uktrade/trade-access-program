@@ -305,7 +305,7 @@ class TestBusinessInformationView(BaseTestCase):
                 'turnover': 1234,
                 'number_of_employees': 2,
                 'sector': 'A sector',
-                'website': 'A website',
+                'website': 'www.a-website.com',
             })
         )
         self.assertEqual(response.status_code, HTTP_302_FOUND)
@@ -315,7 +315,15 @@ class TestBusinessInformationView(BaseTestCase):
         self.assertEqual(self.ga.turnover, 1234)
         self.assertEqual(self.ga.number_of_employees, 2)
         self.assertEqual(self.ga.sector, 'A sector')
-        self.assertEqual(self.ga.website, 'A website')
+        self.assertEqual(self.ga.website, 'http://www.a-website.com')
+
+    def test_website_validation(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'website': 'Not a website'})
+        )
+        self.assertFormError(response, 'form', 'website', 'Enter a valid URL.')
 
 
 class TestExportExperienceView(BaseTestCase):

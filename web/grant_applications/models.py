@@ -28,7 +28,7 @@ class GrantApplication(BaseMetaModel):
     turnover = models.IntegerField(null=True, validators=[MinValueValidator(0)])
     number_of_employees = models.IntegerField(null=True, validators=[MinValueValidator(1)])
     sector = models.CharField(null=True, max_length=500)
-    website = models.CharField(null=True, max_length=500)
+    website = models.URLField(null=True, max_length=500)
     has_exported_before = models.BooleanField(null=True)
     is_planning_to_grow_exports = models.BooleanField(null=True)
     is_seeking_export_opportunities = models.BooleanField(null=True)
