@@ -32,8 +32,12 @@
         <p>{{ supporting_information.text }}</p>
       {% endif %}
 
+      {% for link in supporting_information.links %}
+        <a href="{{ link.url }}" class="brand-logo">{{ link.text }}</a>
+      {% endfor %}
+
       {% for table in supporting_information.tables %}
-        {% include 'grant_management/grantmanagement/table.html' with table=table %}
+        {% include 'viewflow/table.html' with table=table %}
       {% endfor %}
 
     </div>

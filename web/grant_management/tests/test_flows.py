@@ -1,11 +1,11 @@
 from unittest.mock import patch, create_autospec
 
-from django.urls import reverse
-from rest_framework.status import HTTP_200_OK
-
 from web.companies.services import DnbServiceClient
+from web.core.exceptions import DnbServiceClientException
 from web.core.notify import NotifyService
 from web.grant_management.flows import GrantManagementFlow
+from web.grant_management.services import SupportingInformationContent
+from web.grant_management.tests.helpers import GrantManagementFlowTestHelper
 from web.tests.factories.grant_applications import GrantApplicationFactory
 from web.tests.factories.users import UserFactory
 from web.tests.helpers import BaseTestCase
@@ -18,7 +18,7 @@ from web.tests.helpers import BaseTestCase
     }
 )
 @patch('web.grant_management.flows.NotifyService')
-class TestGrantManagementFlow(BaseTestCase):
+class TestGrantManagementFlow(GrantManagementFlowTestHelper, BaseTestCase):
 
     def setUp(self):
         super().setUp()
@@ -34,57 +34,64 @@ class TestGrantManagementFlow(BaseTestCase):
         GrantManagementFlow.start.run(grant_application=self.ga)
         notify_service.send_application_submitted_email.assert_called()
 
-    def _assign_next_task(self, process, task_name):
-        # Get next task
-        next_task = process.active_tasks().first()
-
-        # Check it is what we expect
-        self.assertIsNone(next_task.assigned)
-        self.assertEqual(next_task.flow_task.name, task_name)
-
-        # Assign task to current logged in user
-        self.apl_ack_assign_url = reverse(
-            f'viewflow:grant_management:grantmanagement:{next_task.flow_task.name}__assign',
-            kwargs={'process_pk': process.pk, 'task_pk': next_task.pk},
-        )
-        assign_response = self.client.post(self.apl_ack_assign_url, follow=True)
-        self.assertEqual(assign_response.status_code, HTTP_200_OK)
-
-        # Check task is assigned
-        next_task.refresh_from_db()
-        self.assertIsNotNone(next_task.assigned)
-
-        return next_task
-
-    def _complete_task(self, process, task, data=None):
-        self.apl_ack_task_url = reverse(
-            f'viewflow:grant_management:grantmanagement:{task.flow_task.name}',
-            kwargs={'process_pk': process.pk, 'task_pk': task.pk},
-        )
-        apl_ack_response = self.client.post(self.apl_ack_task_url, data=data, follow=True)
-        self.assertEqual(apl_ack_response.status_code, HTTP_200_OK)
-
-    def test_flow_happy_path(self, *mocks):
+    def test_grant_management_happy_path(self, *mocks):
         self.client.force_login(self.user)
 
-        # start flow
-        ga_process = GrantManagementFlow.start.run(grant_application=self.ga)
+        # start flow and step through to end of flow
+        ga_process = self._start_process_and_step_through_until()
 
-        # Complete application acknowledgement task
-        next_task = self._assign_next_task(ga_process, 'application_acknowledgement')
-        self._complete_task(ga_process, next_task)
-
-        # Complete verify employee count task
-        next_task = self._assign_next_task(ga_process, 'verify_employee_count')
-        self._complete_task(ga_process, next_task)
-
-        # Complete verify turnover task
-        next_task = self._assign_next_task(ga_process, 'verify_turnover')
-        self._complete_task(ga_process, next_task)
+        # Grant Application should be approved
+        self.assertEqual(ga_process.decision, 'approved')
 
         # All tasks should be completed
         self.assertFalse(ga_process.active_tasks().exists())
 
         # Process should be marked as finished
-        ga_process.refresh_from_db()
         self.assertIsNotNone(ga_process.finished)
+
+    def test_grant_management_rejection(self, *mocks):
+        self.client.force_login(self.user)
+
+        # start flow
+        ga_process = self._start_process_and_step_through_until('decision')
+
+        # Reject applicant
+        _, next_task = self._assign_next_task(ga_process, 'decision')
+        self._complete_task(ga_process, next_task, data={'decision': 'rejected'})
+
+        # All tasks should be completed
+        self.assertFalse(ga_process.active_tasks().exists())
+
+        # Process should be marked as finished
+        self.assertIsNotNone(ga_process.finished)
+
+    def test_grant_management_decision_cannot_be_empty(self, *mocks):
+        self.client.force_login(self.user)
+
+        ga_process = self._start_process_and_step_through_until('decision')
+
+        # Reject applicant
+        _, next_task = self._assign_next_task(ga_process, 'decision')
+        response, _ = self._complete_task(ga_process, next_task, make_asserts=False)
+
+        self.assertFormError(response, 'form', 'decision', 'This field is required.')
+
+        # Task should not be completed
+        self.assertIsNone(next_task.finished)
+
+
+@patch.object(DnbServiceClient, 'get_company', side_effect=DnbServiceClientException)
+class TestGrantManagementSupportingInformation(BaseTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.ga = GrantApplicationFactory()
+        self.si_content = SupportingInformationContent(self.ga)
+
+    def test_employee_count_content_on_dnb_service_error(self, *mocks):
+        # Assert no dnb exceptionis caught and error is mentioned in content
+        self.assertIn('tables', self.si_content.employee_count_content)
+        self.assertIn(
+            'Could not retrieve Dun & Bradstreet data',
+            str(self.si_content.employee_count_content)
+        )

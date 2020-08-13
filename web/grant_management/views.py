@@ -21,3 +21,10 @@ class VerifyTurnoverView(SupportingInformationMixin, UpdateProcessView):
 
     def get_supporting_information(self):
         return self.supporting_information.turnover_content
+
+
+class DecisionView(SupportingInformationMixin, UpdateProcessView):
+    fields = ['decision']
+
+    def get_supporting_information(self):
+        return self.supporting_information.decision_content
