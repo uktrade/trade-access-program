@@ -17,20 +17,20 @@
         {{ form.has_previously_applied.help_text }}
       </span>
 
+      {% if form.has_previously_applied.errors %}
+        {% for error in form.has_previously_applied.errors %}
+          <span id="{{ form.has_previously_applied.name }}-issued-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">
+              Error:
+            </span>
+            {{ error|escape }}
+          </span>
+        {% endfor %}
+      {% endif %}
+
       <fieldset class="govuk-fieldset">
 
         <div class="govuk-radios govuk-radios--conditional" data-module="govuk-radios">
-
-          {% if form.has_previously_applied.errors %}
-            {% for error in form.has_previously_applied.errors %}
-              <span id="{{ form.has_previously_applied.name }}-issued-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">
-                  Error:
-                </span>
-                {{ error|escape }}
-              </span>
-            {% endfor %}
-          {% endif %}
 
           <div class="govuk-radios__item">
             {% ifequal form.has_previously_applied.value form.has_previously_applied.subwidgets.0.data.value %}
