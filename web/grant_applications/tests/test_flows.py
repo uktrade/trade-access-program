@@ -10,7 +10,7 @@ from web.tests.helpers import BaseTestCase
 
 
 @patch('web.grant_management.flows.NotifyService')
-class TestGrantManagementFlow(BaseTestCase):
+class TestInterfaceGrantManagementFlow(BaseTestCase):
 
     def setUp(self):
         self.ga = GrantApplicationFactory()

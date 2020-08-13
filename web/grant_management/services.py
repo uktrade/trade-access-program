@@ -1,5 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 from web.companies.services import DnbServiceClient
+from web.core.exceptions import DnbServiceClientException
 
 
 class SupportingInformationContent:
@@ -13,9 +14,12 @@ class SupportingInformationContent:
     @property
     def dnb_company(self):
         if self._dnb_company is None and self.grant_application.company:
-            self._dnb_company = self.dnb_client.get_company(
-                self.grant_application.company.dnb_service_duns_number
-            )
+            try:
+                self._dnb_company = self.dnb_client.get_company(
+                    self.grant_application.company.dnb_service_duns_number
+                )
+            except DnbServiceClientException:
+                pass
         return self._dnb_company
 
     @property
@@ -52,6 +56,11 @@ class SupportingInformationContent:
                 f"Dun & Bradstreet {e_or_r} that this company has "
                 f"{self.dnb_company['employee_number']} employees."
             )])
+        else:
+            content['tables'][0]['rows'].append([_(
+                "Could not retrieve Dun & Bradstreet data. "
+                "Please try again later or contact the site administrator."
+            )])
 
         return content
 
@@ -71,6 +80,17 @@ class SupportingInformationContent:
                         [_(f"The applicant indicated that the company has a turnover of "
                            f"£{self.grant_application.turnover}")],
                     ]
+                }
+            ]
+        }
+
+    @property
+    def decision_content(self):
+        return {
+            'links': [
+                {
+                    'text': 'https://www.gov.uk/guidance/tradeshow-access-programme#eligibility',
+                    'url': 'https://www.gov.uk/guidance/tradeshow-access-programme#eligibility',
                 }
             ]
         }

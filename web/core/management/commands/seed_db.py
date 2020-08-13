@@ -2,6 +2,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 
+from web.grant_applications.views import ApplicationReviewView
 from web.tests.factories.grant_applications import GrantApplicationFactory
 
 
@@ -22,6 +23,9 @@ class Command(BaseCommand):
 
         logging.disable(logging.WARNING)
         for ga in gas:
+            application_summary = ApplicationReviewView(object=ga).generate_application_summary(ga)
+            ga.application_summary = application_summary
+            ga.save()
             ga.send_for_review()
 
         self.stdout.write(self.style.SUCCESS(f"Successfully created {num} NEW grant applications."))

@@ -8,5 +8,5 @@ class CompanyFactory(BaseMetaFactory):
     class Meta:
         model = Company
 
-    dnb_service_duns_number = factory.Sequence(lambda n: n)
+    dnb_service_duns_number = 239896579
     name = factory.Sequence(lambda n: f'name-{n}')
