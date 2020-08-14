@@ -1,5 +1,6 @@
 import httpretty
 
+from web.companies import services
 from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
 from web.tests.helpers import BaseAPITestCase
@@ -106,3 +107,24 @@ class DnbServiceTests(BaseAPITestCase):
             self.dnb_service_client.get_company,
             duns_number=1
         )
+
+
+class ServicesTests(BaseAPITestCase):
+
+    def test_save_dnb_get_company_response_with_dnb_company_data(self):
+        dnb_company_data = {
+            'primary_name': 'name-1',
+            'duns_number': 1,
+            'registered_address_country': 'GB'
+        }
+        company = services.save_company_and_dnb_response(
+            duns_number=1, dnb_company_data=dnb_company_data
+        )
+        self.assertEquals(company.duns_number, 1)
+        self.assertEqual(company.dnbgetcompanyresponse_set.count(), 1)
+        self.assertEqual(company.last_dnb_get_company_response.data, dnb_company_data)
+
+    def test_save_dnb_get_company_response_without_dnb_company_data(self):
+        company = services.save_company_and_dnb_response(duns_number=1)
+        self.assertEquals(company.duns_number, 1)
+        self.assertFalse(company.dnbgetcompanyresponse_set.exists())

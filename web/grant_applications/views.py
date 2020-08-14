@@ -147,6 +147,19 @@ class BusinessInformationView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateV
         'heading': _('About your business')
     }
 
+    def get_initial(self):
+        initial = super().get_initial()
+        if not self.object.turnover:
+            initial['turnover'] = self.object.company.last_dnb_get_company_response.data.get(
+                'annual_sales'
+            )
+
+        if not self.object.website:
+            initial['website'] = self.object.company.last_dnb_get_company_response.data.get(
+                'domain'
+            )
+        return initial
+
 
 class ExportExperienceView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
     model = GrantApplication

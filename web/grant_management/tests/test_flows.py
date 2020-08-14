@@ -1,10 +1,8 @@
 from unittest.mock import patch, create_autospec
 
 from web.companies.services import DnbServiceClient
-from web.core.exceptions import DnbServiceClientException
 from web.core.notify import NotifyService
 from web.grant_management.flows import GrantManagementFlow
-from web.grant_management.services import SupportingInformationContent
 from web.grant_management.tests.helpers import GrantManagementFlowTestHelper
 from web.tests.factories.grant_applications import GrantApplicationFactory
 from web.tests.factories.users import UserFactory
@@ -14,7 +12,10 @@ from web.tests.helpers import BaseTestCase
 @patch.object(
     DnbServiceClient, 'get_company',
     return_value={
-        'primary_name': 'company-1', 'is_employees_number_estimated': True, 'employee_number': 1
+        'primary_name': 'company-1',
+        'is_employees_number_estimated': True,
+        'employee_number': 1,
+        'annual_sales': 100,
     }
 )
 @patch('web.grant_management.flows.NotifyService')
@@ -78,20 +79,3 @@ class TestGrantManagementFlow(GrantManagementFlowTestHelper, BaseTestCase):
 
         # Task should not be completed
         self.assertIsNone(next_task.finished)
-
-
-@patch.object(DnbServiceClient, 'get_company', side_effect=DnbServiceClientException)
-class TestGrantManagementSupportingInformation(BaseTestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.ga = GrantApplicationFactory()
-        self.si_content = SupportingInformationContent(self.ga)
-
-    def test_employee_count_content_on_dnb_service_error(self, *mocks):
-        # Assert no dnb exceptionis caught and error is mentioned in content
-        self.assertIn('tables', self.si_content.employee_count_content)
-        self.assertIn(
-            'Could not retrieve Dun & Bradstreet data',
-            str(self.si_content.employee_count_content)
-        )

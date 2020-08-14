@@ -13,7 +13,7 @@ class CompaniesApiTests(BaseAPITestCase):
 
     def setUp(self):
         super().setUp()
-        self.company = CompanyFactory(dnb_service_duns_number=1, name='fake-name')
+        self.company = CompanyFactory(name='fake-name', duns_number=1)
 
     def test_get_company(self, *mocks):
         path = reverse('companies-detail', args=(self.company.id,))
@@ -23,7 +23,7 @@ class CompaniesApiTests(BaseAPITestCase):
             response,
             data_contains={
                 'id': self.company.id_str,
-                'dnb_service_duns_number': 1,
+                'duns_number': 1,
                 'name': 'fake-name'
             }
         )
@@ -36,9 +36,11 @@ class CompaniesApiTests(BaseAPITestCase):
 
     def test_create_new_company(self, *mocks):
         path = reverse('companies-list')
-        response = self.client.post(path, {'dnb_service_duns_number': 2, 'name': 'fake-name'})
+        response = self.client.post(path, {'duns_number': 2, 'name': 'fake-name'})
         self.assertEqual(response.status_code, HTTP_201_CREATED, msg=response.data)
-        self.assert_response_data_contains(response, data_contains={'dnb_service_duns_number': 2})
+        self.assert_response_data_contains(
+            response, data_contains={'name': 'fake-name', 'duns_number': 2}
+        )
 
 
 @patch.object(
