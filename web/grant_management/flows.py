@@ -49,5 +49,6 @@ class GrantManagementFlow(Flow):
     def send_application_submitted_email_callback(self, activation):
         NotifyService().send_application_submitted_email(
             email_address=activation.process.grant_application.applicant_email,
-            applicant_full_name=activation.process.grant_application.applicant_full_name
+            applicant_full_name=activation.process.grant_application.applicant_full_name,
+            application_id=activation.process.grant_application.id_str
         )
