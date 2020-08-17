@@ -33,7 +33,11 @@ class TestGrantManagementFlow(GrantManagementFlowTestHelper, BaseTestCase):
         notify_service = create_autospec(NotifyService)
         mocks[0].return_value = notify_service
         GrantManagementFlow.start.run(grant_application=self.ga)
-        notify_service.send_application_submitted_email.assert_called()
+        notify_service.send_application_submitted_email.assert_called_once_with(
+            email_address=self.ga.applicant_email,
+            applicant_full_name=self.ga.applicant_full_name,
+            application_id=self.ga.id_str,
+        )
 
     def test_grant_management_happy_path(self, *mocks):
         self.client.force_login(self.user)

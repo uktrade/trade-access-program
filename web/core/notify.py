@@ -50,9 +50,12 @@ class NotifyService:
             personalisation=personalisation
         )
 
-    def send_application_submitted_email(self, email_address, applicant_full_name):
+    def send_application_submitted_email(self, email_address, applicant_full_name, application_id):
         self.send_email(
             email_address=email_address,
             template_name='application-submitted',
-            personalisation={'applicant_full_name': applicant_full_name}
+            personalisation={
+                'applicant_full_name': applicant_full_name,
+                'application_id': application_id,
+            }
         )
