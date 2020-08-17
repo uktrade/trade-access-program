@@ -5,6 +5,7 @@ import requests
 from django.conf import settings
 from requests.adapters import HTTPAdapter, Retry
 
+from web.companies.models import DnbGetCompanyResponse, Company
 from web.core.exceptions import DnbServiceClientException
 
 logger = logging.getLogger()
@@ -50,3 +51,14 @@ class DnbServiceClient:
         response = self.session.post(self.company_url, json={'search_term': search_term})
         _raise_for_status(response)
         return self._filter_gb(results=response.json()['results'])
+
+
+def save_company_and_dnb_response(duns_number, dnb_company_data=None):
+    dnb_company_data = dnb_company_data or {}
+    company, _ = Company.objects.get_or_create(
+        duns_number=duns_number,
+        defaults={'name': dnb_company_data.get('primary_name', 'Could not retrieve company name.')}
+    )
+    if dnb_company_data:
+        DnbGetCompanyResponse.objects.create(company=company, data=dnb_company_data)
+    return company

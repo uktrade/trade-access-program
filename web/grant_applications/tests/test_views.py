@@ -7,6 +7,7 @@ from django.forms import Field
 from django.urls import reverse, resolve
 from rest_framework.status import HTTP_200_OK, HTTP_302_FOUND
 
+from web.companies.models import DnbGetCompanyResponse, Company
 from web.core.exceptions import DnbServiceClientException
 from web.grant_applications.models import GrantApplication
 from web.grant_applications.views import (
@@ -14,6 +15,7 @@ from web.grant_applications.views import (
     AboutYouView, AboutTheEventView, PreviousApplicationsView, BusinessInformationView,
     StateAidView, ExportExperienceView, EventIntentionView
 )
+from web.tests.factories.companies import DnbGetCompanyResponseFactory
 from web.tests.factories.events import EventFactory
 from web.tests.factories.grant_applications import GrantApplicationFactory
 from web.tests.helpers import BaseTestCase
@@ -95,17 +97,32 @@ class TestSelectCompanyView(BaseTestCase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
 
-    def test_post_creates_company_relation_to_grant_application(self, *mocks):
+    def test_post_creates_company_relations_to_grant_application(self, *mocks):
         response = self.client.post(self.url, data={'duns_number': 1})
         self.assertEqual(response.status_code, HTTP_302_FOUND)
+
+        company_qs = Company.objects.filter(duns_number=1)
+        dnb_instance_qs = DnbGetCompanyResponse.objects.filter(company__duns_number=1)
+        self.assertTrue(company_qs.exists())
+        self.assertTrue(dnb_instance_qs.exists())
+
         self.ga.refresh_from_db()
         self.assertIsNotNone(self.ga.company)
-        self.assertEqual(self.ga.company.dnb_service_duns_number, 1)
+        self.assertEqual(self.ga.company.duns_number, 1)
+        self.assertEqual(self.ga.company, company_qs.first())
 
-    def test_get_dnb_service_exception(self, *mocks):
+    def test_post_dnb_service_exception(self, *mocks):
         mocks[1].side_effect = [DnbServiceClientException]
         response = self.client.post(self.url, data={'duns_number': 1}, follow=True)
         self.assertIn('Could not retrieve company name.', response.content.decode())
+
+        company_qs = Company.objects.filter(duns_number=1)
+        dnb_instance_qs = DnbGetCompanyResponse.objects.filter(company__duns_number=1)
+        self.assertTrue(company_qs.exists())
+        self.assertFalse(dnb_instance_qs.exists())
+
+        self.ga.refresh_from_db()
+        self.assertEqual(self.ga.company, company_qs.first())
 
 
 @patch.object(DnbServiceClient, 'get_company', return_value={'primary_name': 'company-1'})
@@ -130,7 +147,7 @@ class TestAboutYourBusinessView(BaseTestCase):
 
         self.assertInHTML(table_cell_html.format(self.ga.company.name), response_html)
         self.assertInHTML(
-            table_cell_html.format(self.ga.company.dnb_service_duns_number), response_html
+            table_cell_html.format(self.ga.company.duns_number), response_html
         )
         self.assertInHTML(
             table_cell_html.format(self.ga.company.grantapplication_set.count()), response_html
@@ -301,6 +318,9 @@ class TestBusinessInformationView(BaseTestCase):
 
     def setUp(self):
         self.ga = GrantApplicationFactory()
+        self.dnb_response = DnbGetCompanyResponseFactory(
+            company=self.ga.company, data={'annual_sales': 100, 'domain': 'www.a-domain.com'}
+        )
         self.url = reverse('grant_applications:business-information', kwargs={'pk': self.ga.pk})
 
     def test_get(self, *mocks):
@@ -329,6 +349,49 @@ class TestBusinessInformationView(BaseTestCase):
         self.assertEqual(self.ga.number_of_employees, 2)
         self.assertEqual(self.ga.sector, 'A sector')
         self.assertEqual(self.ga.website, 'http://www.a-website.com')
+
+    def test_initial_form_data(self, *mocks):
+        ga = GrantApplicationFactory(
+            goods_and_services_description=None,
+            business_name_at_exhibit=None,
+            turnover=None,
+            number_of_employees=None,
+            sector=None,
+            website=None,
+        )
+        dnb_response = DnbGetCompanyResponseFactory(
+            company=ga.company, data={'annual_sales': 100, 'domain': 'www.a-domain.com'}
+        )
+        url = reverse('grant_applications:business-information', kwargs={'pk': ga.pk})
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertInHTML(
+            f'<input type="number" name="turnover" value="{dnb_response.data["annual_sales"]}"'
+            f' class="govuk-input govuk-!-width-one-quarter" required id="id_turnover">',
+            response.content.decode()
+        )
+        self.assertInHTML(
+            f'<input type="text" name="website" value="{dnb_response.data["domain"]}" '
+            f'class="govuk-input govuk-!-width-two-thirds" maxlength="500" required '
+            f'id="id_website">',
+            response.content.decode()
+        )
+
+    def test_initial_form_data_is_object_data_if_object_data_is_set(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertInHTML(
+            f'<input type="number" name="turnover" value="{self.ga.turnover}"'
+            f' class="govuk-input govuk-!-width-one-quarter" required id="id_turnover">',
+            response.content.decode()
+        )
+        self.assertInHTML(
+            f'<input type="text" name="website" value="{self.ga.website}"'
+            f' class="govuk-input govuk-!-width-two-thirds" maxlength="500" '
+            f'required id="id_website">',
+            response.content.decode()
+        )
 
     def test_website_validation(self, *mocks):
         response = self.client.post(

@@ -1,11 +1,10 @@
 from config.settings.base import *
 
+ALLOWED_HOSTS = ['localhost', '0.0.0.0', '127.0.0.1']
+
 # This is required on mac to allow django-debug-toolbar to
 # show up when django server is run inside docker.
-DOCKER_NETWORK_IP = os.getenv('DOCKER_NETWORK_IP', '172.20.0.1')
-
-ALLOWED_HOSTS = ['localhost', '0.0.0.0', '127.0.0.1']
-INTERNAL_IPS = ['localhost', '0.0.0.0', '127.0.0.1', DOCKER_NETWORK_IP]
+INTERNAL_IPS = type(str('c'), (), {'__contains__': lambda *a: True})()
 
 INSTALLED_APPS += [
     'debug_toolbar',

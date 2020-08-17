@@ -3,8 +3,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 
-from web.companies.models import Company
-from web.companies.services import DnbServiceClient
+from web.companies import services as company_services
 from web.core import widgets
 from web.core.exceptions import DnbServiceClientException
 from web.grant_applications.models import GrantApplication
@@ -51,18 +50,18 @@ class SelectCompanyForm(forms.ModelForm):
 
     def save(self, *args, **kwargs):
         try:
-            dnb_company = DnbServiceClient().get_company(
+            dnb_company_data = company_services.DnbServiceClient().get_company(
                 duns_number=self.cleaned_data['duns_number']
             )
         except DnbServiceClientException:
-            dnb_company = {}
+            dnb_company_data = {}
 
         with transaction.atomic():
-            self.instance.company, _ = Company.objects.get_or_create(
-                dnb_service_duns_number=self.cleaned_data['duns_number'],
-                name=dnb_company.get('primary_name', 'Could not retrieve company name.')
+            self.instance.company = company_services.save_company_and_dnb_response(
+                duns_number=self.cleaned_data['duns_number'], dnb_company_data=dnb_company_data
             )
             instance = super().save(*args, **kwargs)
+
         return instance
 
 
@@ -210,7 +209,10 @@ class BusinessInformationForm(forms.ModelForm):
                 attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
             ),
             'website': forms.URLInput(
-                attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+                attrs={
+                    'class': 'govuk-input govuk-!-width-two-thirds',
+                    'type': 'text'
+                }
             ),
         }
 
