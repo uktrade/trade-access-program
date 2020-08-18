@@ -64,9 +64,9 @@ class GrantManagementFlow(Flow):
                 applicant_full_name=activation.process.grant_application.applicant_full_name,
                 application_id=activation.process.grant_application.id_str
             )
-
-        NotifyService().send_application_rejected_email(
-            email_address=activation.process.grant_application.applicant_email,
-            applicant_full_name=activation.process.grant_application.applicant_full_name,
-            application_id=activation.process.grant_application.id_str
-        )
+        else:
+            NotifyService().send_application_rejected_email(
+                email_address=activation.process.grant_application.applicant_email,
+                applicant_full_name=activation.process.grant_application.applicant_full_name,
+                application_id=activation.process.grant_application.id_str
+            )
