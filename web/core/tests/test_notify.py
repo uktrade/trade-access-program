@@ -11,44 +11,32 @@ from web.core.notify import NotifyService
 from web.tests.helpers import BaseTestCase
 
 
-class TestNotifyApplicationSubmittedEmail(BaseTestCase):
+class TestNotifyMixin:
+    TEMPLATES = [
+        {'id': 1, 'name': 'application-submitted'},
+        {'id': 2, 'name': 'application-approved'},
+        {'id': 3, 'name': 'application-rejected'}
+    ]
 
     def setUp(self):
         super().setUp()
         self.notifications_api_client = create_autospec(NotificationsAPIClient)
         self.notifications_api_client.get_all_templates.return_value = {
-            'templates': [{
-                'id': 1,
-                'name': 'application-submitted'
-            }]
+            'templates': self.TEMPLATES
         }
         self.notify_client = NotifyService(
             api_client=self.notifications_api_client
         )
 
-    @override_settings(NOTIFY_ENABLED=True)
-    def test_successful_application_sends_email(self):
-        self.notify_client.send_application_submitted_email(
-            email_address='test@test.com',
-            applicant_full_name='test',
-            application_id='2'
-        )
-        self.assertTrue(self.notifications_api_client.send_email_notification.called)
-        self.notifications_api_client.send_email_notification.assert_called_once_with(
-            email_address='test@test.com',
-            template_id=1,
-            personalisation={
-                'applicant_full_name': 'test',
-                'application_id': '2'
-            }
-        )
+
+class TestNotifyEmail(TestNotifyMixin, BaseTestCase):
 
     @override_settings(NOTIFY_ENABLED=False)
-    def test_successful_application_does_not_send_email(self):
-        self.notify_client.send_application_submitted_email(
+    def test_does_not_send_email_when_notify_enabled_false(self):
+        self.notify_client.send_email(
             email_address='test@test.com',
-            applicant_full_name='test',
-            application_id='2'
+            template_name='test-template',
+            personalisation={}
         )
         self.assertFalse(self.notifications_api_client.send_email_notification.called)
         self.assertTrue(self.notifications_api_client.post_template_preview.called)
@@ -57,13 +45,73 @@ class TestNotifyApplicationSubmittedEmail(BaseTestCase):
     def test_log_and_continue_on_notify_exception(self):
         log_capture = LogCapture(level=logging.ERROR)
         self.notifications_api_client.send_email_notification.side_effect = [HTTPError]
-        self.notify_client.send_application_submitted_email(
+        self.notify_client.send_email(
             email_address='test@test.com',
-            applicant_full_name='test',
-            application_id='2'
+            template_name='test-template',
+            personalisation={}
         )
         log_capture.uninstall()
         self.assertEqual(len(log_capture.records), 1)
         self.assertEqual(log_capture.records[0].levelno, logging.ERROR)
         self.assertTrue(self.notifications_api_client.send_email_notification.called)
         self.assertFalse(self.notifications_api_client.post_template_preview.called)
+
+
+class TestNotifyApplicationSubmitted(TestNotifyMixin, BaseTestCase):
+
+    @override_settings(NOTIFY_ENABLED=True)
+    def test_successful_application_sends_email(self):
+        self.notify_client.send_application_submitted_email(
+            email_address='test@test.com',
+            applicant_full_name='test',
+            application_id='A'
+        )
+        self.assertTrue(self.notifications_api_client.send_email_notification.called)
+        self.notifications_api_client.send_email_notification.assert_called_once_with(
+            email_address='test@test.com',
+            template_id=1,
+            personalisation={
+                'applicant_full_name': 'test',
+                'application_id': 'A'
+            }
+        )
+
+
+class TestNotifyApplicationApproved(TestNotifyMixin, BaseTestCase):
+
+    @override_settings(NOTIFY_ENABLED=True)
+    def test_application_approved_sends_email(self):
+        self.notify_client.send_application_approved_email(
+            email_address='test@test.com',
+            applicant_full_name='test',
+            application_id='A'
+        )
+        self.assertTrue(self.notifications_api_client.send_email_notification.called)
+        self.notifications_api_client.send_email_notification.assert_called_once_with(
+            email_address='test@test.com',
+            template_id=2,
+            personalisation={
+                'applicant_full_name': 'test',
+                'application_id': 'A'
+            }
+        )
+
+
+class TestNotifyApplicationRejected(TestNotifyMixin, BaseTestCase):
+
+    @override_settings(NOTIFY_ENABLED=True)
+    def test_application_rejected_sends_email(self):
+        self.notify_client.send_application_rejected_email(
+            email_address='test@test.com',
+            applicant_full_name='test',
+            application_id='A'
+        )
+        self.assertTrue(self.notifications_api_client.send_email_notification.called)
+        self.notifications_api_client.send_email_notification.assert_called_once_with(
+            email_address='test@test.com',
+            template_id=3,
+            personalisation={
+                'applicant_full_name': 'test',
+                'application_id': 'A'
+            }
+        )

@@ -5,10 +5,10 @@ from viewflow.models import Process
 
 
 class GrantManagementProcess(Process):
-    DECISION_CHOICES = [
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected')
-    ]
+
+    class Decision(models.TextChoices):
+        APPROVED = 'approved'
+        REJECTED = 'rejected'
 
     grant_application = models.OneToOneField(
         'grant_applications.GrantApplication', on_delete=PROTECT, null=True,
@@ -16,4 +16,12 @@ class GrantManagementProcess(Process):
     )
     employee_count_is_verified = models.BooleanField(null=True, choices=settings.BOOLEAN_CHOICES)
     turnover_is_verified = models.BooleanField(null=True, choices=settings.BOOLEAN_CHOICES)
-    decision = models.CharField(null=True, choices=DECISION_CHOICES, max_length=10)
+    decision = models.CharField(null=True, choices=Decision.choices, max_length=10)
+
+    @property
+    def is_approved(self):
+        return self.decision == self.Decision.APPROVED
+
+    @property
+    def is_rejected(self):
+        return self.decision == self.Decision.REJECTED

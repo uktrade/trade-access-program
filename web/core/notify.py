@@ -59,3 +59,23 @@ class NotifyService:
                 'application_id': application_id,
             }
         )
+
+    def send_application_approved_email(self, email_address, applicant_full_name, application_id):
+        self.send_email(
+            email_address=email_address,
+            template_name='application-approved',
+            personalisation={
+                'applicant_full_name': applicant_full_name,
+                'application_id': application_id,
+            }
+        )
+
+    def send_application_rejected_email(self, email_address, applicant_full_name, application_id):
+        self.send_email(
+            email_address=email_address,
+            template_name='application-rejected',
+            personalisation={
+                'applicant_full_name': applicant_full_name,
+                'application_id': application_id,
+            }
+        )

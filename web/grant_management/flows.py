@@ -35,6 +35,10 @@ class GrantManagementFlow(Flow):
 
     decision = flow.View(
         DecisionView
+    ).Next(this.send_decision_email)
+
+    send_decision_email = flow.Handler(
+        this.send_decision_email_callback
     ).Next(this.end)
 
     end = flow.End()
@@ -48,6 +52,20 @@ class GrantManagementFlow(Flow):
 
     def send_application_submitted_email_callback(self, activation):
         NotifyService().send_application_submitted_email(
+            email_address=activation.process.grant_application.applicant_email,
+            applicant_full_name=activation.process.grant_application.applicant_full_name,
+            application_id=activation.process.grant_application.id_str
+        )
+
+    def send_decision_email_callback(self, activation):
+        if activation.process.is_approved:
+            NotifyService().send_application_approved_email(
+                email_address=activation.process.grant_application.applicant_email,
+                applicant_full_name=activation.process.grant_application.applicant_full_name,
+                application_id=activation.process.grant_application.id_str
+            )
+
+        NotifyService().send_application_rejected_email(
             email_address=activation.process.grant_application.applicant_email,
             applicant_full_name=activation.process.grant_application.applicant_full_name,
             application_id=activation.process.grant_application.id_str
