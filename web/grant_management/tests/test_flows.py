@@ -51,6 +51,7 @@ class TestGrantManagementFlow(GrantManagementFlowTestHelper, BaseTestCase):
 
         # Grant approved email should have been sent
         notify_service.send_application_approved_email.assert_called()
+        notify_service.send_application_rejected_email.assert_not_called()
 
         # All tasks should be completed
         self.assertFalse(ga_process.active_tasks().exists())
@@ -77,6 +78,7 @@ class TestGrantManagementFlow(GrantManagementFlowTestHelper, BaseTestCase):
 
         # Rejection email should have been sent
         notify_service.send_application_rejected_email.assert_called()
+        notify_service.send_application_approved_email.assert_not_called()
 
         # All tasks should be completed
         self.assertFalse(ga_process.active_tasks().exists())
@@ -93,7 +95,7 @@ class TestGrantManagementFlow(GrantManagementFlowTestHelper, BaseTestCase):
         next_task = ga_process.active_tasks().first()
         self.assertEqual(next_task.flow_task.name, 'decision')
 
-        # Reject applicant
+        # Try to reject applicant
         self._assign_task(ga_process, next_task)
         response, _ = self._complete_task(ga_process, next_task, make_asserts=False)
 
