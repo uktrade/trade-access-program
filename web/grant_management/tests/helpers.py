@@ -3,51 +3,33 @@ from django.utils import timezone
 from rest_framework.status import HTTP_200_OK
 
 from web.grant_management.flows import GrantManagementFlow
+from web.grant_management.models import GrantManagementProcess
 
 
 class GrantManagementFlowTestHelper:
-    ORDERED_HUMAN_TASKS = [
-        {
-            'name': 'application_acknowledgement',
-        },
-        {
-            'name': 'verify_employee_count',
-            'data': {'employee_count_is_verified': True},
-        },
-        {
-            'name': 'verify_turnover',
-            'data': {'turnover_is_verified': True},
-        },
-        {
-            'name': 'decision',
-            'data': {'decision': 'approved'},
-        },
-        {
-            'name': 'end',
-        },
-    ]
+    DEFAULT_TASK_PAYLOADS = {
+        'verify_employee_count': {'employee_count_is_verified': True},
+        'verify_turnover': {'turnover_is_verified': True},
+        'decision': {'decision': GrantManagementProcess.Decision.APPROVED},
+    }
 
-    def _assign_next_task(self, process, task_name):
-        # Get next task
-        next_task = process.active_tasks().first()
-
-        # Check it is what we expect
-        self.assertIsNone(next_task.assigned)
-        self.assertEqual(next_task.flow_task.name, task_name)
+    def _assign_task(self, process, task):
+        # Check task is unassigned
+        self.assertIsNone(task.assigned)
 
         # Assign task to current logged in user
         self.apl_ack_assign_url = reverse(
-            f'viewflow:grant_management:grantmanagement:{next_task.flow_task.name}__assign',
-            kwargs={'process_pk': process.pk, 'task_pk': next_task.pk},
+            f'viewflow:grant_management:grantmanagement:{task.flow_task.name}__assign',
+            kwargs={'process_pk': process.pk, 'task_pk': task.pk},
         )
         response = self.client.post(self.apl_ack_assign_url, follow=True)
         self.assertEqual(response.status_code, HTTP_200_OK)
 
         # Check task is assigned
-        next_task.refresh_from_db()
-        self.assertIsNotNone(next_task.assigned)
+        task.refresh_from_db()
+        self.assertIsNotNone(task.assigned)
 
-        return response, next_task
+        return response, task
 
     def _complete_task(self, process, task, data=None, make_asserts=True):
         data = data or {}
@@ -83,11 +65,19 @@ class GrantManagementFlowTestHelper:
         # start flow
         ga_process = GrantManagementFlow.start.run(grant_application=self.ga)
 
-        for human_task in self.ORDERED_HUMAN_TASKS:
-            if human_task['name'] == task_name:
-                ga_process.refresh_from_db()
-                return ga_process
-            else:
-                # Complete next task
-                _, next_task = self._assign_next_task(ga_process, human_task['name'])
-                self._complete_task(ga_process, next_task, data=human_task.get('data'))
+        # Get next task
+        next_task = ga_process.active_tasks().first()
+
+        while next_task and next_task.flow_task.name != task_name:
+            # Complete next task if it is a HUMAN task
+            if next_task.flow_task_type == 'HUMAN':
+                _, next_task = self._assign_task(ga_process, next_task)
+                self._complete_task(
+                    ga_process, next_task,
+                    data=self.DEFAULT_TASK_PAYLOADS.get(next_task.flow_task.name)
+                )
+            # Get next task
+            next_task = ga_process.active_tasks().first()
+
+        ga_process.refresh_from_db()
+        return ga_process
