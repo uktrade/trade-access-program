@@ -40,3 +40,9 @@ To run the linter
 ```
 flake8 .
 ```
+
+## Deployment
+The project has 3 environments:
+ - dev
+ - staging
+ - uat
