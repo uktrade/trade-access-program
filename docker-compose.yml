@@ -22,6 +22,14 @@ services:
     restart: always
     depends_on:
       - db
+      - node
+
+  node:
+    image: node:12-slim
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: npm i
 
 volumes:
   db_data:
