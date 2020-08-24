@@ -108,9 +108,9 @@ class PreviousApplicationsView(PageContextMixin, SuccessUrlObjectPkMixin, Update
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         if self.request.method in ('POST', 'PUT'):
-            if kwargs['data'].get('has_previously_applied') == 'False':
+            if kwargs['data'].get('has_previously_applied') == 'True':
                 kwargs['data'] = {
-                    'has_previously_applied': False,
+                    'has_previously_applied': True,
                     'previous_applications': 0
                 }
         return kwargs
