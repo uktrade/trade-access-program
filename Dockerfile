@@ -1,5 +1,7 @@
 FROM python:3.8.3 AS base
 
+RUN apt-get update && apt-get install --assume-yes graphviz
+
 WORKDIR /app
 ENV PYTHONPATH=/app:$PYTHONPATH
 

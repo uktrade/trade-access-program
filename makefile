@@ -38,6 +38,10 @@ elevate:  ## Elevate a user account to admin (required because we use django-sta
 seed-db:  # Seed the database with some fake data
 	$(MAKE) django-seed_db
 
+graph-models:  # Generate diagrams
+	mkdir -p reports/diagrams
+	$(MAKE) django-graph_models
+
 ##@ pip-tools
 pip-compile-dev:  ## Generate dev requirements file: `requirements/dev.txt`
 	pip-compile --output-file requirements/base.txt requirements/base.in
