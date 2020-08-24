@@ -22,7 +22,7 @@ django-filter==2.3.0      # via -r requirements/base.txt, django-viewflow
 django-jsonstore==0.4.1   # via -r requirements/base.txt, django-viewflow
 django-material==1.6.3    # via -r requirements/base.txt
 django-sass-processor==0.8  # via -r requirements/base.txt
-git+https://github.com/uktrade/django-staff-sso-client.git@add_email_id_support#egg=django-staff-sso-client  # via -r requirements/base.txt
+git+https://github.com/uktrade/django-staff-sso-client.git@master#egg=django-staff-sso-client  # via -r requirements/base.txt
 django-viewflow==1.6.1    # via -r requirements/base.txt
 django==3.0.7             # via -r requirements/base.txt, django-annoying, django-appconf, django-debug-toolbar, django-filter, django-jsonstore, django-staff-sso-client, django-viewflow, djangorestframework
 djangorestframework==3.11.0  # via -r requirements/base.txt
