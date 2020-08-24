@@ -265,26 +265,26 @@ class TestPreviousApplicationsView(BaseTestCase):
             self.url,
             content_type='application/x-www-form-urlencoded',
             data=urlencode({
-                'has_previously_applied': True,
+                'has_previously_applied': False,
                 'previous_applications': 1
             })
         )
         self.assertEqual(response.status_code, HTTP_302_FOUND)
         self.ga.refresh_from_db()
-        self.assertTrue(self.ga.has_previously_applied)
+        self.assertFalse(self.ga.has_previously_applied)
         self.assertEqual(self.ga.previous_applications, 1)
 
-    def test_false_has_previously_applied_gives_0_previous_applications(self, *mocks):
+    def test_true_has_previously_applied_gives_0_previous_applications(self, *mocks):
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
             data=urlencode({
-                'has_previously_applied': False,
+                'has_previously_applied': True,
             })
         )
         self.assertEqual(response.status_code, HTTP_302_FOUND)
         self.ga.refresh_from_db()
-        self.assertFalse(self.ga.has_previously_applied)
+        self.assertTrue(self.ga.has_previously_applied)
         self.assertEqual(self.ga.previous_applications, 0)
 
 
