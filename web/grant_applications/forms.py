@@ -162,13 +162,13 @@ class EventIntentionForm(forms.ModelForm):
         choices=settings.BOOLEAN_CHOICES,
         required=True,
         widget=widgets.RadioSelect(),
-        label=_("Is this the first time you intend to exhibit at '{event.name}'?")
+        label=_("Is this the first time you intend to exhibit at {event.name}?")
     )
 
     number_of_times_exhibited_at_event = forms.IntegerField(
         min_value=0,
         required=True,
-        label=_("How many times have you exhibited at '{event.name}' previously?"),
+        label=_("How many times have you exhibited at {event.name} previously?"),
         widget=forms.NumberInput(
             attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
         )

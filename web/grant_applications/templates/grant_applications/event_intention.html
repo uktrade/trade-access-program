@@ -1,0 +1,90 @@
+{% extends 'grant_applications/generic_form_page.html' %}
+
+{% block content %}
+
+  <h2 class="govuk-heading-m">{{ page.heading }}</h2>
+
+  <form class="form" method="POST" novalidate>
+
+    {% csrf_token %}
+
+    <div class="govuk-form-group{% if form.is_first_exhibit_at_event.errors or form.number_of_times_exhibited_at_event.errors %} govuk-form-group--error{% endif %}">
+
+      <label class="govuk-label">
+        {{ form.is_first_exhibit_at_event.label }}
+      </label>
+      <span id="is_first_exhibit_at_event-hint" class="govuk-hint">
+        {{ form.is_first_exhibit_at_event.help_text }}
+      </span>
+
+      {% if form.is_first_exhibit_at_event.errors %}
+        {% for error in form.is_first_exhibit_at_event.errors %}
+          <span id="{{ form.is_first_exhibit_at_event.name }}-issued-error" class="govuk-error-message">
+            <span class="govuk-visually-hidden">
+              Error:
+            </span>
+            {{ error|escape }}
+          </span>
+        {% endfor %}
+      {% endif %}
+
+      <fieldset class="govuk-fieldset">
+
+        <div class="govuk-radios govuk-radios--conditional" data-module="govuk-radios">
+
+          <div class="govuk-radios__item">
+            {% ifequal form.is_first_exhibit_at_event.value form.is_first_exhibit_at_event.subwidgets.0.data.value %}
+              <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_01" name="is_first_exhibit_at_event" type="radio" value="True" checked>
+            {% else %}
+              <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_02" name="is_first_exhibit_at_event" type="radio" value="True">
+            {% endifequal %}
+            <label class="govuk-label govuk-radios__label" for="id_is_first_exhibit_at_event_0">
+              {{ form.is_first_exhibit_at_event.subwidgets.0.choice_label }}
+            </label>
+          </div>
+
+          <div class="govuk-radios__item">
+            {% ifequal form.is_first_exhibit_at_event.value form.is_first_exhibit_at_event.subwidgets.1.data.value %}
+              <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_11" name="is_first_exhibit_at_event" type="radio" value="False" data-aria-controls="number_of_times_exhibited_at_event-conditional" checked>
+            {% else %}
+              <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_12" name="is_first_exhibit_at_event" type="radio" value="False" data-aria-controls="number_of_times_exhibited_at_event-conditional">
+            {% endifequal %}
+            <label class="govuk-label govuk-radios__label" for="id_is_first_exhibit_at_event_1">
+              {{ form.is_first_exhibit_at_event.subwidgets.1.choice_label }}
+            </label>
+          </div>
+
+          {% if form.number_of_times_exhibited_at_event.errors and not form.is_first_exhibit_at_event.errors %}
+            {% for error in form.number_of_times_exhibited_at_event.errors %}
+              <span id="{{ form.number_of_times_exhibited_at_event.name }}-issued-error" class="govuk-error-message">
+                <span class="govuk-visually-hidden">
+                  Error:
+                </span>
+                {{ error|escape }}
+              </span>
+            {% endfor %}
+          {% endif %}
+          <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="number_of_times_exhibited_at_event-conditional">
+            <div class="govuk-form-group">
+              <label class="govuk-label">
+                {{ form.number_of_times_exhibited_at_event.label }}
+              </label>
+              <span id="number_of_times_exhibited_at_event-hint" class="govuk-hint">
+                {{ form.number_of_times_exhibited_at_event.help_text }}
+              </span>
+              {{ form.number_of_times_exhibited_at_event }}
+            </div>
+          </div>
+
+        </div>
+      </fieldset>
+    </div>
+
+    <button class="govuk-button" data-module="govuk-button">
+      {{ page.form_button_text | default:"Continue" }}
+    </button>
+
+  </form>
+
+
+{% endblock %}
