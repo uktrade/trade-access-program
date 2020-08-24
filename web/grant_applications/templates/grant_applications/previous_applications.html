@@ -4,7 +4,7 @@
 
   <h2 class="govuk-heading-m">{{ page.heading }}</h2>
 
-  <form class="form" method="POST">
+  <form class="form" method="POST" novalidate>
 
     {% csrf_token %}
 
@@ -43,7 +43,7 @@
             </label>
           </div>
 
-          {% if form.previous_applications.errors %}
+          {% if form.previous_applications.errors and not form.has_previously_applied.errors %}
             {% for error in form.previous_applications.errors %}
               <span id="{{ form.previous_applications.name }}-issued-error" class="govuk-error-message">
                 <span class="govuk-visually-hidden">

@@ -119,7 +119,7 @@ class PreviousApplicationsView(PageContextMixin, SuccessUrlObjectPkMixin, Update
 class EventIntentionView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
     model = GrantApplication
     form_class = EventIntentionForm
-    template_name = 'grant_applications/generic_form_page.html'
+    template_name = 'grant_applications/event_intention.html'
     success_url_name = 'grant_applications:business-information'
     page = {
         'heading': _('Your application')
@@ -137,6 +137,16 @@ class EventIntentionView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
         )
         return context
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if self.request.method in ('POST', 'PUT'):
+            if kwargs['data'].get('is_first_exhibit_at_event') == 'True':
+                kwargs['data'] = {
+                    'is_first_exhibit_at_event': True,
+                    'number_of_times_exhibited_at_event': 0
+                }
+        return kwargs
+
 
 class BusinessInformationView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
     model = GrantApplication
@@ -149,15 +159,17 @@ class BusinessInformationView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateV
 
     def get_initial(self):
         initial = super().get_initial()
-        if not self.object.turnover:
-            initial['turnover'] = self.object.company.last_dnb_get_company_response.data.get(
-                'annual_sales'
-            )
+        if self.object.company.last_dnb_get_company_response:
+            if not self.object.turnover:
+                initial['turnover'] = self.object.company.last_dnb_get_company_response.data.get(
+                    'annual_sales'
+                )
 
-        if not self.object.website:
-            initial['website'] = self.object.company.last_dnb_get_company_response.data.get(
-                'domain'
-            )
+            if not self.object.website:
+                initial['website'] = self.object.company.last_dnb_get_company_response.data.get(
+                    'domain'
+                )
+
         return initial
 
 

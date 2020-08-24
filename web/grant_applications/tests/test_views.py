@@ -313,6 +313,19 @@ class TestEventIntentionView(BaseTestCase):
         self.assertFalse(self.ga.is_first_exhibit_at_event)
         self.assertEqual(self.ga.number_of_times_exhibited_at_event, 1)
 
+    def test_true_is_first_exhibit_at_event_gives_0_number_of_times_exhibited(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'is_first_exhibit_at_event': True,
+            })
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.ga.refresh_from_db()
+        self.assertTrue(self.ga.is_first_exhibit_at_event)
+        self.assertEqual(self.ga.number_of_times_exhibited_at_event, 0)
+
 
 class TestBusinessInformationView(BaseTestCase):
 
@@ -375,6 +388,30 @@ class TestBusinessInformationView(BaseTestCase):
             f'<input type="text" name="website" value="{dnb_response.data["domain"]}" '
             f'class="govuk-input govuk-!-width-two-thirds" maxlength="500" required '
             f'id="id_website">',
+            response.content.decode()
+        )
+
+    def test_initial_form_data_when_no_previous_dnb_company_response(self, *mocks):
+        ga = GrantApplicationFactory(
+            goods_and_services_description=None,
+            business_name_at_exhibit=None,
+            turnover=None,
+            number_of_employees=None,
+            sector=None,
+            website=None,
+        )
+        url = reverse('grant_applications:business-information', kwargs={'pk': ga.pk})
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertInHTML(
+            '<input type="number" name="turnover" class="govuk-input govuk-!-width-one-quarter" '
+            'required id="id_turnover">',
+            response.content.decode()
+        )
+        self.assertInHTML(
+            '<input type="text" name="website" class="govuk-input govuk-!-width-two-thirds" '
+            'maxlength="500" required id="id_website">',
             response.content.decode()
         )
 
