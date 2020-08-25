@@ -12,3 +12,4 @@ class GrantManagementProcessFactory(factory.DjangoModelFactory):
     )
     employee_count_is_verified = False
     turnover_is_verified = False
+    decision = None
