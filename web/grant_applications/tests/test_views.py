@@ -133,7 +133,8 @@ class TestSelectCompanyView(BaseTestCase):
     return_value=[{'primary_name': 'company-1', 'duns_number': 1}]
 )
 class TestAboutYourBusinessView(BaseTestCase):
-    table_cell_html = '<td class="govuk-table__cell">{}</td>'
+    table_row_html = '<th scope="row" class="govuk-table__header">{header}</th>\n      ' \
+                     '<td class="govuk-table__cell">{value}</td>'
 
     def setUp(self):
         self.ga = GrantApplicationFactory()
@@ -145,15 +146,26 @@ class TestAboutYourBusinessView(BaseTestCase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
 
-        response_html = response.content.decode()
-
-        self.assertInHTML(self.table_cell_html.format(self.ga.company.name), response_html)
         self.assertInHTML(
-            self.table_cell_html.format(self.ga.company.duns_number), response_html
+            self.table_row_html.format(header='Company Name', value=self.ga.company.name),
+            response.content.decode()
         )
-        self.assertInHTML(self.table_cell_html.format('0'), response_html)
+        self.assertInHTML(
+            self.table_row_html.format(
+                header='Dun and Bradstreet Number', value=self.ga.company.duns_number
+            ),
+            response.content.decode()
+        )
+        self.assertInHTML(
+            self.table_row_html.format(header='Previous Applications', value='0'),
+            response.content.decode()
+        )
+        self.assertInHTML(
+            self.table_row_html.format(header='Applications in Review', value='0'),
+            response.content.decode()
+        )
 
-    def test_previous_applications_count(self, *mocks):
+    def test_application_counts(self, *mocks):
         company = CompanyFactory()
 
         # Create 2 approved grant applications for this company
@@ -167,18 +179,22 @@ class TestAboutYourBusinessView(BaseTestCase):
             grant_application__company=company,
             decision=GrantManagementProcess.Decision.REJECTED
         )
-        # Create 1 approved grant application for a different company
-        GrantManagementProcessFactory(
-            grant_application__company=self.ga.company,
-            decision=GrantManagementProcess.Decision.APPROVED
-        )
-        # Create a new grant application (not yet reviewed)
-        ga = GrantApplicationFactory(company=company)
+        # Create a grant application which is currently under review
+        GrantManagementProcessFactory(grant_application__company=company)
 
+        # Create a new grant application
+        ga = GrantApplicationFactory(company=company)
         url = reverse('grant_applications:about-your-business', kwargs={'pk': ga.pk})
 
         response = self.client.get(url)
-        self.assertInHTML(self.table_cell_html.format(2), response.content.decode())
+        self.assertInHTML(
+            self.table_row_html.format(header='Previous Applications', value='2'),
+            response.content.decode()
+        )
+        self.assertInHTML(
+            self.table_row_html.format(header='Applications in Review', value='1'),
+            response.content.decode()
+        )
 
     def test_post_redirects(self, *mocks):
         response = self.client.post(
