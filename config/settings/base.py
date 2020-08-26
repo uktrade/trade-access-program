@@ -205,3 +205,10 @@ NOTIFY_API_KEY = env('NOTIFY_API_KEY', default='')
 NOTIFY_ENABLED = False
 
 BOOLEAN_CHOICES = [(True, 'Yes'), (False, 'No')]
+
+GRAPH_MODELS = {
+    'all_applications': True,
+    'group_models': True,
+    'output': 'reports/diagrams/models.png',
+    'theme': 'django2018',
+}
