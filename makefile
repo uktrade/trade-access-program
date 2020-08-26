@@ -21,6 +21,9 @@ bash:  ## Open a bash shell in the web service
 test:  ## Run all tests
 	docker-compose run web pytest
 
+test-ci:  ## Run all tests with output that is kind to CircleCI
+	docker-compose run web pytest -p no:sugar -v
+
 lint:  ## Run all linters
 	docker-compose run web flake8
 
@@ -39,7 +42,6 @@ seed-db:  # Seed the database with some fake data
 	$(MAKE) django-seed_db
 
 graph-models:  # Generate diagrams
-	mkdir -p reports/diagrams
 	$(MAKE) django-graph_models
 
 ##@ pip-tools
