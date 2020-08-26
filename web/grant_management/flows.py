@@ -10,7 +10,7 @@ from web.grant_management.views import ApplicationAcknowledgementView, VerifyEmp
 
 @frontend.register
 class GrantManagementFlow(Flow):
-    summary_template = "{{ flow_class.process_title }} [{{ process.status }}]"
+    summary_template = "{{ process.grant_application.company.name }} [{{ process.status }}]"
     process_class = GrantManagementProcess
 
     start = flow.StartFunction(
