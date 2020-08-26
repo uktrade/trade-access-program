@@ -37,6 +37,11 @@ jobs:
       - run:
           name: Run Tests
           command: pytest -p no:sugar -v
+      - run:
+          name: Generate ERD
+          command: |
+            mkdir -p reports/diagrams
+            python manage.py graph_models
       - store_artifacts:
           path: reports
       - store_test_results:
