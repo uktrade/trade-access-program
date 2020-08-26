@@ -29,8 +29,6 @@ jobs:
           dependency-file: requirements/dev.txt
       - python/install-deps:
           dependency-file: requirements/dev.txt
-      - python/save-cache:
-          dependency-file: requirements/dev.txt
       - run:
           name: Run linter
           command: flake8 .
@@ -41,6 +39,8 @@ jobs:
           path: reports
       - store_test_results:
           path: reports/coverage/junitxml
+      - python/save-cache:
+          dependency-file: requirements/dev.txt
 
 workflows:
   build-and-test:
