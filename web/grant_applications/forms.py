@@ -202,8 +202,8 @@ class BusinessInformationForm(forms.ModelForm):
             'turnover': forms.NumberInput(
                 attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
             ),
-            'number_of_employees': forms.NumberInput(
-                attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
+            'number_of_employees': forms.Select(
+                attrs={'class': 'govuk-select govuk-!-width-one-quarter'}
             ),
             'sector': forms.TextInput(
                 attrs={'class': 'govuk-input govuk-!-width-one-quarter'}

@@ -392,7 +392,7 @@ class TestBusinessInformationView(BaseTestCase):
                 'goods_and_services_description': 'A description',
                 'business_name_at_exhibit': 'A name',
                 'turnover': 1234,
-                'number_of_employees': 2,
+                'number_of_employees': 'fewer-than-10',
                 'sector': 'A sector',
                 'website': 'www.a-website.com',
             })
@@ -402,7 +402,7 @@ class TestBusinessInformationView(BaseTestCase):
         self.assertEqual(self.ga.goods_and_services_description, 'A description')
         self.assertEqual(self.ga.business_name_at_exhibit, 'A name')
         self.assertEqual(self.ga.turnover, 1234)
-        self.assertEqual(self.ga.number_of_employees, 2)
+        self.assertEqual(self.ga.number_of_employees, 'fewer-than-10')
         self.assertEqual(self.ga.sector, 'A sector')
         self.assertEqual(self.ga.website, 'http://www.a-website.com')
 
