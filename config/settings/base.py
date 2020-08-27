@@ -209,6 +209,6 @@ BOOLEAN_CHOICES = [(True, 'Yes'), (False, 'No')]
 GRAPH_MODELS = {
     'all_applications': True,
     'group_models': True,
-    'output': 'reports/models.png',
+    'output': 'reports/diagrams/models.png',
     'theme': 'django2018',
 }

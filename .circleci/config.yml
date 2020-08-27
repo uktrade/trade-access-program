@@ -3,8 +3,46 @@ version: 2.1
 orbs:
   python: circleci/python@0.3.0
 
+aliases:
+  - &db_env
+      POSTGRES_USER: tap
+      POSTGRES_DB: tap
+      POSTGRES_PASSWORD: tap
+
 jobs:
-  build-and-test:
+  test:
+    docker:
+      - image: circleci/python:3.8.3
+        environment:
+          DJANGO_SETTINGS_MODULE: config.settings.ci
+          SECRET_KEY: ci-secret-key
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          <<: *db_env
+      - image: circleci/postgres:11
+        environment:
+          <<: *db_env
+
+    steps:
+      - checkout
+      - python/load-cache:
+          dependency-file: requirements/dev.txt
+      - python/install-deps:
+          dependency-file: requirements/dev.txt
+      - python/save-cache:
+          dependency-file: requirements/dev.txt
+      - run:
+          name: Run linter
+          command: flake8 .
+      - run:
+          name: Run Tests
+          command: pytest -p no:sugar -v
+      - store_artifacts:
+          path: reports
+      - store_test_results:
+          path: reports/coverage/junitxml
+
+  generate-erd:
     machine:
       docker_layer_caching: true
 
@@ -24,20 +62,18 @@ jobs:
           name: Build docker images
           command: make build
       - run:
-          name: Run linter
-          command: make lint
-      - run:
-          name: Run Tests
-          command: make test-ci
+          name: Migrate DB
+          command: make django-migrate
       - run:
           name: Generate ERDs
-          command: make graph-models
+          command: |
+            mkdir -p reports/diagrams
+            make graph-models
       - store_artifacts:
           path: reports
-      - store_test_results:
-          path: reports/coverage/junitxml
 
 workflows:
-  build-and-test:
+  build:
     jobs:
-      - build-and-test
+      - test
+      - generate-erd
