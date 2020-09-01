@@ -160,10 +160,19 @@ class BusinessInformationView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateV
     def get_initial(self):
         initial = super().get_initial()
         if self.object.company.last_dnb_get_company_response:
+            if not self.object.business_name_at_exhibit:
+                initial['business_name_at_exhibit'] = self.object.company.name
+
             if not self.object.turnover:
                 initial['turnover'] = self.object.company.last_dnb_get_company_response.data.get(
                     'annual_sales'
                 )
+
+            if not self.object.number_of_employees:
+                en = self.object.company.last_dnb_get_company_response.data.get('employee_number')
+                if en is not None:
+                    number_of_employees = self.object.NumberOfEmployees.get_choice_by_number(en)
+                    initial['number_of_employees'] = number_of_employees
 
             if not self.object.website:
                 initial['website'] = self.object.company.last_dnb_get_company_response.data.get(

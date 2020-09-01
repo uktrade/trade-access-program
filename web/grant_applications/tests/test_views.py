@@ -375,7 +375,8 @@ class TestBusinessInformationView(BaseTestCase):
     def setUp(self):
         self.ga = GrantApplicationFactory()
         self.dnb_response = DnbGetCompanyResponseFactory(
-            company=self.ga.company, data={'annual_sales': 100, 'domain': 'www.a-domain.com'}
+            company=self.ga.company,
+            data={'annual_sales': 100, 'domain': 'www.a-domain.com', 'employee_number': 5}
         )
         self.url = reverse('grant_applications:business-information', kwargs={'pk': self.ga.pk})
 
@@ -416,7 +417,8 @@ class TestBusinessInformationView(BaseTestCase):
             website=None,
         )
         dnb_response = DnbGetCompanyResponseFactory(
-            company=ga.company, data={'annual_sales': 100, 'domain': 'www.a-domain.com'}
+            company=ga.company,
+            data={'annual_sales': 100, 'domain': 'www.a-domain.com', 'employee_number': 5}
         )
         url = reverse('grant_applications:business-information', kwargs={'pk': ga.pk})
 
