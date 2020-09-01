@@ -423,7 +423,7 @@ class TestBusinessInformationView(BaseTestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertInHTML(
-            f'<input type="number" name="turnover" value="{dnb_response.data["annual_sales"]}"'
+            f'<input type="text" name="turnover" value="{dnb_response.data["annual_sales"]}"'
             f' class="govuk-input govuk-!-width-one-quarter" required id="id_turnover">',
             response.content.decode()
         )
@@ -448,7 +448,7 @@ class TestBusinessInformationView(BaseTestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertInHTML(
-            '<input type="number" name="turnover" class="govuk-input govuk-!-width-one-quarter" '
+            '<input type="text" name="turnover" class="govuk-input govuk-!-width-one-quarter" '
             'required id="id_turnover">',
             response.content.decode()
         )
@@ -462,7 +462,7 @@ class TestBusinessInformationView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertInHTML(
-            f'<input type="number" name="turnover" value="{self.ga.turnover}"'
+            f'<input type="text" name="turnover" value="{self.ga.turnover}"'
             f' class="govuk-input govuk-!-width-one-quarter" required id="id_turnover">',
             response.content.decode()
         )

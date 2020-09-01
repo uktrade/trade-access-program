@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from web.companies import services as company_services
 from web.core import widgets
 from web.core.exceptions import DnbServiceClientException
+from web.core.widgets import CurrencyInput
 from web.grant_applications.models import GrantApplication
 from web.trade_events.models import Event
 
@@ -199,9 +200,7 @@ class BusinessInformationForm(forms.ModelForm):
             'business_name_at_exhibit': forms.TextInput(
                 attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
             ),
-            'turnover': forms.NumberInput(
-                attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
-            ),
+            'turnover': CurrencyInput(),
             'number_of_employees': forms.Select(
                 attrs={'class': 'govuk-select govuk-!-width-one-quarter'}
             ),
