@@ -6,6 +6,7 @@
     "node": "12.18.x"
   },
   "dependencies": {
+    "@hmcts/frontend": "0.0.41-alpha",
     "govuk-frontend": "^3.7.0"
   }
 }
