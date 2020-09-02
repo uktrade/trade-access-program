@@ -1,5 +1,6 @@
 import datetime
 
+from web.core.abstract_models import BaseMetaModel
 from web.trade_events.models import Event
 
 
@@ -13,7 +14,7 @@ def _serialize_field(value):
     if isinstance(value, Event):
         return value.display_name
 
-    if isinstance(value, datetime.date):
+    if isinstance(value, (datetime.date, BaseMetaModel)):
         return str(value)
 
     return value

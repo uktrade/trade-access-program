@@ -1,8 +1,16 @@
 from unittest.mock import patch
 
+from django.core.exceptions import ValidationError
+
 from web.grant_applications.models import GrantApplication
-from web.tests.factories.grant_applications import GrantApplicationFactory
+from web.tests.factories.grant_applications import GrantApplicationFactory, SectorFactory
 from web.tests.helpers import BaseTestCase
+
+
+class TestSectorModel(BaseTestCase):
+
+    def test_sector_code_validator(self, *mocks):
+        self.assertRaises(ValidationError, SectorFactory(sector_code='Bad001').full_clean)
 
 
 @patch('web.grant_management.flows.NotifyService')
