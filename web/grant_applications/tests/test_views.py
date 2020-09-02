@@ -9,7 +9,7 @@ from rest_framework.status import HTTP_200_OK, HTTP_302_FOUND
 
 from web.companies.models import DnbGetCompanyResponse, Company
 from web.core.exceptions import DnbServiceClientException
-from web.grant_applications.models import GrantApplication
+from web.grant_applications.models import GrantApplication, Sector
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, DnbServiceClient, AboutYourBusinessView,
     AboutYouView, AboutTheEventView, PreviousApplicationsView, BusinessInformationView,
@@ -18,7 +18,7 @@ from web.grant_applications.views import (
 from web.grant_management.models import GrantManagementProcess
 from web.tests.factories.companies import DnbGetCompanyResponseFactory, CompanyFactory
 from web.tests.factories.events import EventFactory
-from web.tests.factories.grant_applications import GrantApplicationFactory
+from web.tests.factories.grant_applications import GrantApplicationFactory, SectorFactory
 from web.tests.factories.grant_management import GrantManagementProcessFactory
 from web.tests.helpers import BaseTestCase
 
@@ -385,7 +385,19 @@ class TestBusinessInformationView(BaseTestCase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertTemplateUsed(response, BusinessInformationView.template_name)
 
+    def test_sector_choices_come_from_sector_model(self, *mocks):
+        # Create some sectors
+        sectors = SectorFactory.create_batch(size=2)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        for sector in sectors:
+            expected = f'<option value="{sector.pk}">{str(sector)}</option>'
+            self.assertInHTML(expected, response.content.decode())
+
     def test_post(self, *mocks):
+        random_sector = Sector.objects.first()
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
@@ -393,8 +405,8 @@ class TestBusinessInformationView(BaseTestCase):
                 'goods_and_services_description': 'A description',
                 'business_name_at_exhibit': 'A name',
                 'turnover': 1234,
-                'number_of_employees': 'fewer-than-10',
-                'sector': 'A sector',
+                'number_of_employees': GrantApplication.NumberOfEmployees.HAS_FEWER_THAN_10,
+                'sector': random_sector.pk,
                 'website': 'www.a-website.com',
             })
         )
@@ -404,7 +416,7 @@ class TestBusinessInformationView(BaseTestCase):
         self.assertEqual(self.ga.business_name_at_exhibit, 'A name')
         self.assertEqual(self.ga.turnover, 1234)
         self.assertEqual(self.ga.number_of_employees, 'fewer-than-10')
-        self.assertEqual(self.ga.sector, 'A sector')
+        self.assertEqual(self.ga.sector, random_sector)
         self.assertEqual(self.ga.website, 'http://www.a-website.com')
 
     def test_initial_form_data(self, *mocks):

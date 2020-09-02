@@ -204,8 +204,8 @@ class BusinessInformationForm(forms.ModelForm):
             'number_of_employees': forms.Select(
                 attrs={'class': 'govuk-select govuk-!-width-one-quarter'}
             ),
-            'sector': forms.TextInput(
-                attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
+            'sector': forms.Select(
+                attrs={'class': 'govuk-select govuk-!-width-one-quarter'}
             ),
             'website': forms.URLInput(
                 attrs={
