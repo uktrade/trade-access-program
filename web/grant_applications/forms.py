@@ -298,7 +298,7 @@ class StateAidForm(forms.ModelForm):
     def mark_fields_required(self, cleaned_data, *fields):
         """Used for conditionally marking many fields as required."""
         for field in fields:
-            if not cleaned_data.get(field):
+            if cleaned_data.get(field) is None:
                 msg = forms.ValidationError('This field is required.')
                 self.add_error(field, msg)
         return cleaned_data
