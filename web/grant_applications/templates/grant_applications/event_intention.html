@@ -8,7 +8,7 @@
 
     {% csrf_token %}
 
-    <div class="govuk-form-group{% if form.is_first_exhibit_at_event.errors or form.number_of_times_exhibited_at_event.errors %} govuk-form-group--error{% endif %}">
+    <div class="govuk-form-group{% if form.is_first_exhibit_at_event.errors %} govuk-form-group--error{% endif %}">
 
       <label class="govuk-label">
         {{ form.is_first_exhibit_at_event.label }}
@@ -33,7 +33,7 @@
         <div class="govuk-radios govuk-radios--conditional" data-module="govuk-radios">
 
           <div class="govuk-radios__item">
-            {% ifequal form.is_first_exhibit_at_event.value form.is_first_exhibit_at_event.subwidgets.0.data.value %}
+            {% ifequal form.is_first_exhibit_at_event.value form.is_first_exhibit_at_event.subwidgets.0.data.value|stringformat:"s" %}
               <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_01" name="is_first_exhibit_at_event" type="radio" value="True" checked>
             {% else %}
               <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_02" name="is_first_exhibit_at_event" type="radio" value="True">
@@ -44,7 +44,7 @@
           </div>
 
           <div class="govuk-radios__item">
-            {% ifequal form.is_first_exhibit_at_event.value form.is_first_exhibit_at_event.subwidgets.1.data.value %}
+            {% ifequal form.is_first_exhibit_at_event.value form.is_first_exhibit_at_event.subwidgets.1.data.value|stringformat:"s" %}
               <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_11" name="is_first_exhibit_at_event" type="radio" value="False" data-aria-controls="number_of_times_exhibited_at_event-conditional" checked>
             {% else %}
               <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_12" name="is_first_exhibit_at_event" type="radio" value="False" data-aria-controls="number_of_times_exhibited_at_event-conditional">
@@ -54,26 +54,8 @@
             </label>
           </div>
 
-          {% if form.number_of_times_exhibited_at_event.errors and not form.is_first_exhibit_at_event.errors %}
-            {% for error in form.number_of_times_exhibited_at_event.errors %}
-              <span id="{{ form.number_of_times_exhibited_at_event.name }}-issued-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">
-                  Error:
-                </span>
-                {{ error|escape }}
-              </span>
-            {% endfor %}
-          {% endif %}
           <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="number_of_times_exhibited_at_event-conditional">
-            <div class="govuk-form-group">
-              <label class="govuk-label">
-                {{ form.number_of_times_exhibited_at_event.label }}
-              </label>
-              <span id="number_of_times_exhibited_at_event-hint" class="govuk-hint">
-                {{ form.number_of_times_exhibited_at_event.help_text }}
-              </span>
-              {{ form.number_of_times_exhibited_at_event }}
-            </div>
+            {% include "core/govt_uk_form_field.html" with field=form.number_of_times_exhibited_at_event %}
           </div>
 
         </div>

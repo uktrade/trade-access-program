@@ -559,6 +559,48 @@ class TestStateAidView(BaseTestCase):
         self.assertEqual(self.ga.de_minimis_aid_recipient, 'A recipient')
         self.assertEqual(self.ga.de_minimis_aid_date_received, date(2020, 6, 25))
 
+    def test_post_no_aid(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'has_received_de_minimis_aid': False})
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.ga.refresh_from_db()
+        self.assertFalse(self.ga.has_received_de_minimis_aid)
+        self.assertIsNone(self.ga.de_minimis_aid_public_authority)
+        self.assertIsNone(self.ga.de_minimis_aid_date_awarded)
+        self.assertIsNone(self.ga.de_minimis_aid_amount)
+        self.assertIsNone(self.ga.de_minimis_aid_description)
+        self.assertIsNone(self.ga.de_minimis_aid_recipient)
+        self.assertIsNone(self.ga.de_minimis_aid_date_received)
+
+    def test_required_fields_when_aid_is_selected(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'has_received_de_minimis_aid': True})
+        )
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        msg = 'This field is required.'
+        self.assertFormError(response, 'form', 'de_minimis_aid_public_authority', msg)
+        self.assertFormError(response, 'form', 'de_minimis_aid_date_awarded', msg)
+        self.assertFormError(response, 'form', 'de_minimis_aid_amount', msg)
+        self.assertFormError(response, 'form', 'de_minimis_aid_description', msg)
+        self.assertFormError(response, 'form', 'de_minimis_aid_recipient', msg)
+        self.assertFormError(response, 'form', 'de_minimis_aid_date_received', msg)
+
+    def test_aid_amount_is_integer(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'has_received_de_minimis_aid': True,
+                'de_minimis_aid_amount': 'bad-value',
+            })
+        )
+        self.assertFormError(response, 'form', 'de_minimis_aid_amount', 'Enter a whole number.')
+
 
 @patch('web.grant_management.flows.NotifyService')
 class TestApplicationReviewView(BaseTestCase):

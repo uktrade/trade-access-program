@@ -82,12 +82,14 @@ class GrantApplication(BaseMetaModel):
     is_planning_to_grow_exports = models.BooleanField(null=True)
     is_seeking_export_opportunities = models.BooleanField(null=True)
     has_received_de_minimis_aid = models.BooleanField(null=True)
-    de_minimis_aid_public_authority = models.CharField(null=True, max_length=500)
-    de_minimis_aid_date_awarded = models.DateField(null=True)
-    de_minimis_aid_amount = models.IntegerField(null=True, validators=[MinValueValidator(1)])
-    de_minimis_aid_description = models.CharField(null=True, max_length=500)
-    de_minimis_aid_recipient = models.CharField(null=True, max_length=500)
-    de_minimis_aid_date_received = models.DateField(null=True)
+    de_minimis_aid_public_authority = models.CharField(null=True, blank=True, max_length=500)
+    de_minimis_aid_date_awarded = models.DateField(null=True, blank=True)
+    de_minimis_aid_amount = models.IntegerField(
+        null=True, blank=True, validators=[MinValueValidator(1)]
+    )
+    de_minimis_aid_description = models.CharField(null=True, blank=True, max_length=500)
+    de_minimis_aid_recipient = models.CharField(null=True, blank=True, max_length=500)
+    de_minimis_aid_date_received = models.DateField(null=True, blank=True)
     application_summary = JSONField(default=list)
 
     def send_for_review(self):
