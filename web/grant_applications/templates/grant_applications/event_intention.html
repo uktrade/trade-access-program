@@ -10,30 +10,16 @@
 
     <div class="govuk-form-group{% if form.is_first_exhibit_at_event.errors %} govuk-form-group--error{% endif %}">
 
-      <label class="govuk-label">
-        {{ form.is_first_exhibit_at_event.label }}
-      </label>
-      <span id="is_first_exhibit_at_event-hint" class="govuk-hint">
-        {{ form.is_first_exhibit_at_event.help_text }}
-      </span>
-
-      {% if form.is_first_exhibit_at_event.errors %}
-        {% for error in form.is_first_exhibit_at_event.errors %}
-          <span id="{{ form.is_first_exhibit_at_event.name }}-issued-error" class="govuk-error-message">
-            <span class="govuk-visually-hidden">
-              Error:
-            </span>
-            {{ error|escape }}
-          </span>
-        {% endfor %}
-      {% endif %}
+      {% include "core/govt_uk_form_field_label.html" with field=form.is_first_exhibit_at_event %}
+      {% include "core/govt_uk_form_field_hint.html" with field=form.is_first_exhibit_at_event %}
+      {% include "core/govt_uk_form_field_errors.html" with field=form.is_first_exhibit_at_event %}
 
       <fieldset class="govuk-fieldset">
 
         <div class="govuk-radios govuk-radios--conditional" data-module="govuk-radios">
 
           <div class="govuk-radios__item">
-            {% ifequal form.is_first_exhibit_at_event.value form.is_first_exhibit_at_event.subwidgets.0.data.value|stringformat:"s" %}
+            {% ifequal form.is_first_exhibit_at_event.value|cut:"'" form.is_first_exhibit_at_event.subwidgets.0.data.value|cut:"'" %}
               <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_01" name="is_first_exhibit_at_event" type="radio" value="True" checked>
             {% else %}
               <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_02" name="is_first_exhibit_at_event" type="radio" value="True">
@@ -44,7 +30,7 @@
           </div>
 
           <div class="govuk-radios__item">
-            {% ifequal form.is_first_exhibit_at_event.value form.is_first_exhibit_at_event.subwidgets.1.data.value|stringformat:"s" %}
+            {% ifequal form.is_first_exhibit_at_event.value|cut:"'" form.is_first_exhibit_at_event.subwidgets.1.data.value|cut:"'" %}
               <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_11" name="is_first_exhibit_at_event" type="radio" value="False" data-aria-controls="number_of_times_exhibited_at_event-conditional" checked>
             {% else %}
               <input class="govuk-radios__input" id="id_is_first_exhibit_at_event_12" name="is_first_exhibit_at_event" type="radio" value="False" data-aria-controls="number_of_times_exhibited_at_event-conditional">
