@@ -3,10 +3,10 @@ django-compressor==2.4
 django-environ==0.4.5
 django-filter==2.3.0
 django-material==1.6.3
-django-sass-processor==0.8
+django-sass-processor==0.8.1
 git+https://github.com/uktrade/django-staff-sso-client.git@master#egg=django-staff-sso-client
 django-viewflow==1.6.1
-djangorestframework==3.11.0
+djangorestframework==3.11.1
 gunicorn==19.9.0
 libsass==0.20.0
 notifications-python-client==5.6.0
