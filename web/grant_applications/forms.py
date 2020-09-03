@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from web.companies import services as company_services
 from web.core import widgets
 from web.core.exceptions import DnbServiceClientException
+from web.core.widgets import CurrencyInput
 from web.grant_applications.models import GrantApplication
 from web.trade_events.models import Event
 
@@ -162,13 +163,13 @@ class EventIntentionForm(forms.ModelForm):
         choices=settings.BOOLEAN_CHOICES,
         required=True,
         widget=widgets.RadioSelect(),
-        label=_("Is this the first time you intend to exhibit at '{event.name}'?")
+        label=_("Is this the first time you intend to exhibit at {event.name}?")
     )
 
     number_of_times_exhibited_at_event = forms.IntegerField(
         min_value=0,
         required=True,
-        label=_("How many times have you exhibited at '{event.name}' previously?"),
+        label=_("How many times have you exhibited at {event.name} previously?"),
         widget=forms.NumberInput(
             attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
         )
@@ -199,14 +200,12 @@ class BusinessInformationForm(forms.ModelForm):
             'business_name_at_exhibit': forms.TextInput(
                 attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
             ),
-            'turnover': forms.NumberInput(
-                attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
+            'turnover': CurrencyInput(),
+            'number_of_employees': forms.Select(
+                attrs={'class': 'govuk-select govuk-!-width-one-quarter'}
             ),
-            'number_of_employees': forms.NumberInput(
-                attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
-            ),
-            'sector': forms.TextInput(
-                attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
+            'sector': forms.Select(
+                attrs={'class': 'govuk-select govuk-!-width-one-quarter'}
             ),
             'website': forms.URLInput(
                 attrs={
@@ -295,6 +294,27 @@ class StateAidForm(forms.ModelForm):
             'previous Fiscal Years?'
         )
     )
+
+    def mark_fields_required(self, cleaned_data, *fields):
+        """Used for conditionally marking many fields as required."""
+        for field in fields:
+            if not cleaned_data.get(field):
+                msg = forms.ValidationError('This field is required.')
+                self.add_error(field, msg)
+        return cleaned_data
+
+    def clean(self):
+        cleaned_data = super().clean()
+        has_received_de_minimis_aid = cleaned_data.get('has_received_de_minimis_aid')
+
+        if has_received_de_minimis_aid == 'True':
+            cleaned_data = self.mark_fields_required(
+                cleaned_data, 'de_minimis_aid_public_authority', 'de_minimis_aid_date_awarded',
+                'de_minimis_aid_amount', 'de_minimis_aid_description', 'de_minimis_aid_recipient',
+                'de_minimis_aid_date_received'
+            )
+
+        return cleaned_data
 
 
 class ApplicationReviewForm(forms.ModelForm):

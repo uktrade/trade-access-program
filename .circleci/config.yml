@@ -10,7 +10,7 @@ aliases:
       POSTGRES_PASSWORD: tap
 
 jobs:
-  build-and-test:
+  test:
     docker:
       - image: circleci/python:3.8.3
         environment:
@@ -42,7 +42,38 @@ jobs:
       - store_test_results:
           path: reports/coverage/junitxml
 
+  generate-erd:
+    machine:
+      docker_layer_caching: true
+
+    steps:
+      - checkout
+      - run:
+          name: Set up .env file
+          command: |
+            echo "DJANGO_SETTINGS_MODULE=config.settings.ci
+            SECRET_KEY=ci-secret-key
+            POSTGRES_HOST=db
+            POSTGRES_PORT=5432
+            POSTGRES_USER=tap
+            POSTGRES_DB=tap
+            POSTGRES_PASSWORD=tap" > .env
+      - run:
+          name: Build docker images
+          command: make build
+      - run:
+          name: Migrate DB
+          command: make django-migrate
+      - run:
+          name: Generate ERDs
+          command: |
+            mkdir -p reports/diagrams
+            make graph-models
+      - store_artifacts:
+          path: reports
+
 workflows:
-  build-and-test:
+  build:
     jobs:
-      - build-and-test
+      - test
+      - generate-erd

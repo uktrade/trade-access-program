@@ -9,15 +9,17 @@ from rest_framework.status import HTTP_200_OK, HTTP_302_FOUND
 
 from web.companies.models import DnbGetCompanyResponse, Company
 from web.core.exceptions import DnbServiceClientException
-from web.grant_applications.models import GrantApplication
+from web.grant_applications.models import GrantApplication, Sector
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, DnbServiceClient, AboutYourBusinessView,
     AboutYouView, AboutTheEventView, PreviousApplicationsView, BusinessInformationView,
     StateAidView, ExportExperienceView, EventIntentionView
 )
-from web.tests.factories.companies import DnbGetCompanyResponseFactory
+from web.grant_management.models import GrantManagementProcess
+from web.tests.factories.companies import DnbGetCompanyResponseFactory, CompanyFactory
 from web.tests.factories.events import EventFactory
-from web.tests.factories.grant_applications import GrantApplicationFactory
+from web.tests.factories.grant_applications import GrantApplicationFactory, SectorFactory
+from web.tests.factories.grant_management import GrantManagementProcessFactory
 from web.tests.helpers import BaseTestCase
 
 
@@ -131,6 +133,8 @@ class TestSelectCompanyView(BaseTestCase):
     return_value=[{'primary_name': 'company-1', 'duns_number': 1}]
 )
 class TestAboutYourBusinessView(BaseTestCase):
+    table_row_html = '<th scope="row" class="govuk-table__header">{header}</th>\n      ' \
+                     '<td class="govuk-table__cell">{value}</td>'
 
     def setUp(self):
         self.ga = GrantApplicationFactory()
@@ -142,15 +146,54 @@ class TestAboutYourBusinessView(BaseTestCase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
 
-        response_html = response.content.decode()
-        table_cell_html = '<td class="govuk-table__cell">{}</td>'
-
-        self.assertInHTML(table_cell_html.format(self.ga.company.name), response_html)
         self.assertInHTML(
-            table_cell_html.format(self.ga.company.duns_number), response_html
+            self.table_row_html.format(header='Company Name', value=self.ga.company.name),
+            response.content.decode()
         )
         self.assertInHTML(
-            table_cell_html.format(self.ga.company.grantapplication_set.count()), response_html
+            self.table_row_html.format(
+                header='Dun and Bradstreet Number', value=self.ga.company.duns_number
+            ),
+            response.content.decode()
+        )
+        self.assertInHTML(
+            self.table_row_html.format(header='Previous Applications', value='0'),
+            response.content.decode()
+        )
+        self.assertInHTML(
+            self.table_row_html.format(header='Applications in Review', value='0'),
+            response.content.decode()
+        )
+
+    def test_application_counts(self, *mocks):
+        company = CompanyFactory()
+
+        # Create 2 approved grant applications for this company
+        GrantManagementProcessFactory.create_batch(
+            size=2,
+            grant_application__company=company,
+            decision=GrantManagementProcess.Decision.APPROVED
+        )
+        # Create 1 rejected grant application for this company
+        GrantManagementProcessFactory(
+            grant_application__company=company,
+            decision=GrantManagementProcess.Decision.REJECTED
+        )
+        # Create a grant application which is currently under review
+        GrantManagementProcessFactory(grant_application__company=company)
+
+        # Create a new grant application
+        ga = GrantApplicationFactory(company=company)
+        url = reverse('grant_applications:about-your-business', kwargs={'pk': ga.pk})
+
+        response = self.client.get(url)
+        self.assertInHTML(
+            self.table_row_html.format(header='Previous Applications', value='2'),
+            response.content.decode()
+        )
+        self.assertInHTML(
+            self.table_row_html.format(header='Applications in Review', value='1'),
+            response.content.decode()
         )
 
     def test_post_redirects(self, *mocks):
@@ -265,26 +308,26 @@ class TestPreviousApplicationsView(BaseTestCase):
             self.url,
             content_type='application/x-www-form-urlencoded',
             data=urlencode({
-                'has_previously_applied': True,
+                'has_previously_applied': False,
                 'previous_applications': 1
             })
         )
         self.assertEqual(response.status_code, HTTP_302_FOUND)
         self.ga.refresh_from_db()
-        self.assertTrue(self.ga.has_previously_applied)
+        self.assertFalse(self.ga.has_previously_applied)
         self.assertEqual(self.ga.previous_applications, 1)
 
-    def test_false_has_previously_applied_gives_0_previous_applications(self, *mocks):
+    def test_true_has_previously_applied_gives_0_previous_applications(self, *mocks):
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
             data=urlencode({
-                'has_previously_applied': False,
+                'has_previously_applied': True,
             })
         )
         self.assertEqual(response.status_code, HTTP_302_FOUND)
         self.ga.refresh_from_db()
-        self.assertFalse(self.ga.has_previously_applied)
+        self.assertTrue(self.ga.has_previously_applied)
         self.assertEqual(self.ga.previous_applications, 0)
 
 
@@ -313,13 +356,27 @@ class TestEventIntentionView(BaseTestCase):
         self.assertFalse(self.ga.is_first_exhibit_at_event)
         self.assertEqual(self.ga.number_of_times_exhibited_at_event, 1)
 
+    def test_true_is_first_exhibit_at_event_gives_0_number_of_times_exhibited(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'is_first_exhibit_at_event': True,
+            })
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.ga.refresh_from_db()
+        self.assertTrue(self.ga.is_first_exhibit_at_event)
+        self.assertEqual(self.ga.number_of_times_exhibited_at_event, 0)
+
 
 class TestBusinessInformationView(BaseTestCase):
 
     def setUp(self):
         self.ga = GrantApplicationFactory()
         self.dnb_response = DnbGetCompanyResponseFactory(
-            company=self.ga.company, data={'annual_sales': 100, 'domain': 'www.a-domain.com'}
+            company=self.ga.company,
+            data={'annual_sales': 100, 'domain': 'www.a-domain.com', 'employee_number': 5}
         )
         self.url = reverse('grant_applications:business-information', kwargs={'pk': self.ga.pk})
 
@@ -328,7 +385,19 @@ class TestBusinessInformationView(BaseTestCase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertTemplateUsed(response, BusinessInformationView.template_name)
 
+    def test_sector_choices_come_from_sector_model(self, *mocks):
+        # Create some sectors
+        sectors = SectorFactory.create_batch(size=2)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+        for sector in sectors:
+            expected = f'<option value="{sector.pk}">{str(sector)}</option>'
+            self.assertInHTML(expected, response.content.decode())
+
     def test_post(self, *mocks):
+        random_sector = Sector.objects.first()
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
@@ -336,8 +405,8 @@ class TestBusinessInformationView(BaseTestCase):
                 'goods_and_services_description': 'A description',
                 'business_name_at_exhibit': 'A name',
                 'turnover': 1234,
-                'number_of_employees': 2,
-                'sector': 'A sector',
+                'number_of_employees': GrantApplication.NumberOfEmployees.HAS_FEWER_THAN_10,
+                'sector': random_sector.pk,
                 'website': 'www.a-website.com',
             })
         )
@@ -346,8 +415,8 @@ class TestBusinessInformationView(BaseTestCase):
         self.assertEqual(self.ga.goods_and_services_description, 'A description')
         self.assertEqual(self.ga.business_name_at_exhibit, 'A name')
         self.assertEqual(self.ga.turnover, 1234)
-        self.assertEqual(self.ga.number_of_employees, 2)
-        self.assertEqual(self.ga.sector, 'A sector')
+        self.assertEqual(self.ga.number_of_employees, 'fewer-than-10')
+        self.assertEqual(self.ga.sector, random_sector)
         self.assertEqual(self.ga.website, 'http://www.a-website.com')
 
     def test_initial_form_data(self, *mocks):
@@ -360,14 +429,15 @@ class TestBusinessInformationView(BaseTestCase):
             website=None,
         )
         dnb_response = DnbGetCompanyResponseFactory(
-            company=ga.company, data={'annual_sales': 100, 'domain': 'www.a-domain.com'}
+            company=ga.company,
+            data={'annual_sales': 100, 'domain': 'www.a-domain.com', 'employee_number': 5}
         )
         url = reverse('grant_applications:business-information', kwargs={'pk': ga.pk})
 
         response = self.client.get(url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertInHTML(
-            f'<input type="number" name="turnover" value="{dnb_response.data["annual_sales"]}"'
+            f'<input type="text" name="turnover" value="{dnb_response.data["annual_sales"]}"'
             f' class="govuk-input govuk-!-width-one-quarter" required id="id_turnover">',
             response.content.decode()
         )
@@ -378,11 +448,35 @@ class TestBusinessInformationView(BaseTestCase):
             response.content.decode()
         )
 
+    def test_initial_form_data_when_no_previous_dnb_company_response(self, *mocks):
+        ga = GrantApplicationFactory(
+            goods_and_services_description=None,
+            business_name_at_exhibit=None,
+            turnover=None,
+            number_of_employees=None,
+            sector=None,
+            website=None,
+        )
+        url = reverse('grant_applications:business-information', kwargs={'pk': ga.pk})
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertInHTML(
+            '<input type="text" name="turnover" class="govuk-input govuk-!-width-one-quarter" '
+            'required id="id_turnover">',
+            response.content.decode()
+        )
+        self.assertInHTML(
+            '<input type="text" name="website" class="govuk-input govuk-!-width-two-thirds" '
+            'maxlength="500" required id="id_website">',
+            response.content.decode()
+        )
+
     def test_initial_form_data_is_object_data_if_object_data_is_set(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertInHTML(
-            f'<input type="number" name="turnover" value="{self.ga.turnover}"'
+            f'<input type="text" name="turnover" value="{self.ga.turnover}"'
             f' class="govuk-input govuk-!-width-one-quarter" required id="id_turnover">',
             response.content.decode()
         )
@@ -464,6 +558,48 @@ class TestStateAidView(BaseTestCase):
         self.assertEqual(self.ga.de_minimis_aid_description, 'A description')
         self.assertEqual(self.ga.de_minimis_aid_recipient, 'A recipient')
         self.assertEqual(self.ga.de_minimis_aid_date_received, date(2020, 6, 25))
+
+    def test_post_no_aid(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'has_received_de_minimis_aid': False})
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.ga.refresh_from_db()
+        self.assertFalse(self.ga.has_received_de_minimis_aid)
+        self.assertIsNone(self.ga.de_minimis_aid_public_authority)
+        self.assertIsNone(self.ga.de_minimis_aid_date_awarded)
+        self.assertIsNone(self.ga.de_minimis_aid_amount)
+        self.assertIsNone(self.ga.de_minimis_aid_description)
+        self.assertIsNone(self.ga.de_minimis_aid_recipient)
+        self.assertIsNone(self.ga.de_minimis_aid_date_received)
+
+    def test_required_fields_when_aid_is_selected(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'has_received_de_minimis_aid': True})
+        )
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        msg = 'This field is required.'
+        self.assertFormError(response, 'form', 'de_minimis_aid_public_authority', msg)
+        self.assertFormError(response, 'form', 'de_minimis_aid_date_awarded', msg)
+        self.assertFormError(response, 'form', 'de_minimis_aid_amount', msg)
+        self.assertFormError(response, 'form', 'de_minimis_aid_description', msg)
+        self.assertFormError(response, 'form', 'de_minimis_aid_recipient', msg)
+        self.assertFormError(response, 'form', 'de_minimis_aid_date_received', msg)
+
+    def test_aid_amount_is_integer(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'has_received_de_minimis_aid': True,
+                'de_minimis_aid_amount': 'bad-value',
+            })
+        )
+        self.assertFormError(response, 'form', 'de_minimis_aid_amount', 'Enter a whole number.')
 
 
 @patch('web.grant_management.flows.NotifyService')

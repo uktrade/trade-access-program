@@ -4,11 +4,11 @@
 
   <h2 class="govuk-heading-m">{{ page.heading }}</h2>
 
-  <form class="form" method="POST">
+  <form class="form" method="POST" novalidate>
 
     {% csrf_token %}
 
-    <div class="govuk-form-group{% if form.has_previously_applied.errors or form.previous_applications.errors %} govuk-form-group--error{% endif %}">
+    <div class="govuk-form-group{% if form.has_previously_applied.errors %} govuk-form-group--error{% endif %}">
 
       <label class="govuk-label">
         {{ form.has_previously_applied.label }}
@@ -33,39 +33,29 @@
         <div class="govuk-radios govuk-radios--conditional" data-module="govuk-radios">
 
           <div class="govuk-radios__item">
-            {% ifequal form.has_previously_applied.value form.has_previously_applied.subwidgets.0.data.value %}
-              <input class="govuk-radios__input" id="id_has_previously_applied_01" name="has_previously_applied" type="radio" value="True" data-aria-controls="previous_applications-conditional" checked>
+            {% ifequal form.has_previously_applied.value form.has_previously_applied.subwidgets.0.data.value|stringformat:"s" %}
+              <input class="govuk-radios__input" id="id_has_previously_applied_01" name="has_previously_applied" type="radio" value="True" checked>
             {% else %}
-              <input class="govuk-radios__input" id="id_has_previously_applied_02" name="has_previously_applied" type="radio" value="True" data-aria-controls="previous_applications-conditional">
+              <input class="govuk-radios__input" id="id_has_previously_applied_02" name="has_previously_applied" type="radio" value="True">
             {% endifequal %}
             <label class="govuk-label govuk-radios__label" for="id_has_previously_applied_0">
               {{ form.has_previously_applied.subwidgets.0.choice_label }}
             </label>
           </div>
 
-          {% if form.previous_applications.errors %}
-            {% for error in form.previous_applications.errors %}
-              <span id="{{ form.previous_applications.name }}-issued-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">
-                  Error:
-                </span>
-                {{ error|escape }}
-              </span>
-            {% endfor %}
-          {% endif %}
-          <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="previous_applications-conditional">
-            {{ form.previous_applications }}
-          </div>
-
           <div class="govuk-radios__item">
-            {% ifequal form.has_previously_applied.value form.has_previously_applied.subwidgets.1.data.value %}
-              <input class="govuk-radios__input" id="id_has_previously_applied_11" name="has_previously_applied" type="radio" value="False" checked>
+            {% ifequal form.has_previously_applied.value form.has_previously_applied.subwidgets.1.data.value|stringformat:"s" %}
+              <input class="govuk-radios__input" id="id_has_previously_applied_11" name="has_previously_applied" type="radio" value="False" data-aria-controls="previous_applications-conditional" checked>
             {% else %}
-              <input class="govuk-radios__input" id="id_has_previously_applied_12" name="has_previously_applied" type="radio" value="False">
+              <input class="govuk-radios__input" id="id_has_previously_applied_12" name="has_previously_applied" type="radio" value="False" data-aria-controls="previous_applications-conditional">
             {% endifequal %}
             <label class="govuk-label govuk-radios__label" for="id_has_previously_applied_1">
               {{ form.has_previously_applied.subwidgets.1.choice_label }}
             </label>
+          </div>
+
+          <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="previous_applications-conditional">
+            {% include "core/govt_uk_form_field.html" with field=form.previous_applications %}
           </div>
 
         </div>

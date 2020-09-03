@@ -98,11 +98,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-STAFF_SSO_ID_FIELD = 'email_user_id'
-STAFF_SSO_USER_CREATE_FUNC = lambda profile: dict(
-    is_active=True, first_name=profile['first_name'], last_name=profile['last_name'],
-    email=profile['email']
-)
+AUTHBROKER_PROFILE_ID_FIELD_NAME = 'email_user_id'
 
 CAN_ELEVATE_SSO_USER_PERMISSIONS = False
 CAN_CREATE_TEST_USER = False
@@ -182,7 +178,7 @@ AUTHBROKER_CLIENT_SECRET = env('AUTHBROKER_CLIENT_SECRET', default=None)
 AUTHBROKER_SCOPES = 'read write'
 
 AUTHENTICATION_BACKENDS = [
-    'authbroker_client.backends.AuthbrokerBackend',
+    'web.core.backends.CustomAuthbrokerBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
 
@@ -209,3 +205,10 @@ NOTIFY_API_KEY = env('NOTIFY_API_KEY', default='')
 NOTIFY_ENABLED = False
 
 BOOLEAN_CHOICES = [(True, 'Yes'), (False, 'No')]
+
+GRAPH_MODELS = {
+    'all_applications': True,
+    'group_models': True,
+    'output': 'reports/diagrams/models.png',
+    'theme': 'django2018',
+}

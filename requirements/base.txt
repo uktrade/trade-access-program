@@ -14,11 +14,11 @@ django-environ==0.4.5     # via -r requirements/base.in
 django-filter==2.3.0      # via -r requirements/base.in, django-viewflow
 django-jsonstore==0.4.1   # via django-viewflow
 django-material==1.6.3    # via -r requirements/base.in
-django-sass-processor==0.8  # via -r requirements/base.in
-git+https://github.com/uktrade/django-staff-sso-client.git@add_email_id_support#egg=django-staff-sso-client  # via -r requirements/base.in
+django-sass-processor==0.8.1  # via -r requirements/base.in
+git+https://github.com/uktrade/django-staff-sso-client.git@master#egg=django-staff-sso-client  # via -r requirements/base.in
 django-viewflow==1.6.1    # via -r requirements/base.in
 django==3.0.7             # via -r requirements/base.in, django-annoying, django-appconf, django-filter, django-jsonstore, django-staff-sso-client, django-viewflow, djangorestframework
-djangorestframework==3.11.0  # via -r requirements/base.in
+djangorestframework==3.11.1  # via -r requirements/base.in
 docopt==0.6.2             # via notifications-python-client
 future==0.18.2            # via notifications-python-client
 gunicorn==19.9.0          # via -r requirements/base.in

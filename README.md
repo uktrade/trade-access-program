@@ -1,48 +1,105 @@
 [![CircleCI](https://circleci.com/gh/uktrade/trade-access-program/tree/master.svg?style=shield)](https://circleci.com/gh/uktrade/trade-access-program/tree/master)
 
 # trade-access-program
-A repo to house the trade access program (TAP) service
+This repo houses the tradeshow access program (TAP) service
 
-## Install
+## Installation
 
 ### Requirements
- - docker
- - docker-compose 
- 
-### Set up
+ - [docker](https://hub.docker.com/editions/community/docker-ce-desktop-mac)
+ - [docker-compose](https://hub.docker.com/editions/community/docker-ce-desktop-mac)
 
-To run the project in the foreground
+### Build the project
 ```
-docker-compose up web
+make build
 ```
+
+### Run the service
+```
+make up
+```
+
+#### Browse at:
+- Grant application site: http://localhost.com
+- Django Admin site: http://localhost.com/admin
+- Grant management site: http://localhost.com/workflow
 
 ## Development
+Development has been done to attempt to be OS agnostic. All functionality _should_ be 
+available via docker and docker-compose entry points.
 
 ### Debugging
-Run run with port access (i.e. to open a debugger on breakpoints)
+#### Run with port access.
+This allows you to drop into a debug breakpoint with: `pdb`, `ipdb` or similar
 ```
 docker-compose up -d db
 docker-compose run --service-ports web
+```   
+
+#### Elevate user permissions
+In order to view grant applications in the [grant management site](http://localhost.com/workflow) you will need to 
+give your user the right permissions. 
+
+To do this first log into the [grant management site](http://localhost.com/workflow) 
+using your single sign on (SSO) gov account. This will create your user record. Then you 
+can run the elevate command to grant your user the right permissions. 
+```
+make elevate
 ```
 
-### Testing
-To run tests you can use Pytest  
+### Seed database
+You can seed the database with some dummy data using:
 ```
-pytest
+make seed-data
+``` 
+
+This will add a few dummy grant applications to your database which will be viewable in the
+[grant management site](http://localhost.com/workflow). 
+
+_Note: Make sure you have given your user permissions to view new grant applications by following 
+the steps in the [Elevate user permissions](#elevate-user-permissions) section_  
+
+### Run detached
 ```
-or the Django test command
-```
-python manage.py test
+docker-compose up -d
 ```
 
-### Linting
-To run the linter
-```
-flake8 .
-```
+## Testing
+The project uses `pytest` to run the test suite and generate test coverage.
+ - command `make test`
+ - config `./setup.cfg`
+ - coverage reporting output `./reports/coverage` 
 
+## Linting
+The project uses flake8 for linting.
+ - command `make lint`
+ - config `./setup.cfg`
+ 
+## Branching strategy
+ - master branch => production environment
+ - staging branch => staging environment
+ - develop branch => develop environment
+ - feature branches => **no environment**
+ 
+Feature branches should branch off of develop and be merged back into develop (ideally with 
+minimal single purpose commits).
+ 
 ## Deployment
-The project has 3 environments:
- - dev
- - staging
- - uat
+The project has 4 environments:
+
+#### develop
+- Develop is automatically deployed from the **develop** branch.
+- http://trade-access-program-dev.london.cloudapps.digital/
+
+#### staging
+- Staging is automatically deployed from the **staging** branch
+- http://trade-access-program-staging.london.cloudapps.digital/
+    
+#### uat 
+- UAT is manually deployed
+- http://trade-access-program-uat.london.cloudapps.digital/
+    
+#### production 
+- Production is manually deployed. 
+- domain TBD
+ 
