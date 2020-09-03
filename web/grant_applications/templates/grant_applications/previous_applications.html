@@ -8,7 +8,7 @@
 
     {% csrf_token %}
 
-    <div class="govuk-form-group{% if form.has_previously_applied.errors or form.previous_applications.errors %} govuk-form-group--error{% endif %}">
+    <div class="govuk-form-group{% if form.has_previously_applied.errors %} govuk-form-group--error{% endif %}">
 
       <label class="govuk-label">
         {{ form.has_previously_applied.label }}
@@ -33,7 +33,7 @@
         <div class="govuk-radios govuk-radios--conditional" data-module="govuk-radios">
 
           <div class="govuk-radios__item">
-            {% ifequal form.has_previously_applied.value form.has_previously_applied.subwidgets.0.data.value %}
+            {% ifequal form.has_previously_applied.value form.has_previously_applied.subwidgets.0.data.value|stringformat:"s" %}
               <input class="govuk-radios__input" id="id_has_previously_applied_01" name="has_previously_applied" type="radio" value="True" checked>
             {% else %}
               <input class="govuk-radios__input" id="id_has_previously_applied_02" name="has_previously_applied" type="radio" value="True">
@@ -44,7 +44,7 @@
           </div>
 
           <div class="govuk-radios__item">
-            {% ifequal form.has_previously_applied.value form.has_previously_applied.subwidgets.1.data.value %}
+            {% ifequal form.has_previously_applied.value form.has_previously_applied.subwidgets.1.data.value|stringformat:"s" %}
               <input class="govuk-radios__input" id="id_has_previously_applied_11" name="has_previously_applied" type="radio" value="False" data-aria-controls="previous_applications-conditional" checked>
             {% else %}
               <input class="govuk-radios__input" id="id_has_previously_applied_12" name="has_previously_applied" type="radio" value="False" data-aria-controls="previous_applications-conditional">
@@ -54,26 +54,8 @@
             </label>
           </div>
 
-          {% if form.previous_applications.errors and not form.has_previously_applied.errors %}
-            {% for error in form.previous_applications.errors %}
-              <span id="{{ form.previous_applications.name }}-issued-error" class="govuk-error-message">
-                <span class="govuk-visually-hidden">
-                  Error:
-                </span>
-                {{ error|escape }}
-              </span>
-            {% endfor %}
-          {% endif %}
           <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="previous_applications-conditional">
-            <div class="govuk-form-group">
-              <label class="govuk-label">
-                {{ form.previous_applications.label }}
-              </label>
-              <span id="previous_applications-hint" class="govuk-hint">
-                {{ form.previous_applications.help_text }}
-              </span>
-              {{ form.previous_applications }}
-            </div>
+            {% include "core/govt_uk_form_field.html" with field=form.previous_applications %}
           </div>
 
         </div>

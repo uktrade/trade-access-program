@@ -295,6 +295,27 @@ class StateAidForm(forms.ModelForm):
         )
     )
 
+    def mark_fields_required(self, cleaned_data, *fields):
+        """Used for conditionally marking many fields as required."""
+        for field in fields:
+            if not cleaned_data.get(field):
+                msg = forms.ValidationError('This field is required.')
+                self.add_error(field, msg)
+        return cleaned_data
+
+    def clean(self):
+        cleaned_data = super().clean()
+        has_received_de_minimis_aid = cleaned_data.get('has_received_de_minimis_aid')
+
+        if has_received_de_minimis_aid == 'True':
+            cleaned_data = self.mark_fields_required(
+                cleaned_data, 'de_minimis_aid_public_authority', 'de_minimis_aid_date_awarded',
+                'de_minimis_aid_amount', 'de_minimis_aid_description', 'de_minimis_aid_recipient',
+                'de_minimis_aid_date_received'
+            )
+
+        return cleaned_data
+
 
 class ApplicationReviewForm(forms.ModelForm):
 

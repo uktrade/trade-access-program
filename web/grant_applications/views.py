@@ -195,7 +195,7 @@ class ExportExperienceView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView
 class StateAidView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateView):
     model = GrantApplication
     form_class = StateAidForm
-    template_name = 'grant_applications/generic_form_page.html'
+    template_name = 'grant_applications/state_aid.html'
     success_url_name = 'grant_applications:application-review'
     page = {
         'heading': _('State aid restrictions')
