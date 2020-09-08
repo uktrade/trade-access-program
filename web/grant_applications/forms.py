@@ -184,8 +184,8 @@ class BusinessInformationForm(forms.ModelForm):
     class Meta:
         model = GrantApplication
         fields = [
-            'goods_and_services_description', 'business_name_at_exhibit', 'turnover',
-            'number_of_employees', 'sector', 'website'
+            'goods_and_services_description', 'business_name_at_exhibit', 'number_of_employees',
+            'turnover', 'sector', 'website'
         ]
         labels = {
             'goods_and_services_description': _(
@@ -201,9 +201,6 @@ class BusinessInformationForm(forms.ModelForm):
                 attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
             ),
             'turnover': CurrencyInput(),
-            'number_of_employees': forms.Select(
-                attrs={'class': 'govuk-select govuk-!-width-one-quarter'}
-            ),
             'sector': forms.Select(
                 attrs={'class': 'govuk-select govuk-!-width-one-quarter'}
             ),
@@ -214,6 +211,11 @@ class BusinessInformationForm(forms.ModelForm):
                 }
             ),
         }
+
+    number_of_employees = forms.ChoiceField(
+        choices=GrantApplication.NumberOfEmployees.choices,
+        widget=widgets.RadioSelect()
+    )
 
 
 class ExportExperienceForm(forms.ModelForm):
