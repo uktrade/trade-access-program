@@ -1,0 +1,58 @@
+{% extends 'grant_applications/generic_form_page.html' %}
+
+{% block content %}
+
+  <h2 class="govuk-heading-m">{{ page.heading }}</h2>
+
+  <form class="form" method="POST" novalidate>
+
+    {% csrf_token %}
+
+    <div class="govuk-form-group{% if form.has_previously_applied.errors %} govuk-form-group--error{% endif %}">
+
+      {% include "core/govt_uk_form_field_label.html" with field=form.has_previously_applied %}
+      {% include "core/govt_uk_form_field_hint.html" with field=form.has_previously_applied %}
+      {% include "core/govt_uk_form_field_errors.html" with field=form.has_previously_applied %}
+
+      <fieldset class="govuk-fieldset">
+
+        <div class="govuk-radios govuk-radios--conditional" data-module="govuk-radios">
+
+          <div class="govuk-radios__item">
+            {% ifequal form.has_previously_applied.value|cut:"'" form.has_previously_applied.subwidgets.0.data.value|cut:"'" %}
+              <input class="govuk-radios__input" id="id_has_previously_applied_01" name="has_previously_applied" type="radio" value="True" checked>
+            {% else %}
+              <input class="govuk-radios__input" id="id_has_previously_applied_02" name="has_previously_applied" type="radio" value="True">
+            {% endifequal %}
+            <label class="govuk-label govuk-radios__label" for="id_has_previously_applied_0">
+              {{ form.has_previously_applied.subwidgets.0.choice_label }}
+            </label>
+          </div>
+
+          <div class="govuk-radios__item">
+            {% ifequal form.has_previously_applied.value|cut:"'" form.has_previously_applied.subwidgets.1.data.value|cut:"'" %}
+              <input class="govuk-radios__input" id="id_has_previously_applied_11" name="has_previously_applied" type="radio" value="False" data-aria-controls="previous_applications-conditional" checked>
+            {% else %}
+              <input class="govuk-radios__input" id="id_has_previously_applied_12" name="has_previously_applied" type="radio" value="False" data-aria-controls="previous_applications-conditional">
+            {% endifequal %}
+            <label class="govuk-label govuk-radios__label" for="id_has_previously_applied_1">
+              {{ form.has_previously_applied.subwidgets.1.choice_label }}
+            </label>
+          </div>
+
+          <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="previous_applications-conditional">
+            {% include "core/govt_uk_form_field.html" with field=form.previous_applications %}
+          </div>
+
+        </div>
+      </fieldset>
+    </div>
+
+    <button class="govuk-button" data-module="govuk-button">
+      {{ page.form_button_text | default:"Continue" }}
+    </button>
+
+  </form>
+
+
+{% endblock %}

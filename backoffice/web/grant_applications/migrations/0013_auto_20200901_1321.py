@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='sector',
             name='sector_code',
-            field=models.CharField(default='SL0000', max_length=6, validators=[web.grant_applications.models.sector_code_validator]),
+            field=models.CharField(default='SL0000', max_length=6, validators=[web.sectors.models.sector_code_validator]),
             preserve_default=False,
         ),
         migrations.AddField(

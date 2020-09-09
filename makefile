@@ -14,6 +14,8 @@ test-%:  ## Run tests for a specific project
 lint-%:  ## Run linting for a specific project
 	$(MAKE) -C $* lint
 
+build-%:  ## Build a service
+	docker-compose build $*
 
 ##@ Main
 build:  ## Build the project

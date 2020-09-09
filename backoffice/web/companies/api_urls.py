@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from rest_framework.routers import SimpleRouter
 
-from web.companies.views import CompaniesViewSet, SearchCompaniesView
+from web.companies.apis import CompaniesViewSet, SearchCompaniesView
 
 router = SimpleRouter()
 router.register('companies', CompaniesViewSet, basename='companies')

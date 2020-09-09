@@ -40,6 +40,7 @@ TAP_APPS = [
     'web.core',
     'web.grant_applications',
     'web.grant_management',
+    'web.sectors',
     'web.trade_events',
 ]
 
@@ -189,6 +190,7 @@ LOGIN_REDIRECT_URL = reverse_lazy('viewflow:index')
 REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PARSER_CLASSES': ['rest_framework.parsers.JSONParser'],
 }
 
 DNB_SERVICE_URL = env('DNB_SERVICE_URL', default=None)
