@@ -120,11 +120,11 @@ class ServicesTests(BaseAPITestCase):
         company = services.save_company_and_dnb_response(
             duns_number=1, dnb_company_data=dnb_company_data
         )
-        self.assertEquals(company.duns_number, 1)
+        self.assertEqual(company.duns_number, 1)
         self.assertEqual(company.dnbgetcompanyresponse_set.count(), 1)
         self.assertEqual(company.last_dnb_get_company_response.data, dnb_company_data)
 
     def test_save_dnb_get_company_response_without_dnb_company_data(self):
         company = services.save_company_and_dnb_response(duns_number=1)
-        self.assertEquals(company.duns_number, 1)
+        self.assertEqual(company.duns_number, 1)
         self.assertFalse(company.dnbgetcompanyresponse_set.exists())
