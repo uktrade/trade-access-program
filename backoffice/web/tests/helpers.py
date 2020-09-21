@@ -16,8 +16,11 @@ class AssertResponseMixin:
 
     def assert_data_contains(self, data, data_contains):
         for k, v in data_contains.items():
-            self.assertIn(k, data)
-            self.assertEqual(data[k], v)
+            self.assertIn(k, data, msg=f'Value for key "{k}" does not match')
+            if isinstance(v, dict):
+                self.assertDictEqual(data[k], v, msg=f'Value for key "{k}" does not match')
+            else:
+                self.assertEqual(data[k], v, msg=f'Value for key "{k}" does not match')
 
 
 class BaseAPITestCase(AssertResponseMixin, APITestCase):

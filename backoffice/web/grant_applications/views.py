@@ -238,8 +238,7 @@ class ApplicationReviewView(PageContextMixin, SuccessUrlObjectPkMixin, UpdateVie
 
         for view_class in self.grant_application_flow:
             summary = generate_summary_of_form_fields(
-                form_class=view_class.form_class,
-                url=next_url,
+                form_class=view_class.form_class, url=next_url,
                 grant_application=grant_application or self.object
             )
             if summary:

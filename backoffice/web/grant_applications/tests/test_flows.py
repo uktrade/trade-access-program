@@ -22,10 +22,10 @@ class TestInterfaceGrantManagementFlow(BaseTestCase):
         response = self.client.post(
             self.url, content_type='application/x-www-form-urlencoded'
         )
-        self.assertTrue(hasattr(self.ga, 'grant_application_process'))
+        self.assertTrue(hasattr(self.ga, 'grant_management_process'))
         redirect = resolve(response.url)
         self.assertEqual(redirect.kwargs['pk'], self.ga.id_str)
-        self.assertEqual(redirect.kwargs['process_pk'], str(self.ga.grant_application_process.pk))
+        self.assertEqual(redirect.kwargs['process_pk'], str(self.ga.grant_management_process.pk))
 
     def test_post_sends_email_notification(self, *mocks):
         notify_service = create_autospec(NotifyService)

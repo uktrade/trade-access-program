@@ -3,7 +3,7 @@ from unittest.mock import patch
 from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 
-from web.companies.views import DnbServiceClient
+from web.companies.apis import DnbServiceClient
 from web.tests.factories.companies import CompanyFactory
 from web.tests.factories.users import UserFactory
 from web.tests.helpers import BaseAPITestCase

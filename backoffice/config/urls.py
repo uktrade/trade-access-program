@@ -39,7 +39,10 @@ urlpatterns = [
     path('grant-applications/', include('web.grant_applications.urls', namespace='grant-applications')),
 
     # API
-    path('api/', include('web.companies.urls')),
+    path('api/', include('web.companies.api_urls')),
+    path('api/', include('web.grant_applications.api_urls')),
+    path('api/', include('web.sectors.api_urls')),
+    path('api/', include('web.trade_events.api_urls')),
 ]
 
 if settings.DEBUG:

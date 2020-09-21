@@ -11,7 +11,7 @@ from web.core.exceptions import DnbServiceClientException
 logger = logging.getLogger()
 
 
-def _raise_for_status(response):
+def _raise_for_status(response, **kwargs):
     try:
         response.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
@@ -28,9 +28,13 @@ class DnbServiceClient:
         self.session = requests.Session()
         self.session.headers.update({'Authorization': f'Token {settings.DNB_SERVICE_TOKEN}'})
 
+        # Attach retry adapter
         retry_strategy = Retry(total=3, status_forcelist=[500], method_whitelist=['GET', 'POST'])
         retry_adapter = HTTPAdapter(max_retries=retry_strategy)
         self.session.mount(self.base_url, retry_adapter)
+
+        # Attach response hook
+        self.session.hooks['response'] = [_raise_for_status]
 
     @staticmethod
     def _filter_gb(results):
@@ -41,7 +45,6 @@ class DnbServiceClient:
 
     def get_company(self, duns_number):
         response = self.session.post(self.company_url, json={'duns_number': duns_number})
-        _raise_for_status(response)
         results = self._filter_gb(response.json()['results'])
         if results:
             return results[0]
@@ -49,7 +52,6 @@ class DnbServiceClient:
 
     def search_companies(self, search_term):
         response = self.session.post(self.company_url, json={'search_term': search_term})
-        _raise_for_status(response)
         return self._filter_gb(results=response.json()['results'])
 
 

@@ -1,0 +1,10 @@
+<table class="govuk-table">
+  {% for row in table %}
+  <tbody class="govuk-table__body">
+    <tr class="govuk-table__row">
+      <th scope="row" class="govuk-table__header">{{ row.label }}</th>
+      <td class="govuk-table__cell">{{ row.value }}</td>
+    </tr>
+  </tbody>
+  {% endfor %}
+</table>

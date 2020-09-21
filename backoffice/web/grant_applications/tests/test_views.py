@@ -5,21 +5,22 @@ from urllib.parse import urlencode
 from dateutil.utils import today
 from django.forms import Field
 from django.urls import reverse, resolve
-from rest_framework.status import HTTP_200_OK, HTTP_302_FOUND
 
 from web.companies.models import DnbGetCompanyResponse, Company
 from web.core.exceptions import DnbServiceClientException
-from web.grant_applications.models import GrantApplication, Sector
+from web.grant_applications.models import GrantApplication
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, DnbServiceClient, AboutYourBusinessView,
     AboutYouView, AboutTheEventView, PreviousApplicationsView, BusinessInformationView,
     StateAidView, ExportExperienceView, EventIntentionView
 )
 from web.grant_management.models import GrantManagementProcess
+from web.sectors.models import Sector
 from web.tests.factories.companies import DnbGetCompanyResponseFactory, CompanyFactory
 from web.tests.factories.events import EventFactory
-from web.tests.factories.grant_applications import GrantApplicationFactory, SectorFactory
+from web.tests.factories.grant_applications import GrantApplicationFactory
 from web.tests.factories.grant_management import GrantManagementProcessFactory
+from web.tests.factories.sector import SectorFactory
 from web.tests.helpers import BaseTestCase
 
 
@@ -35,7 +36,7 @@ class TestSearchCompanyView(BaseTestCase):
 
     def test_search_company_get_template(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, SearchCompanyView.template_name)
 
     def test_search_term_required(self, *mocks):
@@ -44,7 +45,7 @@ class TestSearchCompanyView(BaseTestCase):
 
     def test_search_company_post_form_redirect_path(self, *mocks):
         response = self.client.post(self.url, data={'search_term': 'company-1'})
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
         ga = GrantApplication.objects.get(search_term='company-1')
         self.assertRedirects(
             response,
@@ -53,7 +54,7 @@ class TestSearchCompanyView(BaseTestCase):
 
     def test_search_company_post_form_redirect_template(self, *mocks):
         response = self.client.post(self.url, data={'search_term': 'company-1'}, follow=True)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, SelectCompanyView.template_name)
 
 
@@ -70,14 +71,14 @@ class TestSelectCompanyView(BaseTestCase):
 
     def test_get_template(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, SelectCompanyView.template_name)
         self.assertIn('company-1-name', response.content.decode())
 
     def test_get_template_on_dnb_service_exception(self, *mocks):
         mocks[0].side_effect = [DnbServiceClientException]
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertNotIn('company-1-name', response.content.decode())
 
     def test_required_fields(self, *mocks):
@@ -88,7 +89,7 @@ class TestSelectCompanyView(BaseTestCase):
 
     def test_post_form_redirect_path(self, *mocks):
         response = self.client.post(self.url, data={'duns_number': 1})
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
             expected_url=reverse('grant_applications:about-your-business', args=(self.ga.pk,))
@@ -96,12 +97,12 @@ class TestSelectCompanyView(BaseTestCase):
 
     def test_post_form_redirect_template(self, *mocks):
         response = self.client.post(self.url, {'duns_number': 1}, follow=True)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
 
     def test_post_creates_company_relations_to_grant_application(self, *mocks):
         response = self.client.post(self.url, data={'duns_number': 1})
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
 
         company_qs = Company.objects.filter(duns_number=1)
         dnb_instance_qs = DnbGetCompanyResponse.objects.filter(company__duns_number=1)
@@ -143,7 +144,7 @@ class TestAboutYourBusinessView(BaseTestCase):
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
 
         self.assertInHTML(
@@ -200,7 +201,7 @@ class TestAboutYourBusinessView(BaseTestCase):
         response = self.client.post(
             self.url, content_type='application/x-www-form-urlencoded'
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
 
     def test_post_redirect_template(self, *mocks):
         response = self.client.post(
@@ -208,7 +209,7 @@ class TestAboutYourBusinessView(BaseTestCase):
             content_type='application/x-www-form-urlencoded',
             follow=True
         )
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, AboutYouView.template_name)
         self.assertRedirects(
             response=response,
@@ -224,7 +225,7 @@ class TestAboutYouView(BaseTestCase):
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, AboutYouView.template_name)
 
     def test_post_redirects(self, *mocks):
@@ -236,7 +237,7 @@ class TestAboutYouView(BaseTestCase):
                 'applicant_email': 'test@test.com',
             })
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
 
     def test_post_data_is_saved(self, *mocks):
         self.client.post(
@@ -261,7 +262,7 @@ class TestAboutTheEventView(BaseTestCase):
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, AboutTheEventView.template_name)
 
     def test_post_redirects(self, *mocks):
@@ -274,7 +275,7 @@ class TestAboutTheEventView(BaseTestCase):
                 'is_intending_on_other_financial_support': True,
             })
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
 
     def test_post_data_is_saved(self, *mocks):
         self.client.post(
@@ -300,7 +301,7 @@ class TestPreviousApplicationsView(BaseTestCase):
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, PreviousApplicationsView.template_name)
 
     def test_post(self, *mocks):
@@ -312,7 +313,7 @@ class TestPreviousApplicationsView(BaseTestCase):
                 'previous_applications': 1
             })
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
         self.ga.refresh_from_db()
         self.assertFalse(self.ga.has_previously_applied)
         self.assertEqual(self.ga.previous_applications, 1)
@@ -325,7 +326,7 @@ class TestPreviousApplicationsView(BaseTestCase):
                 'has_previously_applied': True,
             })
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
         self.ga.refresh_from_db()
         self.assertTrue(self.ga.has_previously_applied)
         self.assertEqual(self.ga.previous_applications, 0)
@@ -339,7 +340,7 @@ class TestEventIntentionView(BaseTestCase):
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, EventIntentionView.template_name)
 
     def test_post(self, *mocks):
@@ -351,7 +352,7 @@ class TestEventIntentionView(BaseTestCase):
                 'number_of_times_exhibited_at_event': 1,
             })
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
         self.ga.refresh_from_db()
         self.assertFalse(self.ga.is_first_exhibit_at_event)
         self.assertEqual(self.ga.number_of_times_exhibited_at_event, 1)
@@ -364,7 +365,7 @@ class TestEventIntentionView(BaseTestCase):
                 'is_first_exhibit_at_event': True,
             })
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
         self.ga.refresh_from_db()
         self.assertTrue(self.ga.is_first_exhibit_at_event)
         self.assertEqual(self.ga.number_of_times_exhibited_at_event, 0)
@@ -382,7 +383,7 @@ class TestBusinessInformationView(BaseTestCase):
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, BusinessInformationView.template_name)
 
     def test_sector_choices_come_from_sector_model(self, *mocks):
@@ -390,7 +391,7 @@ class TestBusinessInformationView(BaseTestCase):
         sectors = SectorFactory.create_batch(size=2)
 
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
 
         for sector in sectors:
             expected = f'<option value="{sector.pk}">{str(sector)}</option>'
@@ -410,7 +411,7 @@ class TestBusinessInformationView(BaseTestCase):
                 'website': 'www.a-website.com',
             })
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
         self.ga.refresh_from_db()
         self.assertEqual(self.ga.goods_and_services_description, 'A description')
         self.assertEqual(self.ga.business_name_at_exhibit, 'A name')
@@ -435,7 +436,7 @@ class TestBusinessInformationView(BaseTestCase):
         url = reverse('grant_applications:business-information', kwargs={'pk': ga.pk})
 
         response = self.client.get(url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertInHTML(
             f'<input type="text" name="turnover" value="{dnb_response.data["annual_sales"]}"'
             f' class="govuk-input govuk-!-width-one-quarter" required id="id_turnover">',
@@ -460,7 +461,7 @@ class TestBusinessInformationView(BaseTestCase):
         url = reverse('grant_applications:business-information', kwargs={'pk': ga.pk})
 
         response = self.client.get(url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertInHTML(
             '<input type="text" name="turnover" class="govuk-input govuk-!-width-one-quarter" '
             'required id="id_turnover">',
@@ -474,7 +475,7 @@ class TestBusinessInformationView(BaseTestCase):
 
     def test_initial_form_data_is_object_data_if_object_data_is_set(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertInHTML(
             f'<input type="text" name="turnover" value="{self.ga.turnover}"'
             f' class="govuk-input govuk-!-width-one-quarter" required id="id_turnover">',
@@ -504,7 +505,7 @@ class TestExportExperienceView(BaseTestCase):
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, ExportExperienceView.template_name)
 
     def test_post(self, *mocks):
@@ -517,7 +518,7 @@ class TestExportExperienceView(BaseTestCase):
                 'is_seeking_export_opportunities': False,
             })
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
         self.ga.refresh_from_db()
         self.assertTrue(self.ga.has_exported_before)
         self.assertTrue(self.ga.is_planning_to_grow_exports)
@@ -532,7 +533,7 @@ class TestStateAidView(BaseTestCase):
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, StateAidView.template_name)
 
     def test_post(self, *mocks):
@@ -549,7 +550,7 @@ class TestStateAidView(BaseTestCase):
                 'de_minimis_aid_date_received': date(2020, 6, 25),
             })
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
         self.ga.refresh_from_db()
         self.assertTrue(self.ga.has_received_de_minimis_aid)
         self.assertEqual(self.ga.de_minimis_aid_public_authority, 'An authority')
@@ -565,7 +566,7 @@ class TestStateAidView(BaseTestCase):
             content_type='application/x-www-form-urlencoded',
             data=urlencode({'has_received_de_minimis_aid': False})
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
         self.ga.refresh_from_db()
         self.assertFalse(self.ga.has_received_de_minimis_aid)
         self.assertIsNone(self.ga.de_minimis_aid_public_authority)
@@ -581,7 +582,7 @@ class TestStateAidView(BaseTestCase):
             content_type='application/x-www-form-urlencoded',
             data=urlencode({'has_received_de_minimis_aid': True})
         )
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         msg = 'This field is required.'
         self.assertFormError(response, 'form', 'de_minimis_aid_public_authority', msg)
         self.assertFormError(response, 'form', 'de_minimis_aid_date_awarded', msg)
@@ -611,7 +612,7 @@ class TestApplicationReviewView(BaseTestCase):
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(response.status_code, 200)
         self.assertIn(
             '<dl class="govuk-summary-list govuk-!-margin-bottom-9">',
             response.content.decode()
@@ -623,7 +624,7 @@ class TestApplicationReviewView(BaseTestCase):
             self.url,
             content_type='application/x-www-form-urlencoded'
         )
-        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.status_code, 302)
         redirect = resolve(response.url)
         self.assertEqual(redirect.kwargs['pk'], self.ga.id_str)
-        self.assertEqual(redirect.kwargs['process_pk'], str(self.ga.grant_application_process.pk))
+        self.assertEqual(redirect.kwargs['process_pk'], str(self.ga.grant_management_process.pk))

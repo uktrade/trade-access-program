@@ -3,19 +3,7 @@ from datetime import timedelta
 import factory
 from dateutil.utils import today
 
-from web.grant_applications.models import GrantApplication, Sector
-
-
-class SectorFactory(factory.DjangoModelFactory):
-    class Meta:
-        model = Sector
-
-    sector_code = factory.Sequence(lambda n: f'SL{n:04}')
-    name = factory.Sequence(lambda n: f'name-{n}')
-    cluster_name = factory.Sequence(lambda n: f'cluster-name-{n}')
-    full_name = factory.Sequence(lambda n: f'full-name-{n}')
-    sub_sector_name = factory.Sequence(lambda n: f'sub-sector-name-{n}')
-    sub_sub_sector_name = factory.Sequence(lambda n: f'sub-sub-sector-name-{n}')
+from web.grant_applications.models import GrantApplication
 
 
 class GrantApplicationFactory(factory.DjangoModelFactory):
@@ -36,8 +24,8 @@ class GrantApplicationFactory(factory.DjangoModelFactory):
     goods_and_services_description = factory.Sequence(lambda n: f'description-{n}')
     business_name_at_exhibit = factory.Sequence(lambda n: f'name-{n}')
     turnover = 1000
-    number_of_employees = 1
-    sector = factory.SubFactory(SectorFactory)
+    number_of_employees = GrantApplication.NumberOfEmployees.HAS_FEWER_THAN_10
+    sector = factory.SubFactory('web.tests.factories.sector.SectorFactory')
     website = factory.Sequence(lambda n: f'www.website-{n}.com')
     has_exported_before = False
     is_planning_to_grow_exports = True

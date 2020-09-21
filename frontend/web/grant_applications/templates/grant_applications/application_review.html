@@ -1,0 +1,19 @@
+{% extends 'grant_applications/generic_form_page.html' %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+
+    <h1 class="govuk-heading-l">{{ page.heading }}</h1>
+
+    {% for summary_list in application_summary %}
+      {% include "core/govt_summary_list.html" with summary_list=summary_list %}
+    {% endfor %}
+
+  </div>
+</div>
+
+{% include "core/govt_uk_form.html" %}
+
+{% endblock %}

@@ -1,0 +1,20 @@
+<fieldset class="govuk-fieldset">
+  <div class="{{ widget.attrs.radios_class|default:'govuk-radios' }}">
+    {% for _, item, _ in widget.optgroups %}
+      {% for item_data in item %}
+
+      <div class="govuk-radios__item">
+        {% ifequal item_data.value|cut:"'" widget.value.0 %}
+          <input class="govuk-radios__input" id="{{ item_data.attrs.id }}" name="{{ widget.name }}" type="radio" value="{{ item_data.value }}" checked>
+        {% else %}
+          <input class="govuk-radios__input" id="{{ item_data.attrs.id }}1" name="{{ widget.name }}" type="radio" value="{{ item_data.value }}">
+        {% endifequal %}
+        <label class="govuk-label govuk-radios__label" for="{{ item_data.attrs.id }}">
+          {{ item_data.label }}
+        </label>
+      </div>
+
+      {% endfor %}
+    {% endfor %}
+  </div>
+</fieldset>

@@ -33,7 +33,7 @@ available via docker and docker-compose entry points.
 This allows you to drop into a debug breakpoint with: `pdb`, `ipdb` or similar
 ```
 docker-compose up -d db
-docker-compose run --service-ports web
+docker-compose run --use-aliases --service-ports web
 ```   
 
 #### Elevate user permissions

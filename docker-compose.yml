@@ -5,10 +5,11 @@ services:
     image: node:12-slim
     working_dir: /app
     volumes:
-      - ./backoffice:/app
+      - ./frontend:/app
     command: npm i
 
   backoffice_db:
+    hostname: backoffice_db
     image: postgres:11
     ports:
       - "5432:5432"
@@ -17,20 +18,48 @@ services:
     volumes:
       - backoffice_db_data:/var/lib/postgresql/data/
 
+  frontend_db:
+    hostname: frontend_db
+    image: postgres:11
+    ports:
+      - "5433:5432"
+    restart: always
+    env_file: frontend/.env
+    volumes:
+      - frontend_db_data:/var/lib/postgresql/data/
+
   backoffice:
+    hostname: backoffice
     build:
       context: ./backoffice
       dockerfile: Dockerfile
     env_file: backoffice/.env
-    command: bash -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    command: bash -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8001"
     volumes:
       - ./backoffice:/app
+    ports:
+      - "8001:8001"
+    restart: always
+    depends_on:
+      - backoffice_db
+
+  frontend:
+    hostname: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    env_file: frontend/.env
+    command: bash -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./frontend:/app
     ports:
       - "8000:8000"
     restart: always
     depends_on:
+      - frontend_db
       - node_modules
-      - backoffice_db
+#      - backoffice
 
 volumes:
   backoffice_db_data:
+  frontend_db_data:
