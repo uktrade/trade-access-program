@@ -34,10 +34,6 @@ urlpatterns = [
     # Viewflow urls includes django '/admin' and '/accounts'
     path('', include(viewflow_frontend_urls)),
 
-    # Templates
-    path('', RedirectView.as_view(url='grant-applications/')),
-    path('grant-applications/', include('web.grant_applications.urls', namespace='grant-applications')),
-
     # API
     path('api/', include('web.companies.api_urls')),
     path('api/', include('web.grant_applications.api_urls')),

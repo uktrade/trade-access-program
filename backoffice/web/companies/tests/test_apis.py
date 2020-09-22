@@ -4,6 +4,7 @@ from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 
 from web.companies.apis import DnbServiceClient
+from web.core.exceptions import DnbServiceClientException
 from web.tests.factories.companies import CompanyFactory
 from web.tests.factories.users import UserFactory
 from web.tests.helpers import BaseAPITestCase
@@ -71,3 +72,8 @@ class SearchCompaniesApiTests(BaseAPITestCase):
         response = self.client.get(reverse('companies-search'), {'search_term': ''})
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST, msg=response.data)
         self.assertEqual(response.data['search_term'][0].code, 'blank')
+
+    def test_503_on_dnb_service_exception(self, *mocks):
+        mocks[0].side_effect = [DnbServiceClientException]
+        response = self.client.get(reverse('companies-search'), {'search_term': 'fake-name'})
+        self.assertEqual(response.status_code, 503)

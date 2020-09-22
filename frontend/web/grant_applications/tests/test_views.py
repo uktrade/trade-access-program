@@ -66,6 +66,7 @@ class TestSearchCompanyView(BaseTestCase):
         self.assertTemplateUsed(response, SelectCompanyView.template_name)
 
 
+@patch.object(BackofficeService, 'create_company', return_value=FAKE_COMPANY)
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
 @patch.object(BackofficeService, 'list_companies', return_value=[FAKE_COMPANY])
 @patch.object(BackofficeService, 'create_grant_application', return_value=FAKE_GRANT_APPLICATION)
@@ -122,7 +123,46 @@ class TestSelectCompanyView(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
 
-    def test_post_creates_company_backoffice_grant_application(self, *mocks):
+    def test_post_creates_backoffice_company(self, m_search_companies, m_create_grant_application,
+                                             m_list_companies, m_get_grant_application,
+                                             m_create_company):
+        # mock out that list_companies returns nothing
+        # so that create_company gets called to create the company
+        m_list_companies.return_value = []
+
+        response = self.client.post(
+            self.url, data={'duns_number': FAKE_GRANT_APPLICATION['company']['duns_number']}
+        )
+        self.assertEqual(response.status_code, 302)
+
+        self.gal.refresh_from_db()
+        self.assertEqual(
+            str(self.gal.backoffice_grant_application_id), FAKE_GRANT_APPLICATION['id']
+        )
+        m_create_company.assert_called_once_with(
+            duns_number=str(FAKE_GRANT_APPLICATION['company']['duns_number']),
+            name=FAKE_GRANT_APPLICATION['company']['name']
+        )
+
+    def test_post_finds_too_many_backoffice_companies(self, m_search_companies,
+                                                      m_create_grant_application, m_list_companies,
+                                                      m_get_grant_application, m_create_company):
+        # mock out that list_companies returns more than 1 companies
+        m_list_companies.return_value = [FAKE_COMPANY, FAKE_COMPANY]
+
+        response = self.client.post(
+            self.url, data={'duns_number': FAKE_GRANT_APPLICATION['company']['duns_number']}
+        )
+
+        # This means there is a problem in the backoffice api
+        self.assertFormError(
+            response, 'form', None, 'An unexpected error occurred. Please resubmit the form.'
+        )
+
+        self.gal.refresh_from_db()
+        self.assertIsNone(self.gal.backoffice_grant_application_id)
+
+    def test_post_creates_backoffice_grant_application(self, *mocks):
         response = self.client.post(
             self.url, data={'duns_number': FAKE_GRANT_APPLICATION['company']['duns_number']}
         )
@@ -673,11 +713,16 @@ class TestApplicationReviewView(BaseTestCase):
             response, reverse('grant_applications:confirmation', args=(self.gal.pk,))
         )
 
-    def test_post_sets_sent_for_review_flag(self, *mocks):
+    def test_sent_for_review(self, *mocks):
         self.client.get(self.url)
         self.client.post(self.url, content_type='application/x-www-form-urlencoded')
         self.gal.refresh_from_db()
         self.assertTrue(self.gal.sent_for_review)
+        self.assertIn('application_summary', self.client.session)
+        mocks[3].assert_called_once_with(
+            str(self.gal.backoffice_grant_application_id),
+            application_summary=self.client.session['application_summary']
+        )
 
     def test_sent_for_review_not_set_on_backoffice_error(self, *mocks):
         mocks[3].side_effect = [BackofficeServiceException]
