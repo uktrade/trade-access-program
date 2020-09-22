@@ -8,6 +8,7 @@ from web.grant_management.models import GrantManagementProcess
 from web.tests.factories.companies import CompanyFactory
 from web.tests.factories.events import EventFactory
 from web.tests.factories.grant_applications import GrantApplicationFactory
+from web.tests.factories.grant_management import GrantManagementProcessFactory
 from web.tests.helpers import BaseAPITestCase
 
 
@@ -89,6 +90,31 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                 {'id': gas[2].id_str}
             ]
         )
+
+    def test_grant_application_counts(self, *mocks):
+        company = CompanyFactory()
+
+        # Create 2 approved grant applications for this company
+        GrantManagementProcessFactory.create_batch(
+            size=2,
+            grant_application__company=company,
+            decision=GrantManagementProcess.Decision.APPROVED
+        )
+        # Create 1 rejected grant application for this company
+        GrantManagementProcessFactory(
+            grant_application__company=company,
+            decision=GrantManagementProcess.Decision.REJECTED
+        )
+        # Create a grant application which is currently under review
+        GrantManagementProcessFactory(grant_application__company=company)
+
+        # Create a new grant application
+        ga = GrantApplicationFactory(company=company)
+        path = reverse('grant-applications-detail', args=(ga.id,))
+
+        response = self.client.get(path)
+        self.assertEqual(response.data['company']['previous_applications'], 2)
+        self.assertEqual(response.data['company']['applications_in_review'], 1)
 
     def test_create_new_grant_application(self, *mocks):
         path = reverse('grant-applications-list')

@@ -2,9 +2,6 @@
 {% load i18n viewflow viewflow_frontend material_form material_frontend %}
 
 {% block task_actions %}
-<div class="col s2">
-  <a class="btn btn-flat" href="{% url 'grant_applications:application-review' activation.process.grant_application.pk %}">{% trans 'Application' %}</a>
-</div>
 <div class="col s1">
   <a class="btn btn-flat black-text" href="{% flowurl activation.task 'detail' %}?{{ request|query_back }}">{% trans 'Detail' %}</a>
 </div>
