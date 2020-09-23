@@ -24,7 +24,8 @@ def log_hook(response, **kwargs):
     logger.info(
         f'EXTERNAL : REQUEST : {response.request.method} : {response.request.url} : {body.decode()}'
     )
-    logger.info(f'EXTERNAL : RESPONSE : {response.status_code} : {response.text}')
+    if not response.ok:
+        logger.error(f'EXTERNAL : RESPONSE : {response.status_code} : {response.text}')
 
 
 class DnbServiceClient:
