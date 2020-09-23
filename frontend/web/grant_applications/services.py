@@ -26,8 +26,9 @@ def _raise_for_status(response, **kwargs):
 def log_hook(response, **kwargs):
     body = response.request.body or b'No content'
     logger.info(
-        f'[EXTERNAL] : {response.request.method} : {response.request.url} : {body.decode()}'
+        f'EXTERNAL : REQUEST : {response.request.method} : {response.request.url} : {body.decode()}'
     )
+    logger.info(f'EXTERNAL : RESPONSE : {response.status_code} : {response.text}')
 
 
 class BackofficeService:
