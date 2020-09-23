@@ -16,19 +16,12 @@ from web.grant_applications.services import BackofficeService, generate_grant_ap
 
 
 class BackofficeMixin:
-    flatten_map = {
-        'event': 'event.id',
-        'sector': 'sector.id',
-        'duns_number': 'company.duns_number',
-        'company': 'company.name',
-    }
 
     def get_object(self):
         obj = super().get_object()
         self.backoffice_service = BackofficeService()
         self.backoffice_grant_application = self.backoffice_service.get_grant_application(
-            obj.backoffice_grant_application_id,
-            flatten_map=self.flatten_map
+            obj.backoffice_grant_application_id
         )
         return obj
 
@@ -86,26 +79,23 @@ class AboutYourBusinessView(PageContextMixin, SuccessUrlObjectPkMixin, Backoffic
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        backoffice_grant_application = self.backoffice_service.get_grant_application(
-            str(self.object.backoffice_grant_application_id)
-        )
-        if backoffice_grant_application['company']:
+        if self.backoffice_grant_application['company']:
             context['table'] = [
                 {
                     'label': 'Dun and Bradstreet Number',
-                    'value': backoffice_grant_application['company']['duns_number']
+                    'value': self.backoffice_grant_application['company']['duns_number']
                 },
                 {
                     'label': 'Company Name',
-                    'value': backoffice_grant_application['company']['name']
+                    'value': self.backoffice_grant_application['company']['name']
                 },
                 {
                     'label': 'Previous Applications',
-                    'value': backoffice_grant_application['company']['previous_applications']
+                    'value': self.backoffice_grant_application['company']['previous_applications']
                 },
                 {
                     'label': 'Applications in Review',
-                    'value': backoffice_grant_application['company']['applications_in_review']
+                    'value': self.backoffice_grant_application['company']['applications_in_review']
                 },
             ]
         return context
@@ -166,16 +156,13 @@ class EventIntentionView(PageContextMixin, SuccessUrlObjectPkMixin, BackofficeMi
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        backoffice_grant_application = self.backoffice_service.get_grant_application(
-            str(self.object.backoffice_grant_application_id)
-        )
         context['form'].format_label(
             field_name='is_first_exhibit_at_event',
-            event_name=backoffice_grant_application['event']['name']
+            event_name=self.backoffice_grant_application['event']['name']
         )
         context['form'].format_label(
             field_name='number_of_times_exhibited_at_event',
-            event_name=backoffice_grant_application['event']['name']
+            event_name=self.backoffice_grant_application['event']['name']
         )
         return context
 
@@ -202,15 +189,24 @@ class BusinessInformationView(PageContextMixin, SuccessUrlObjectPkMixin, Initial
 
     def get_initial(self):
         initial = super().get_initial()
-        backoffice_grant_application = self.backoffice_service.get_grant_application(
-            str(self.object.backoffice_grant_application_id)
-        )
-        initial.update({
-            'business_name_at_exhibit': backoffice_grant_application['business_name_at_exhibit'],
-            'turnover': backoffice_grant_application['turnover'],
-            'number_of_employees': backoffice_grant_application['number_of_employees'],
-            'website': backoffice_grant_application['website'],
-        })
+        company_data = self.backoffice_grant_application['company']
+
+        if not self.backoffice_grant_application['business_name_at_exhibit']:
+            initial['business_name_at_exhibit'] = company_data['name']
+
+        if not self.backoffice_grant_application['turnover']:
+            initial['turnover'] = int(
+                company_data['last_dnb_get_company_response']['data']['annual_sales']
+            )
+
+        if not self.backoffice_grant_application['number_of_employees']:
+            initial['number_of_employees'] = self.form_class.NumberOfEmployees.get_choice_by_number(
+                company_data['last_dnb_get_company_response']['data']['employee_number']
+            )
+
+        if not self.backoffice_grant_application['website']:
+            initial['website'] = company_data['last_dnb_get_company_response']['data']['domain']
+
         return initial
 
 

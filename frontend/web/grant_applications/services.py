@@ -6,6 +6,8 @@ from django.conf import settings
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
+from web.core.utils import flatten_nested_dict
+
 logger = logging.getLogger()
 
 
@@ -19,13 +21,6 @@ def _raise_for_status(response, **kwargs):
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
         logger.error(str(e), exc_info=e)
         raise BackofficeServiceException
-
-
-def _flatten_nested_dict(d, keys):
-    val = d
-    for key in keys:
-        val = val.get(key) or {}
-    return val
 
 
 class BackofficeService:
@@ -92,7 +87,7 @@ class BackofficeService:
         response = self.session.get(url)
         out = response.json()
         for k, m in flatten_map.items():
-            out[k] = _flatten_nested_dict(out, m.split('.'))
+            out[k] = flatten_nested_dict(out, m.split('.'))
         return out
 
     def send_grant_application_for_review(self, grant_application_id, application_summary):

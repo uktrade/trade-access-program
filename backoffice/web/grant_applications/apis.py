@@ -4,7 +4,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from web.grant_applications.models import GrantApplication
 from web.grant_applications.serializers import (
-    GrantApplicationSerializer, GrantApplicationCompanySerializer
+    GrantApplicationReadSerializer, GrantApplicationWriteSerializer
 )
 
 
@@ -13,8 +13,8 @@ class GrantApplicationsViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
-            return GrantApplicationSerializer
-        return GrantApplicationCompanySerializer
+            return GrantApplicationWriteSerializer
+        return GrantApplicationReadSerializer
 
     @action(detail=True, methods=['POST'], url_path='send-for-review')
     def send_for_review(self, request, pk=None):

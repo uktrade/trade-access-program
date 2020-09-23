@@ -227,6 +227,17 @@ class BusinessInformationForm(UpdateBackofficeGrantApplicationMixin, forms.Model
         HAS_50_TO_249 = '50-to-249', _('50 to 249')
         HAS_250_OR_MORE = '250-or-more', _('250 or More')
 
+        @classmethod
+        def get_choice_by_number(cls, number_of_employees):
+            if number_of_employees < 10:
+                return cls.HAS_FEWER_THAN_10
+            elif 10 <= number_of_employees <= 49:
+                return cls.HAS_10_TO_49
+            elif 50 <= number_of_employees <= 249:
+                return cls.HAS_50_TO_249
+            elif number_of_employees >= 250:
+                return cls.HAS_250_OR_MORE
+
     def __init__(self, *args, **kwargs):
         sector_choices = get_sector_select_choices()
         super().__init__(*args, **kwargs)
