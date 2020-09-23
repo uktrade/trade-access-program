@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -8,7 +9,7 @@ from urllib3 import Retry
 
 from web.core.utils import flatten_nested_dict
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class BackofficeServiceException(Exception):
@@ -19,17 +20,17 @@ def _raise_for_status(response, **kwargs):
     try:
         response.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        logger.error(str(e), exc_info=e)
+        logger.error('An error occurred', exc_info=e)
         raise BackofficeServiceException
 
 
-def log_hook(response, **kwargs):
+def _log_hook(response, **kwargs):
     body = response.request.body or b'No content'
     logger.info(
-        f'EXTERNAL : REQUEST : {response.request.method} : {response.request.url} : {body.decode()}'
+        f'EXTERNAL {response.request.method} : {response.request.url} : {body.decode()}'
     )
     if not response.ok:
-        logger.error(f'EXTERNAL : RESPONSE : {response.status_code} : {response.text}')
+        logger.error(f'RESPONSE : {response.status_code} : {response.text}')
 
 
 class BackofficeService:
@@ -50,7 +51,7 @@ class BackofficeService:
         self.session.mount(f'{urlparse(self.base_url).scheme}://', retry_adapter)
 
         # Attach response hooks
-        self.session.hooks['response'] = [log_hook, _raise_for_status]
+        self.session.hooks['response'] = [_log_hook, _raise_for_status]
 
     def create_company(self, duns_number, name):
         response = self.session.post(
@@ -131,31 +132,48 @@ class BackofficeService:
         raise ValueError(f'Unknown object type {object_type}')
 
 
-def get_backoffice_choices(object_type, choice_id, choice_name, **request_kwargs):
+def get_backoffice_options(object_type, choice_id_key, choice_name_key,
+                           hint_keys=None, request_kwargs=None):
+    request_kwargs = request_kwargs or {}
+    hint_keys = hint_keys or []
+    backoffice_options = defaultdict(list)
     try:
         backoffice_objects = BackofficeService().request_factory(object_type, **request_kwargs)
-        backoffice_choices = [(c[choice_id], c[choice_name]) for c in backoffice_objects]
     except BackofficeServiceException:
-        backoffice_choices = []
+        backoffice_options = {'choices': [], 'hints': []}
+    else:
+        for bo in backoffice_objects:
+            backoffice_options['choices'].append((bo[choice_id_key], bo[choice_name_key]))
+            backoffice_options['hints'].append(
+                {hint_key: bo[hint_key] for hint_key in hint_keys}
+            )
 
-    choices = [('', 'Select...'), ('0', 'Choice not listed')]
-    choices[1:1] = backoffice_choices
-
-    return choices
+    return backoffice_options
 
 
-def get_company_select_choices(search_term):
-    return get_backoffice_choices(
-        'companies', choice_id='duns_number', choice_name='primary_name', search_term=search_term
+def get_company_select_options(search_term):
+    return get_backoffice_options(
+        'companies', choice_id_key='duns_number', choice_name_key='primary_name',
+        hint_keys=['duns_number'], request_kwargs={'search_term': search_term}
     )
 
 
-def get_trade_event_select_choices():
-    return get_backoffice_choices('trade_events', choice_id='id', choice_name='display_name')
+def get_trade_event_select_options():
+    backoffice_options = get_backoffice_options(
+        'trade_events', choice_id_key='id', choice_name_key='display_name'
+    )
+    backoffice_options['choices'].insert(0, ('', 'Select...'))
+    backoffice_options['choices'].append(('0', 'Choice not listed'))
+    return backoffice_options
 
 
-def get_sector_select_choices():
-    return get_backoffice_choices('sectors', choice_id='id', choice_name='full_name')
+def get_sector_select_options():
+    backoffice_options = get_backoffice_options(
+        'sectors', choice_id_key='id', choice_name_key='full_name'
+    )
+    backoffice_options['choices'].insert(0, ('', 'Select...'))
+    backoffice_options['choices'].append(('0', 'Choice not listed'))
+    return backoffice_options
 
 
 def _serialize_field(value):

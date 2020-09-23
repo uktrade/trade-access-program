@@ -5,10 +5,10 @@ import requests
 from django.conf import settings
 from requests.adapters import HTTPAdapter, Retry
 
-from web.companies.models import DnbGetCompanyResponse, Company
+from web.companies.models import DnbGetCompanyResponse
 from web.core.exceptions import DnbServiceClientException
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 def _raise_for_status(response, **kwargs):
@@ -19,13 +19,13 @@ def _raise_for_status(response, **kwargs):
         raise DnbServiceClientException
 
 
-def log_hook(response, **kwargs):
+def _log_hook(response, **kwargs):
     body = response.request.body or b'No content'
     logger.info(
-        f'EXTERNAL : REQUEST : {response.request.method} : {response.request.url} : {body.decode()}'
+        f'EXTERNAL {response.request.method} : {response.request.url} : {body.decode()}'
     )
     if not response.ok:
-        logger.error(f'EXTERNAL : RESPONSE : {response.status_code} : {response.text}')
+        logger.error(f'RESPONSE : {response.status_code} : {response.text}')
 
 
 class DnbServiceClient:
@@ -43,7 +43,7 @@ class DnbServiceClient:
         self.session.mount(self.base_url, retry_adapter)
 
         # Attach response hooks
-        self.session.hooks['response'] = [log_hook, _raise_for_status]
+        self.session.hooks['response'] = [_log_hook, _raise_for_status]
 
     @staticmethod
     def _filter_gb(results):
@@ -64,12 +64,10 @@ class DnbServiceClient:
         return self._filter_gb(results=response.json()['results'])
 
 
-def save_company_and_dnb_response(duns_number, dnb_company_data=None):
-    dnb_company_data = dnb_company_data or {}
-    company, _ = Company.objects.get_or_create(
-        duns_number=duns_number,
-        defaults={'name': dnb_company_data.get('primary_name', 'Could not retrieve company name.')}
-    )
+def refresh_dnb_company_response_data(company):
+    dnb_company_data = DnbServiceClient().get_company(company.duns_number)
     if dnb_company_data:
-        DnbGetCompanyResponse.objects.create(company=company, data=dnb_company_data)
-    return company
+        dnb_get_company_response = DnbGetCompanyResponse.objects.create(
+            company=company, data=dnb_company_data
+        )
+        return dnb_get_company_response

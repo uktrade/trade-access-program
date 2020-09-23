@@ -4,7 +4,7 @@ import requests
 from django.conf import settings
 from notifications_python_client import NotificationsAPIClient
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class NotifyService:

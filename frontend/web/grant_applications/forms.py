@@ -8,8 +8,8 @@ from web.core import widgets
 from web.core.widgets import CurrencyInput
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
-    BackofficeService, BackofficeServiceException, get_company_select_choices,
-    get_sector_select_choices, get_trade_event_select_choices
+    BackofficeService, BackofficeServiceException, get_company_select_options,
+    get_sector_select_options, get_trade_event_select_options
 )
 
 
@@ -42,37 +42,32 @@ class SelectCompanyForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         search_term = getattr(kwargs.get('instance'), 'search_term', None)
-        company_choices = get_company_select_choices(search_term)
+        company_options = get_company_select_options(search_term)
         super().__init__(*args, **kwargs)
-        self.fields['duns_number'] = forms.ChoiceField(
-            label='Dun and Bradstreet Number',
-            choices=company_choices,
-            widget=forms.Select(
-                attrs={
-                    'class': 'govuk-select govuk-!-width-two-thirds',
-                    'placeholder': 'Select your company...',
-                }
-            )
-        )
+        self.fields['duns_number'].choices = company_options['choices']
+        self.fields['duns_number'].widget.attrs['hints'] = company_options['hints']
 
     class Meta:
         model = GrantApplicationLink
-        fields = []
+        fields = ['duns_number']
+
+    duns_number = forms.ChoiceField(
+        label=_('Dun and Bradstreet Number'),
+        widget=widgets.RadioSelect(),
+    )
 
     def clean(self):
         cleaned_data = super().clean()
         if cleaned_data:
             service = BackofficeService()
             try:
-                name = [
-                    n for dn, n in self.fields['duns_number'].choices
-                    if dn == self.cleaned_data['duns_number']
-                ][0]
                 company = service.get_or_create_company(
-                    duns_number=self.cleaned_data['duns_number'], name=name
+                    duns_number=self.cleaned_data['duns_number'],
+                    name=dict(self.fields['duns_number'].choices)[self.cleaned_data['duns_number']]
                 )
                 self.backoffice_grant_application = service.create_grant_application(
-                    company_id=company['id'], search_term=self.instance.search_term
+                    company_id=company['id'],
+                    search_term=self.instance.search_term
                 )
             except BackofficeServiceException:
                 raise forms.ValidationError(
@@ -133,9 +128,9 @@ class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
         ]
 
     def __init__(self, *args, **kwargs):
-        trade_event_choices = get_trade_event_select_choices()
+        trade_event_options = get_trade_event_select_options()
         super().__init__(*args, **kwargs)
-        self.fields['event'].choices = trade_event_choices
+        self.fields['event'].choices = trade_event_options['choices']
 
     is_already_committed_to_event = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
@@ -239,9 +234,9 @@ class BusinessInformationForm(UpdateBackofficeGrantApplicationMixin, forms.Model
                 return cls.HAS_250_OR_MORE
 
     def __init__(self, *args, **kwargs):
-        sector_choices = get_sector_select_choices()
+        sector_options = get_sector_select_options()
         super().__init__(*args, **kwargs)
-        self.fields['sector'].choices = sector_choices
+        self.fields['sector'].choices = sector_options['choices']
 
     goods_and_services_description = forms.CharField(
         label=_('Description of goods or services, and whether they are from UK origin'),

@@ -5,6 +5,7 @@ import httpretty
 from web.companies import services
 from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
+from web.tests.factories.companies import CompanyFactory
 from web.tests.helpers import BaseAPITestCase
 
 
@@ -25,9 +26,9 @@ class DnbServiceTests(BaseAPITestCase):
     @httpretty.activate
     def test_get_company(self):
         response_body = json.dumps({
-          'results': [
-            {'primary_name': 'name-1', 'duns_number': 1, 'registered_address_country': 'GB'}
-          ]
+            'results': [
+                {'primary_name': 'name-1', 'duns_number': 1, 'registered_address_country': 'GB'}
+            ]
         })
         httpretty.register_uri(
             httpretty.POST,
@@ -112,20 +113,31 @@ class DnbServiceTests(BaseAPITestCase):
 
 class ServicesTests(BaseAPITestCase):
 
-    def test_save_dnb_get_company_response_with_dnb_company_data(self):
-        dnb_company_data = {
-            'primary_name': 'name-1',
-            'duns_number': 1,
-            'registered_address_country': 'GB'
-        }
-        company = services.save_company_and_dnb_response(
-            duns_number=1, dnb_company_data=dnb_company_data
+    @httpretty.activate
+    def test_refresh_dnb_company_response_data_with_dnb_response(self):
+        httpretty.register_uri(
+            httpretty.POST,
+            DnbServiceClient().company_url,
+            status=200,
+            body=json.dumps({'results': [{'duns_number': 1, 'registered_address_country': 'GB'}]}),
+            match_querystring=False
         )
-        self.assertEqual(company.duns_number, 1)
-        self.assertEqual(company.dnb_get_company_responses.count(), 1)
-        self.assertEqual(company.last_dnb_get_company_response.data, dnb_company_data)
+        company = CompanyFactory(duns_number=1, dnb_get_company_responses=None)
+        dnb_get_company_response = services.refresh_dnb_company_response_data(company)
+        self.assertIsNotNone(dnb_get_company_response)
+        self.assertEqual(dnb_get_company_response.company, company)
+        self.assertEqual(company.last_dnb_get_company_response, dnb_get_company_response)
 
-    def test_save_dnb_get_company_response_without_dnb_company_data(self):
-        company = services.save_company_and_dnb_response(duns_number=1)
-        self.assertEqual(company.duns_number, 1)
-        self.assertFalse(company.dnb_get_company_responses.exists())
+    @httpretty.activate
+    def test_refresh_dnb_company_response_data_with_no_dnb_response(self):
+        httpretty.register_uri(
+            httpretty.POST,
+            DnbServiceClient().company_url,
+            status=200,
+            body=json.dumps({'results': []}),
+            match_querystring=False
+        )
+        company = CompanyFactory(duns_number=1, dnb_get_company_responses=None)
+        dnb_get_company_response = services.refresh_dnb_company_response_data(company)
+        self.assertIsNone(dnb_get_company_response)
+        self.assertIsNone(company.last_dnb_get_company_response)
