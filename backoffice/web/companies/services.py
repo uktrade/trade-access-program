@@ -19,6 +19,10 @@ def _raise_for_status(response, **kwargs):
         raise DnbServiceClientException
 
 
+def log_hook(response, **kwargs):
+    logger.info(f'[REQUEST] : {response.request.path_url} : {response.request.body}')
+
+
 class DnbServiceClient:
 
     def __init__(self):
@@ -33,8 +37,8 @@ class DnbServiceClient:
         retry_adapter = HTTPAdapter(max_retries=retry_strategy)
         self.session.mount(self.base_url, retry_adapter)
 
-        # Attach response hook
-        self.session.hooks['response'] = [_raise_for_status]
+        # Attach response hooks
+        self.session.hooks['response'] = [log_hook, _raise_for_status]
 
     @staticmethod
     def _filter_gb(results):

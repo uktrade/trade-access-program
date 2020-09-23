@@ -23,6 +23,10 @@ def _raise_for_status(response, **kwargs):
         raise BackofficeServiceException
 
 
+def log_hook(response, **kwargs):
+    logger.info(f'[REQUEST] : {response.request.path_url} : {response.request.body}')
+
+
 class BackofficeService:
 
     def __init__(self):
@@ -40,8 +44,8 @@ class BackofficeService:
         retry_adapter = HTTPAdapter(max_retries=retry_strategy)
         self.session.mount(f'{urlparse(self.base_url).scheme}://', retry_adapter)
 
-        # Attach response hook
-        self.session.hooks['response'] = [_raise_for_status]
+        # Attach response hooks
+        self.session.hooks['response'] = [log_hook, _raise_for_status]
 
     def create_company(self, duns_number, name):
         response = self.session.post(
