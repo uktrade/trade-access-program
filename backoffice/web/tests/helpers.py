@@ -19,6 +19,8 @@ class AssertResponseMixin:
             self.assertIn(k, data, msg=f'Value for key "{k}" does not match')
             if isinstance(v, dict):
                 self.assertDictEqual(data[k], v, msg=f'Value for key "{k}" does not match')
+            elif isinstance(v, list):
+                self.assertListEqual(data[k], v, msg=f'Value for key "{k}" does not match')
             else:
                 self.assertEqual(data[k], v, msg=f'Value for key "{k}" does not match')
 

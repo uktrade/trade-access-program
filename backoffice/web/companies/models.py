@@ -14,9 +14,11 @@ class Company(BaseMetaModel):
 
     @property
     def last_dnb_get_company_response(self):
-        return self.dnbgetcompanyresponse_set.order_by('-created').first()
+        return self.dnb_get_company_responses.order_by('-created').first()
 
 
 class DnbGetCompanyResponse(BaseMetaModel):
-    company = models.ForeignKey(Company, on_delete=PROTECT, null=True)
+    company = models.ForeignKey(
+        Company, on_delete=PROTECT, null=True, related_name='dnb_get_company_responses'
+    )
     data = JSONField()

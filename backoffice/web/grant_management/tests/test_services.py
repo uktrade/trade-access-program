@@ -12,7 +12,7 @@ class TestGrantManagementSupportingInformation(BaseTestCase):
 
     def setUp(self):
         super().setUp()
-        self.ga = GrantApplicationFactory()
+        self.ga = GrantApplicationFactory(company__dnb_get_company_responses=None)
         self.si_content = SupportingInformationContent(self.ga)
 
     @patch.object(DnbServiceClient, 'get_company', side_effect=DnbServiceClientException)

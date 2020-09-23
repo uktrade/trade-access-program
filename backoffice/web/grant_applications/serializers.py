@@ -1,19 +1,30 @@
 from rest_framework import serializers
 
-from web.companies.models import Company
+from web.companies.models import Company, DnbGetCompanyResponse
 from web.grant_applications.models import GrantApplication
 from web.grant_management.models import GrantManagementProcess
 from web.sectors.models import Sector
 from web.trade_events.models import Event
 
 
+class DnbGetCompanyResponseSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = DnbGetCompanyResponse
+        fields = ['id', 'data']
+
+
 class CompanySerializer(serializers.ModelSerializer):
+    last_dnb_get_company_response = DnbGetCompanyResponseSerializer()
     previous_applications = serializers.SerializerMethodField()
     applications_in_review = serializers.SerializerMethodField()
 
     class Meta:
         model = Company
-        fields = ['id', 'duns_number', 'name', 'previous_applications', 'applications_in_review']
+        fields = [
+            'id', 'duns_number', 'name', 'last_dnb_get_company_response', 'previous_applications',
+            'applications_in_review'
+        ]
         extra_kwargs = {
             'duns_number': {
                 'validators': [],
@@ -60,7 +71,7 @@ class GrantManagementProcessSerializer(serializers.ModelSerializer):
         ]
 
 
-class GrantApplicationCompanySerializer(serializers.ModelSerializer):
+class GrantApplicationReadSerializer(serializers.ModelSerializer):
     company = CompanySerializer()
     event = EventSerializer()
     sector = SectorSerializer()
@@ -71,7 +82,7 @@ class GrantApplicationCompanySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class GrantApplicationSerializer(serializers.ModelSerializer):
+class GrantApplicationWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GrantApplication

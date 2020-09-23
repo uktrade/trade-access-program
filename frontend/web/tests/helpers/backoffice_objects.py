@@ -33,6 +33,14 @@ FAKE_GRANT_APPLICATION = {
         'name': 'ABC',
         'previous_applications': 1,
         'applications_in_review': 1,
+        'last_dnb_get_company_response': {
+            'id': '3cceee4e-32fa-4570-b8fa-514238823e25',
+            'data': {
+                'annual_sales': 1000,
+                'employee_number': 3,
+                'domain': 'www.test.com',
+            }
+        }
     },
     'sector': {
         'id': 'e98cee83-9f4e-4ad2-8d10-7f25867b91b5',

@@ -10,6 +10,10 @@ class CompanyFactory(BaseMetaFactory):
 
     name = factory.Sequence(lambda n: f'name-{n}')
     duns_number = factory.Sequence(lambda n: n)
+    dnb_get_company_responses = factory.RelatedFactory(
+        'web.tests.factories.companies.DnbGetCompanyResponseFactory',
+        factory_related_name='company'
+    )
 
 
 class DnbGetCompanyResponseFactory(BaseMetaFactory):

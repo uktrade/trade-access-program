@@ -489,6 +489,46 @@ class TestBusinessInformationView(BaseTestCase):
         self.assertInHTML('<option value="1">full-name-1</option>', response.content.decode())
         self.assertInHTML('<option value="2">full-name-2</option>', response.content.decode())
 
+    def test_number_of_employees_get_choice_by_number(self, *mocks):
+        fake_ga = FAKE_GRANT_APPLICATION.copy()
+        fake_ga['number_of_employees'] = None
+        mocks[2].return_value = fake_ga
+
+        expected_html = '<input class="govuk-radios__input" id="id_number_of_employees_{}"' \
+                        ' checked type="radio" name="number_of_employees" value="{}">'
+
+        # HAS_FEWER_THAN_10
+        fake_ga['company']['last_dnb_get_company_response']['data']['employee_number'] = 2
+        response = self.client.get(self.url)
+        self.assertInHTML(
+            expected_html.format(0, BusinessInformationForm.NumberOfEmployees.HAS_FEWER_THAN_10),
+            response.content.decode()
+        )
+
+        # HAS_10_TO_49
+        fake_ga['company']['last_dnb_get_company_response']['data']['employee_number'] = 20
+        response = self.client.get(self.url)
+        self.assertInHTML(
+            expected_html.format(1, BusinessInformationForm.NumberOfEmployees.HAS_10_TO_49),
+            response.content.decode()
+        )
+
+        # HAS_50_TO_249
+        fake_ga['company']['last_dnb_get_company_response']['data']['employee_number'] = 51
+        response = self.client.get(self.url)
+        self.assertInHTML(
+            expected_html.format(2, BusinessInformationForm.NumberOfEmployees.HAS_50_TO_249),
+            response.content.decode()
+        )
+
+        # HAS_250_OR_MORE
+        fake_ga['company']['last_dnb_get_company_response']['data']['employee_number'] = 500
+        response = self.client.get(self.url)
+        self.assertInHTML(
+            expected_html.format(3, BusinessInformationForm.NumberOfEmployees.HAS_250_OR_MORE),
+            response.content.decode()
+        )
+
     def test_post(self, *mocks):
         response = self.client.post(
             self.url,
@@ -513,7 +553,40 @@ class TestBusinessInformationView(BaseTestCase):
             sector='1',
         )
 
-    def test_initial_form_data(self, *mocks):
+    def test_initial_form_data_from_dnb_company_data(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['business_name_at_exhibit'] = None
+        fake_grant_application['turnover'] = None
+        fake_grant_application['number_of_employees'] = None
+        fake_grant_application['website'] = None
+        mocks[2].return_value = fake_grant_application
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertInHTML(
+            f'<input type="text" name="business_name_at_exhibit" id="id_business_name_at_exhibit" '
+            f'value="{FAKE_GRANT_APPLICATION["company"]["name"]}" required '
+            f'class="govuk-input govuk-!-width-two-thirds" >',
+            response.content.decode()
+        )
+        self.assertInHTML(
+            '<input type="text" name="turnover" value="1000" '
+            'class="govuk-input govuk-!-width-one-quarter" required id="id_turnover">',
+            response.content.decode()
+        )
+        self.assertInHTML(
+            '<input class="govuk-radios__input" id="id_number_of_employees_0" checked type="radio"'
+            ' name="number_of_employees" value="fewer-than-10">',
+            response.content.decode()
+        )
+        self.assertInHTML(
+            '<input type="text" name="website" value="www.test.com" '
+            'class="govuk-input govuk-!-width-two-thirds" required '
+            'id="id_website">',
+            response.content.decode()
+        )
+
+    def test_initial_form_data_from_grant_application_object(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertInHTML(
