@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from web.companies.models import Company, DnbGetCompanyResponse
+from web.companies.services import refresh_dnb_company_response_data
 from web.grant_applications.models import GrantApplication
 from web.grant_management.models import GrantManagementProcess
 from web.sectors.models import Sector
@@ -87,3 +88,8 @@ class GrantApplicationWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrantApplication
         fields = '__all__'
+
+    def save(self, **kwargs):
+        super(GrantApplicationWriteSerializer, self).save()
+        if self.instance.company:
+            refresh_dnb_company_response_data(self.instance.company)

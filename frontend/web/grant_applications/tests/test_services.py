@@ -1,4 +1,5 @@
 import json
+import logging
 from unittest.mock import patch
 from urllib.parse import urljoin
 
@@ -9,10 +10,10 @@ from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_SEARCH_COMPANIES, FAKE_COMPANY,
     FAKE_SECTOR, FAKE_EVENT
 )
-from web.tests.helpers.testcases import BaseTestCase
+from web.tests.helpers.testcases import BaseTestCase, LogCaptureMixin
 
 
-class TestBackofficeService(BaseTestCase):
+class TestBackofficeService(LogCaptureMixin, BaseTestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -274,8 +275,28 @@ class TestBackofficeService(BaseTestCase):
             match_querystring=False
         )
         self.assertRaises(
-            BackofficeServiceException,
-            self.service.get_grant_application,
-            grant_application_id=self.bga['id']
+            BackofficeServiceException, self.service.get_grant_application, self.bga['id']
         )
         self.assertEqual(len(httpretty.latest_requests()), 1)
+
+    @httpretty.activate
+    def test_log_error_on_400(self):
+        self.log_capture.setLevel(logging.ERROR)
+        url = urljoin(self.service.grant_applications_url, f'{self.bga["id"]}/')
+        httpretty.register_uri(httpretty.GET, url, status=400, match_querystring=False)
+        self.assertRaises(
+            BackofficeServiceException, self.service.get_grant_application, self.bga['id']
+        )
+        self.log_capture.check_present(
+            ('web.grant_applications.services', 'ERROR', 'An error occurred'),
+        )
+
+    @httpretty.activate
+    def test_log_info_on_all_requests(self):
+        self.log_capture.setLevel(logging.INFO)
+        url = urljoin(self.service.grant_applications_url, f'{self.bga["id"]}/')
+        httpretty.register_uri(httpretty.GET, url, status=200, match_querystring=False)
+        self.service.get_grant_application(self.bga['id'])
+        self.log_capture.check_present(
+            ('web.grant_applications.services', 'INFO', f'EXTERNAL GET : {url} : No content'),
+        )

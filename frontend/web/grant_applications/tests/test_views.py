@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest import skip
 from unittest.mock import patch
 
 from dateutil.utils import today
@@ -80,6 +81,7 @@ class TestSearchCompanyView(BaseTestCase):
 class TestSelectCompanyView(BaseTestCase):
 
     def setUp(self):
+        super().setUp()
         self.gal = GrantApplicationLinkFactory(
             search_term='company',
             backoffice_grant_application_id=None
@@ -93,12 +95,18 @@ class TestSelectCompanyView(BaseTestCase):
         mocks[0].assert_called_once_with(search_term=self.gal.search_term)
         self.assertIn(FAKE_GRANT_APPLICATION['company']['name'], response.content.decode())
 
+    @skip("TODO: confirm with design what to display when no company found.")
+    def test_get_template_when_no_company_found(self, *mocks):
+        mocks[0].return_value = []
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('TODO', response.content.decode())
+
     def test_get_template_on_backoffice_service_exception(self, *mocks):
         mocks[0].side_effect = [BackofficeServiceException]
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertNotIn(FAKE_GRANT_APPLICATION['company']['name'], response.content.decode())
-        self.assertIn('Choice not listed', response.content.decode())
 
     def test_post_required_fields(self, *mocks):
         response = self.client.post(self.url)

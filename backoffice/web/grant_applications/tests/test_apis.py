@@ -12,6 +12,7 @@ from web.tests.factories.grant_management import GrantManagementProcessFactory
 from web.tests.helpers import BaseAPITestCase
 
 
+@patch('web.grant_applications.serializers.refresh_dnb_company_response_data')
 @patch('web.grant_management.flows.NotifyService')
 class GrantApplicationsApiTests(BaseAPITestCase):
 
@@ -166,6 +167,17 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                 'application_summary': [],
             }
         )
+
+    def test_new_grant_application_refreshes_dnb_company_data(self, *mocks):
+        path = reverse('grant-applications-list')
+        company = CompanyFactory()
+        self.client.post(path, data={'company': company.id, 'search_term': 'company-1'})
+        mocks[1].assert_called_once_with(company)
+
+    def test_new_grant_application_does_not_refresh_dnb_company_data_if_no_company(self, *mocks):
+        path = reverse('grant-applications-list')
+        self.client.post(path, data={'search_term': 'company-1'})
+        mocks[1].assert_not_called()
 
     def test_update_grant_application(self, *mocks):
         event = EventFactory()
