@@ -28,7 +28,8 @@ class SearchCompanyForm(forms.ModelForm):
         fields = ['search_term']
 
     search_term = forms.CharField(
-        label='',
+        label=_('Look up your company'),
+        help_text=_('Enter a company name'),
         widget=forms.TextInput(
             attrs={
                 'class': 'govuk-input govuk-!-width-two-thirds',
