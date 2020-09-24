@@ -43,6 +43,16 @@ class TestSearchCompanyView(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, SearchCompanyView.template_name)
 
+    def test_search_company_back_button(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('back', response.context_data)
+        self.assertIn(response.context_data['back']['url'], reverse('grant-applications:index'))
+        self.assertInHTML(
+            f'<a href="{reverse("grant-applications:index")}" class="govuk-back-link">Back</a>',
+            response.content.decode()
+        )
+
     def test_search_term_required(self, *mocks):
         response = self.client.post(self.url)
         self.assertFormError(response, 'form', 'search_term', 'This field is required.')
