@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import PROTECT
 
@@ -21,4 +20,4 @@ class DnbGetCompanyResponse(BaseMetaModel):
     company = models.ForeignKey(
         Company, on_delete=PROTECT, null=True, related_name='dnb_get_company_responses'
     )
-    data = JSONField()
+    data = models.JSONField()

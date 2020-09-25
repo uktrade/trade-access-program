@@ -5,20 +5,14 @@ from django.db.models import TextChoices
 from django.utils.translation import gettext_lazy as _
 
 from web.core import widgets
+from web.core.utils import str_to_bool
 from web.core.widgets import CurrencyInput
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException, get_company_select_options,
     get_sector_select_options, get_trade_event_select_options
 )
-
-
-def str_to_bool(value):
-    if str(value).lower() in ['true', 't', '1']:
-        return True
-    elif str(value).lower() in ['false', 'f', '0']:
-        return False
-    raise ValueError(f'Cannot convert {value} to boolean')
+from web.grant_applications.view_mixins import UpdateBackofficeGrantApplicationMixin
 
 
 class SearchCompanyForm(forms.ModelForm):
@@ -81,14 +75,70 @@ class SelectCompanyForm(forms.ModelForm):
         return super().save(*args, **kwargs)
 
 
-class UpdateBackofficeGrantApplicationMixin:
+class PreviousApplicationsForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
 
-    def save(self, *args, **kwargs):
-        BackofficeService().update_grant_application(
-            grant_application_id=str(self.instance.backoffice_grant_application_id),
-            **{k: v for k, v in self.cleaned_data.items() if v is not None}
-        )
-        return super().save(*args, **kwargs)
+    class Meta:
+        model = GrantApplicationLink
+        fields = ['has_previously_applied', 'previous_applications']
+
+    has_previously_applied = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_('Is this the first time you have applied for a TAP grant?')
+    )
+
+    previous_applications = forms.TypedChoiceField(
+        coerce=int,
+        choices=[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, '6 or more')],
+        widget=widgets.RadioSelect(),
+        label=_('How many TAP grants have you received since 1 April 2009?'),
+    )
+
+
+class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = [
+            'event', 'is_already_committed_to_event', 'is_intending_on_other_financial_support',
+            'has_received_de_minimis_aid'
+        ]
+
+    def __init__(self, *args, **kwargs):
+        trade_event_options = get_trade_event_select_options()
+        super().__init__(*args, **kwargs)
+        self.fields['event'].choices = trade_event_options['choices']
+
+    event = forms.ChoiceField(
+        label=_('Select event'),
+        widget=forms.Select(
+            attrs={
+                'class': 'govuk-select govuk-!-width-two-thirds',
+                'placeholder': 'Select the event...',
+            }
+        ),
+    )
+    is_already_committed_to_event = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_('Are you already financially committed to attending this event?'),
+    )
+    is_intending_on_other_financial_support = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_('Will you receive or are you applying for any other financial support '
+                'to exhibit at this event?')
+    )
+    has_received_de_minimis_aid = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        required=True,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_('Have you received over €200,000 de minimis aid during the last 3 fiscal years?')
+    )
 
 
 class AboutYouForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
@@ -114,70 +164,13 @@ class AboutYouForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
     )
 
 
-class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
-
-    class Meta:
-        model = GrantApplicationLink
-        fields = [
-            'event', 'is_already_committed_to_event', 'is_intending_on_other_financial_support'
-        ]
-
-    def __init__(self, *args, **kwargs):
-        trade_event_options = get_trade_event_select_options()
-        super().__init__(*args, **kwargs)
-        self.fields['event'].choices = trade_event_options['choices']
-
-    is_already_committed_to_event = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_('Have you already committed to attending this event?'),
-    )
-
-    is_intending_on_other_financial_support = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_('Will you receive or are you applying for any other '
-                'financial support for this event?')
-    )
-    event = forms.ChoiceField(
-        label=_('Select event'),
-        widget=forms.Select(
-            attrs={
-                'class': 'govuk-select govuk-!-width-two-thirds',
-                'placeholder': 'Select the event...',
-            }
-        ),
-    )
-
-
-class PreviousApplicationsForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
-
-    class Meta:
-        model = GrantApplicationLink
-        fields = ['has_previously_applied', 'previous_applications']
-
-    has_previously_applied = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_('Is this the first time you have applied for a TAP grant?')
-    )
-
-    previous_applications = forms.TypedChoiceField(
-        coerce=int,
-        choices=[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, '6 or more')],
-        widget=widgets.RadioSelect(),
-        label=_('How many TAP grants have you received since 1 April 2009?'),
-    )
-
-
 class EventIntentionForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
-        fields = ['is_first_exhibit_at_event', 'number_of_times_exhibited_at_event']
+        fields = [
+            'is_first_exhibit_at_event', 'number_of_times_exhibited_at_event',
+        ]
 
     is_first_exhibit_at_event = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
@@ -378,6 +371,8 @@ class StateAidForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        # TODO - Fix this view now that has_received_de_minimis_aid was moved to a previous view
+        #        in a previous commit
         has_received_de_minimis_aid = cleaned_data.get('has_received_de_minimis_aid')
 
         if has_received_de_minimis_aid is True:

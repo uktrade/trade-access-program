@@ -97,7 +97,7 @@ class BackofficeService:
         response = self.session.get(url)
         out = response.json()
         for k, m in flatten_map.items():
-            out[k] = flatten_nested_dict(out, m.split('.'))
+            out[k] = flatten_nested_dict(out, key_path=m.split('.'))
         return out
 
     def send_grant_application_for_review(self, grant_application_id, application_summary):

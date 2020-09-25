@@ -36,7 +36,7 @@ jobs:
           command: cd frontend && flake8 .
       - run:
           name: Run Tests
-          command: cd frontend && pytest -p no:sugar -v
+          command: cd frontend && python manage.py collectstatic && pytest -p no:sugar -v
       - store_artifacts:
           path: frontend/reports
       - store_test_results:
@@ -68,7 +68,7 @@ jobs:
           command: cd backoffice && flake8 .
       - run:
           name: Run Tests
-          command: cd backoffice && pytest -p no:sugar -v
+          command: cd backoffice && python manage.py collectstatic && pytest -p no:sugar -v
       - store_artifacts:
           path: backoffice/reports
       - store_test_results:
