@@ -7,4 +7,4 @@ gunicorn==19.9.0
 libsass==0.20.0
 requests==2.24.0
 psycopg2==2.8.5
-whitenoise==5.1.0
+whitenoise==5.2.0

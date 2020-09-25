@@ -24,4 +24,4 @@ rjsmin==1.1.0             # via django-compressor
 six==1.15.0               # via django-compressor, libsass
 sqlparse==0.3.1           # via django
 urllib3==1.25.9           # via requests
-whitenoise==5.1.0         # via -r requirements/base.in
+whitenoise==5.2.0         # via -r requirements/base.in

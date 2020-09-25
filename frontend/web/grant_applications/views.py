@@ -5,9 +5,9 @@ from django.views.generic import CreateView, UpdateView, TemplateView
 
 from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin, BackContextMixin
 from web.grant_applications.forms import (
-    SearchCompanyForm, SelectCompanyForm, AboutYourBusinessForm, AboutYouForm, AboutTheEventForm,
-    PreviousApplicationsForm, EventIntentionForm, BusinessInformationForm, ExportExperienceForm,
-    StateAidForm, ApplicationReviewForm
+    SearchCompanyForm, SelectCompanyForm, AboutYouForm, AboutTheEventForm, PreviousApplicationsForm,
+    EventIntentionForm, BusinessInformationForm, ExportExperienceForm, StateAidForm,
+    ApplicationReviewForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -33,7 +33,7 @@ class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     model = GrantApplicationLink
     form_class = SelectCompanyForm
     template_name = 'grant_applications/select_company.html'
-    success_url_name = 'grant-applications:about-your-business'
+    success_url_name = 'grant-applications:about-you'
     page = {
         'heading': _('Select your company')
     }
@@ -43,49 +43,13 @@ class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         return reverse('grant-applications:search-company')
 
 
-class AboutYourBusinessView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
-                            BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                            UpdateView):
-    model = GrantApplicationLink
-    form_class = AboutYourBusinessForm
-    template_name = 'grant_applications/about_your_business.html'
-    success_url_name = 'grant-applications:about-you'
-    back_url_name = 'grant-applications:select-company'
-    page = {
-        'heading': _('About your business')
-    }
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.backoffice_grant_application['company']:
-            context['table'] = [
-                {
-                    'label': 'Dun and Bradstreet Number',
-                    'value': self.backoffice_grant_application['company']['duns_number']
-                },
-                {
-                    'label': 'Company Name',
-                    'value': self.backoffice_grant_application['company']['name']
-                },
-                {
-                    'label': 'Previous Applications',
-                    'value': self.backoffice_grant_application['company']['previous_applications']
-                },
-                {
-                    'label': 'Applications in Review',
-                    'value': self.backoffice_grant_application['company']['applications_in_review']
-                },
-            ]
-        return context
-
-
 class AboutYouView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
                    InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = AboutYouForm
     template_name = 'grant_applications/generic_form_page.html'
+    back_url_name = 'grant-applications:select-company'
     success_url_name = 'grant_applications:about-the-event'
-    back_url_name = 'grant-applications:about-your-business'
     page = {
         'heading': _('About you')
     }
@@ -232,7 +196,6 @@ class ApplicationReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
     }
     grant_application_flow = [
         SelectCompanyView,
-        AboutYourBusinessView,
         AboutYouView,
         AboutTheEventView,
         PreviousApplicationsView,
