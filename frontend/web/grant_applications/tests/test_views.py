@@ -1,8 +1,6 @@
-from datetime import timedelta
 from unittest import skip
 from unittest.mock import patch
 
-from dateutil.utils import today
 from django.urls import reverse, resolve
 from django.utils.datetime_safe import date
 from django.utils.http import urlencode
@@ -14,12 +12,14 @@ from web.grant_applications.tests.factories.grant_application_link import (
     GrantApplicationLinkFactory
 )
 from web.grant_applications.views import (
-    SearchCompanyView, SelectCompanyView, AboutYourBusinessView, AboutYouView, AboutTheEventView,
+    SearchCompanyView, SelectCompanyView, AboutYouView, AboutTheEventView,
     PreviousApplicationsView, EventIntentionView, BusinessInformationView, ExportExperienceView,
     StateAidView, ApplicationReviewView
 )
-from web.tests.helpers.backoffice_objects import FAKE_GRANT_APPLICATION, FAKE_COMPANY, \
+from web.tests.helpers.backoffice_objects import (
+    FAKE_GRANT_APPLICATION, FAKE_COMPANY,
     FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_FLATTENED_GRANT_APPLICATION
+)
 from web.tests.helpers.testcases import BaseTestCase
 
 
@@ -128,8 +128,8 @@ class TestSelectCompanyView(BaseTestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
-            response,
-            expected_url=reverse('grant-applications:about-your-business', args=(self.gal.pk,))
+            response=response,
+            expected_url=reverse('grant-applications:about-you', kwargs={'pk': self.gal.pk})
         )
 
     def test_post_form_redirect_template(self, *mocks):
@@ -139,7 +139,7 @@ class TestSelectCompanyView(BaseTestCase):
             follow=True
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
+        self.assertTemplateUsed(response, AboutYouView.template_name)
 
     def test_post_creates_backoffice_company(self, m_search_companies, m_create_grant_application,
                                              m_list_companies, m_get_grant_application,
@@ -206,67 +206,6 @@ class TestSelectCompanyView(BaseTestCase):
         )
         self.gal.refresh_from_db()
         self.assertIsNone(self.gal.backoffice_grant_application_id)
-
-
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestAboutYourBusinessView(BaseTestCase):
-    table_row_html = '<th scope="row" class="govuk-table__header">{header}</th>\n      ' \
-                     '<td class="govuk-table__cell">{value}</td>'
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:about-your-business', kwargs={'pk': self.gal.pk})
-        self.tomorrow = today() + timedelta(days=1)
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, AboutYourBusinessView.template_name)
-
-        self.assertInHTML(
-            self.table_row_html.format(
-                header='Company Name', value=FAKE_GRANT_APPLICATION['company']['name']
-            ),
-            response.content.decode()
-        )
-        self.assertInHTML(
-            self.table_row_html.format(
-                header='Dun and Bradstreet Number',
-                value=FAKE_GRANT_APPLICATION['company']['duns_number']
-            ),
-            response.content.decode()
-        )
-        self.assertInHTML(
-            self.table_row_html.format(
-                header='Previous Applications',
-                value=FAKE_GRANT_APPLICATION['company']['previous_applications']
-            ),
-            response.content.decode()
-        )
-        self.assertInHTML(
-            self.table_row_html.format(
-                header='Applications in Review',
-                value=FAKE_GRANT_APPLICATION['company']['applications_in_review']
-            ),
-            response.content.decode()
-        )
-
-    def test_post_redirects(self, *mocks):
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
-        self.assertEqual(response.status_code, 302)
-
-    def test_post_redirect_template(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            follow=True
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, AboutYouView.template_name)
-        self.assertRedirects(
-            response=response,
-            expected_url=reverse('grant-applications:about-you', kwargs={'pk': self.gal.pk})
-        )
 
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)

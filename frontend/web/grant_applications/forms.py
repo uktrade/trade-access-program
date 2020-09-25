@@ -81,12 +81,6 @@ class SelectCompanyForm(forms.ModelForm):
         return super().save(*args, **kwargs)
 
 
-class AboutYourBusinessForm(forms.ModelForm):
-    class Meta:
-        model = GrantApplicationLink
-        fields = []
-
-
 class UpdateBackofficeGrantApplicationMixin:
 
     def save(self, *args, **kwargs):

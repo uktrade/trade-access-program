@@ -67,7 +67,7 @@ toml==0.10.1              # via pytest
 traitlets==4.3.3          # via ipython
 urllib3==1.25.9           # via -r requirements/base.txt, requests
 wcwidth==0.2.4            # via prompt-toolkit
-whitenoise==5.1.0         # via -r requirements/base.txt
+whitenoise==5.2.0         # via -r requirements/base.txt
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
