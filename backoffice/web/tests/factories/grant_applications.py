@@ -6,7 +6,7 @@ from dateutil.utils import today
 from web.grant_applications.models import GrantApplication
 
 
-class GrantApplicationFactory(factory.DjangoModelFactory):
+class GrantApplicationFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = GrantApplication
 
