@@ -1,5 +1,4 @@
 from django import forms
-from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, UpdateView, TemplateView
@@ -11,65 +10,36 @@ from web.grant_applications.forms import (
     StateAidForm, ApplicationReviewForm
 )
 from web.grant_applications.models import GrantApplicationLink
-from web.grant_applications.services import BackofficeService, generate_grant_application_summary, \
-    BackofficeServiceException
-
-
-class BackofficeMixin:
-
-    def get_object(self):
-        obj = super().get_object()
-        self.backoffice_service = BackofficeService()
-        self.backoffice_grant_application = self.backoffice_service.get_grant_application(
-            obj.backoffice_grant_application_id
-        )
-        return obj
-
-
-class InitialDataMixin:
-
-    def get_initial(self):
-        initial = super().get_initial()
-        for field in self.form_class._meta.fields:
-            if self.backoffice_grant_application.get(field) is not None:
-                initial[field] = self.backoffice_grant_application.get(field)
-        return initial
-
-
-class ConfirmationRedirectMixin:
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.sent_for_review:
-            return HttpResponseRedirect(
-                reverse('grant_applications:confirmation', args=(self.object.pk,))
-            )
-        return self.render_to_response(self.get_context_data())
+from web.grant_applications.services import (
+    generate_grant_application_summary, BackofficeServiceException
+)
+from web.grant_applications.view_mixins import (
+    BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin
+)
 
 
 class SearchCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin, CreateView):
     form_class = SearchCompanyForm
     template_name = 'grant_applications/eligibility_form_page.html'
+    back_url_name = 'grant-applications:index'
     success_url_name = 'grant-applications:select-company'
     page = {
         'heading': _('Search for your company')
     }
-
-    def get_back_url(self):
-        return reverse('grant-applications:index')
 
 
 class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
                         ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = SelectCompanyForm
-    template_name = 'grant_applications/generic_form_page.html'
+    template_name = 'grant_applications/select_company.html'
     success_url_name = 'grant-applications:about-your-business'
     page = {
         'heading': _('Select your company')
     }
 
-    def get_back_url(self):
+    @staticmethod
+    def get_back_url():
         return reverse('grant-applications:search-company')
 
 

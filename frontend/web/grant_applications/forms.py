@@ -53,7 +53,7 @@ class SelectCompanyForm(forms.ModelForm):
         fields = ['duns_number']
 
     duns_number = forms.ChoiceField(
-        label=_('Dun and Bradstreet Number'),
+        label=_('We found the following matches:'),
         widget=widgets.RadioSelect(),
     )
 
