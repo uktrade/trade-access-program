@@ -129,7 +129,7 @@ class TestSelectCompanyView(BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response=response,
-            expected_url=reverse('grant-applications:about-you', kwargs={'pk': self.gal.pk})
+            expected_url=reverse('grant-applications:previous-applications', args=(self.gal.pk,))
         )
 
     def test_post_form_redirect_template(self, *mocks):
@@ -139,7 +139,7 @@ class TestSelectCompanyView(BaseTestCase):
             follow=True
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, AboutYouView.template_name)
+        self.assertTemplateUsed(response, PreviousApplicationsView.template_name)
 
     def test_post_creates_backoffice_company(self, m_search_companies, m_create_grant_application,
                                              m_list_companies, m_get_grant_application,
@@ -286,7 +286,7 @@ class TestAboutTheEventView(BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response=response, expected_url=reverse(
-                'grant-applications:previous-applications', kwargs={'pk': self.gal.pk}
+                'grant-applications:event-intention', args=(self.gal.pk,)
             )
         )
 

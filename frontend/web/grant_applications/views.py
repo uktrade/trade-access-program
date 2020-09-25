@@ -33,7 +33,7 @@ class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     model = GrantApplicationLink
     form_class = SelectCompanyForm
     template_name = 'grant_applications/select_company.html'
-    success_url_name = 'grant-applications:about-you'
+    success_url_name = 'grant-applications:previous-applications'
     page = {
         'heading': _('Select your company')
     }
@@ -43,37 +43,13 @@ class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         return reverse('grant-applications:search-company')
 
 
-class AboutYouView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
-                   InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
-    model = GrantApplicationLink
-    form_class = AboutYouForm
-    template_name = 'grant_applications/generic_form_page.html'
-    back_url_name = 'grant-applications:select-company'
-    success_url_name = 'grant_applications:about-the-event'
-    page = {
-        'heading': _('About you')
-    }
-
-
-class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
-    model = GrantApplicationLink
-    form_class = AboutTheEventForm
-    template_name = 'grant_applications/generic_form_page.html'
-    success_url_name = 'grant_applications:previous-applications'
-    back_url_name = 'grant-applications:about-you'
-    page = {
-        'heading': _('What event are you intending to exhibit at?')
-    }
-
-
 class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
                                InitialDataMixin, BackofficeMixin, UpdateView):
     model = GrantApplicationLink
     form_class = PreviousApplicationsForm
     template_name = 'grant_applications/previous_applications.html'
-    success_url_name = 'grant_applications:event-intention'
-    back_url_name = 'grant-applications:about-the-event'
+    back_url_name = 'grant-applications:select-company'
+    success_url_name = 'grant_applications:about-you'
     page = {
         'heading': _('Your application')
     }
@@ -89,13 +65,37 @@ class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObj
         return kwargs
 
 
+class AboutYouView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                   InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
+    model = GrantApplicationLink
+    form_class = AboutYouForm
+    template_name = 'grant_applications/generic_form_page.html'
+    back_url_name = 'grant-applications:previous-applications'
+    success_url_name = 'grant_applications:about-the-event'
+    page = {
+        'heading': _('About you')
+    }
+
+
+class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
+                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
+    model = GrantApplicationLink
+    form_class = AboutTheEventForm
+    template_name = 'grant_applications/generic_form_page.html'
+    back_url_name = 'grant-applications:about-you'
+    success_url_name = 'grant_applications:event-intention'
+    page = {
+        'heading': _('What event are you intending to exhibit at?')
+    }
+
+
 class EventIntentionView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
                          BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = EventIntentionForm
     template_name = 'grant_applications/event_intention.html'
+    back_url_name = 'grant-applications:about-the-event'
     success_url_name = 'grant_applications:business-information'
-    back_url_name = 'grant-applications:previous-applications'
     page = {
         'heading': _('Your application')
     }
@@ -129,8 +129,8 @@ class BusinessInformationView(BackContextMixin, PageContextMixin, SuccessUrlObje
     model = GrantApplicationLink
     form_class = BusinessInformationForm
     template_name = 'grant_applications/generic_form_page.html'
-    success_url_name = 'grant_applications:export-experience'
     back_url_name = 'grant-applications:event-intention'
+    success_url_name = 'grant_applications:export-experience'
     page = {
         'heading': _('About your business')
     }
