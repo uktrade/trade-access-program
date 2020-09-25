@@ -36,7 +36,7 @@ class TestSearchCompanyView(BaseTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.url = reverse('grant_applications:search-company')
+        cls.url = reverse('grant-applications:search-company')
 
     def test_search_company_get_template(self, *mocks):
         response = self.client.get(self.url)
@@ -68,7 +68,7 @@ class TestSearchCompanyView(BaseTestCase):
         gal = GrantApplicationLink.objects.get(search_term='company-1')
         self.assertRedirects(
             response,
-            expected_url=reverse('grant_applications:select-company', kwargs={'pk': gal.pk})
+            expected_url=reverse('grant-applications:select-company', kwargs={'pk': gal.pk})
         )
 
     def test_search_company_post_form_redirect_template(self, *mocks):
@@ -96,7 +96,7 @@ class TestSelectCompanyView(BaseTestCase):
             search_term='company',
             backoffice_grant_application_id=None
         )
-        self.url = reverse('grant_applications:select-company', kwargs={'pk': self.gal.pk})
+        self.url = reverse('grant-applications:select-company', kwargs={'pk': self.gal.pk})
 
     def test_get_template(self, *mocks):
         response = self.client.get(self.url)
@@ -129,7 +129,7 @@ class TestSelectCompanyView(BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
-            expected_url=reverse('grant_applications:about-your-business', args=(self.gal.pk,))
+            expected_url=reverse('grant-applications:about-your-business', args=(self.gal.pk,))
         )
 
     def test_post_form_redirect_template(self, *mocks):
@@ -215,7 +215,7 @@ class TestAboutYourBusinessView(BaseTestCase):
 
     def setUp(self):
         self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant_applications:about-your-business', kwargs={'pk': self.gal.pk})
+        self.url = reverse('grant-applications:about-your-business', kwargs={'pk': self.gal.pk})
         self.tomorrow = today() + timedelta(days=1)
 
     def test_get(self, *mocks):
@@ -265,7 +265,7 @@ class TestAboutYourBusinessView(BaseTestCase):
         self.assertTemplateUsed(response, AboutYouView.template_name)
         self.assertRedirects(
             response=response,
-            expected_url=reverse('grant_applications:about-you', kwargs={'pk': self.gal.pk})
+            expected_url=reverse('grant-applications:about-you', kwargs={'pk': self.gal.pk})
         )
 
 
@@ -279,7 +279,7 @@ class TestAboutYouView(BaseTestCase):
 
     def setUp(self):
         self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant_applications:about-you', kwargs={'pk': self.gal.pk})
+        self.url = reverse('grant-applications:about-you', kwargs={'pk': self.gal.pk})
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
@@ -298,7 +298,7 @@ class TestAboutYouView(BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response=response,
-            expected_url=reverse('grant_applications:about-the-event', kwargs={'pk': self.gal.pk})
+            expected_url=reverse('grant-applications:about-the-event', kwargs={'pk': self.gal.pk})
         )
 
     def test_post_data_is_saved(self, *mocks):
@@ -327,7 +327,7 @@ class TestAboutTheEventView(BaseTestCase):
 
     def setUp(self):
         self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant_applications:about-the-event', kwargs={'pk': self.gal.pk})
+        self.url = reverse('grant-applications:about-the-event', kwargs={'pk': self.gal.pk})
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
@@ -347,7 +347,7 @@ class TestAboutTheEventView(BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response=response, expected_url=reverse(
-                'grant_applications:previous-applications', kwargs={'pk': self.gal.pk}
+                'grant-applications:previous-applications', kwargs={'pk': self.gal.pk}
             )
         )
 
@@ -388,7 +388,7 @@ class TestPreviousApplicationsView(BaseTestCase):
 
     def setUp(self):
         self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant_applications:previous-applications', kwargs={'pk': self.gal.pk})
+        self.url = reverse('grant-applications:previous-applications', kwargs={'pk': self.gal.pk})
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
@@ -445,7 +445,7 @@ class TestEventIntentionView(BaseTestCase):
 
     def setUp(self):
         self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant_applications:event-intention', kwargs={'pk': self.gal.pk})
+        self.url = reverse('grant-applications:event-intention', kwargs={'pk': self.gal.pk})
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
@@ -494,7 +494,7 @@ class TestBusinessInformationView(BaseTestCase):
 
     def setUp(self):
         self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant_applications:business-information', kwargs={'pk': self.gal.pk})
+        self.url = reverse('grant-applications:business-information', kwargs={'pk': self.gal.pk})
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
@@ -644,7 +644,7 @@ class TestBusinessInformationView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
-            response, reverse('grant_applications:confirmation', args=(self.gal.pk,))
+            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
         )
 
 
@@ -654,7 +654,7 @@ class TestExportExperienceView(BaseTestCase):
 
     def setUp(self):
         self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant_applications:export-experience', kwargs={'pk': self.gal.pk})
+        self.url = reverse('grant-applications:export-experience', kwargs={'pk': self.gal.pk})
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
@@ -686,7 +686,7 @@ class TestStateAidView(BaseTestCase):
 
     def setUp(self):
         self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant_applications:state-aid', kwargs={'pk': self.gal.pk})
+        self.url = reverse('grant-applications:state-aid', kwargs={'pk': self.gal.pk})
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
@@ -784,7 +784,7 @@ class TestApplicationReviewView(BaseTestCase):
 
     def setUp(self):
         self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant_applications:application-review', kwargs={'pk': self.gal.pk})
+        self.url = reverse('grant-applications:application-review', kwargs={'pk': self.gal.pk})
 
     def test_get(self, *mocks):
         response = self.client.get(self.url)
@@ -801,7 +801,7 @@ class TestApplicationReviewView(BaseTestCase):
         redirect = resolve(response.url)
         self.assertEqual(redirect.kwargs['pk'], str(self.gal.id))
         self.assertRedirects(
-            response, reverse('grant_applications:confirmation', args=(self.gal.pk,))
+            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
         )
 
     def test_sent_for_review(self, *mocks):
@@ -834,5 +834,5 @@ class TestApplicationReviewView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
-            response, reverse('grant_applications:confirmation', args=(self.gal.pk,))
+            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
         )
