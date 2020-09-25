@@ -5,7 +5,7 @@ import factory
 from web.grant_applications.models import GrantApplicationLink
 
 
-class GrantApplicationLinkFactory(factory.DjangoModelFactory):
+class GrantApplicationLinkFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = GrantApplicationLink
 

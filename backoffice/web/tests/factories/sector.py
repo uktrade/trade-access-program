@@ -3,7 +3,7 @@ import factory
 from web.sectors.models import Sector
 
 
-class SectorFactory(factory.DjangoModelFactory):
+class SectorFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Sector
 

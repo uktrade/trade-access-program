@@ -4,7 +4,7 @@ from django.utils import timezone
 from web.trade_events.models import Event
 
 
-class EventFactory(factory.DjangoModelFactory):
+class EventFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Event
 
