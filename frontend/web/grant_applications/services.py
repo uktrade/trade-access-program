@@ -184,7 +184,7 @@ def _serialize_field(value):
     return value
 
 
-def generate_grant_application_summary(form_class, url, grant_application):
+def generate_grant_application_summary(form_class, grant_application, url=None):
     form_data = BackofficeService().get_grant_application(
         str(grant_application.backoffice_grant_application_id),
         flatten_map={
@@ -196,19 +196,21 @@ def generate_grant_application_summary(form_class, url, grant_application):
     )
     data_form = form_class(data=form_data)
 
-    summary_list = []
+    summary = []
 
     for field_name in data_form.fields:
         if hasattr(data_form, 'format_field_labels'):
             data_form.format_field_labels()
 
-        summary_list.append({
+        row = {
             'key': str(data_form[field_name].label),
             'value': _serialize_field(form_data.get(field_name)) or 'Not Applicable',
-            'action': {
+        }
+        if url:
+            row['action'] = {
                 'text': 'Change',
                 'url': url,
             }
-        })
+        summary.append(row)
 
-    return summary_list
+    return summary

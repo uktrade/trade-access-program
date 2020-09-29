@@ -12,7 +12,7 @@ from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException, get_company_select_options,
     get_sector_select_options, get_trade_event_select_options
 )
-from web.grant_applications.view_mixins import UpdateBackofficeGrantApplicationMixin
+from web.grant_applications.form_mixins import UpdateBackofficeGrantApplicationMixin
 
 
 class SearchCompanyForm(forms.ModelForm):
@@ -96,14 +96,18 @@ class PreviousApplicationsForm(UpdateBackofficeGrantApplicationMixin, forms.Mode
     )
 
 
+class EligibilityReviewForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = []
+
+
 class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
-        fields = [
-            'event', 'is_already_committed_to_event', 'is_intending_on_other_financial_support',
-            'has_received_de_minimis_aid'
-        ]
+        fields = ['event']
 
     def __init__(self, *args, **kwargs):
         trade_event_options = get_trade_event_select_options()
@@ -119,6 +123,16 @@ class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
             }
         ),
     )
+
+
+class EventFinanceForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+    class Meta:
+        model = GrantApplicationLink
+        fields = [
+            'is_already_committed_to_event', 'is_intending_on_other_financial_support',
+            'has_received_de_minimis_aid'
+        ]
+
     is_already_committed_to_event = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,

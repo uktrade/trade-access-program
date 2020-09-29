@@ -33,6 +33,9 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                     'last_dnb_get_company_response': {
                         'id': ga.company.last_dnb_get_company_response.id_str,
                         'data': ga.company.last_dnb_get_company_response.data,
+                        'company_address': ga.company.last_dnb_get_company_response.company_address,
+                        'company_registration_number':
+                            ga.company.last_dnb_get_company_response.company_registration_number
                     },
                     'previous_applications': 0,
                     'applications_in_review': 0,

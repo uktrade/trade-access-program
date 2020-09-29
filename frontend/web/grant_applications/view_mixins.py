@@ -34,13 +34,3 @@ class ConfirmationRedirectMixin:
                 reverse('grant_applications:confirmation', args=(self.object.pk,))
             )
         return self.render_to_response(self.get_context_data())
-
-
-class UpdateBackofficeGrantApplicationMixin:
-
-    def save(self, *args, **kwargs):
-        BackofficeService().update_grant_application(
-            grant_application_id=str(self.instance.backoffice_grant_application_id),
-            **{k: v for k, v in self.cleaned_data.items() if v is not None}
-        )
-        return super().save(*args, **kwargs)

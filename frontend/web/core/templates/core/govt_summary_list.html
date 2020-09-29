@@ -8,11 +8,13 @@
     <div class="govuk-summary-list__row">
       <dt class="govuk-summary-list__key">{{ row.key }}</dt>
       <dd class="govuk-summary-list__value">{{ row.value }}</dd>
+      {% if row.action %}
       <dd class="govuk-summary-list__actions">
         <a class="govuk-link" href="{{ row.action.url }}">
-          {{ row.action.text }}<span class="govuk-visually-hidden"> {{ row.key }}</span>
+          {{ row.action.text|default:"Change" }}<span class="govuk-visually-hidden"> {{ row.key }}</span>
         </a>
       </dd>
+      {% endif %}
     </div>
   {% endfor %}
 

@@ -12,7 +12,7 @@ class DnbGetCompanyResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DnbGetCompanyResponse
-        fields = ['id', 'data']
+        fields = ['id', 'data', 'company_registration_number', 'company_address']
 
 
 class CompanySerializer(serializers.ModelSerializer):

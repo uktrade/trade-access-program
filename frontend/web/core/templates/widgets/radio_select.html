@@ -1,5 +1,5 @@
 <fieldset class="govuk-fieldset">
-  <div class="{{ widget.attrs.radios_class|default:'govuk-radios' }}">
+  <div class="{{ widget.attrs.class|default:'govuk-radios' }}">
     {% for _, item, _ in widget.optgroups %}
       {% for item_data in item %}
 

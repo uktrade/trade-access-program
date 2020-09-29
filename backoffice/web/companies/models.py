@@ -21,3 +21,19 @@ class DnbGetCompanyResponse(BaseMetaModel):
         Company, on_delete=PROTECT, null=True, related_name='dnb_get_company_responses'
     )
     data = models.JSONField()
+
+    @property
+    def company_registration_number(self):
+        registration_numbers = self.data.get('registration_numbers') or []
+        reg_number_list = [
+            r for r in registration_numbers
+            if r['registration_type'] == 'uk_companies_house_number'
+        ]
+        reg_number = reg_number_list[0]['registration_number'] if reg_number_list else None
+        return reg_number
+
+    @property
+    def company_address(self):
+        return ', '.join(
+            [v for k, v in self.data.items() if k.startswith('address_') and v]
+        ) or None

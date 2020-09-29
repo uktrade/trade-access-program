@@ -2,10 +2,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from web.companies.models import Company, DnbGetCompanyResponse
-from web.companies.serializers import SearchCompaniesSerializer, CompanyWriteSerializer, \
-    CompanyReadSerializer
-from web.companies.services import DnbServiceClient
+from web.companies.models import Company
+from web.companies.serializers import (
+    SearchCompaniesSerializer, CompanyWriteSerializer, CompanyReadSerializer
+)
+from web.companies.services import DnbServiceClient, refresh_dnb_company_response_data
 
 
 class CompaniesViewSet(ModelViewSet):
@@ -19,9 +20,7 @@ class CompaniesViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         company = serializer.save()
-        client = DnbServiceClient()
-        dnb_company = client.get_company(duns_number=serializer.validated_data['duns_number'])
-        DnbGetCompanyResponse.objects.create(company=company, data=dnb_company)
+        refresh_dnb_company_response_data(company)
 
 
 class SearchCompaniesView(APIView):
