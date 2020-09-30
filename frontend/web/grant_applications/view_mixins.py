@@ -9,9 +9,10 @@ class BackofficeMixin:
     def get_object(self):
         obj = super().get_object()
         self.backoffice_service = BackofficeService()
-        self.backoffice_grant_application = self.backoffice_service.get_grant_application(
-            obj.backoffice_grant_application_id
-        )
+        if obj.backoffice_grant_application_id:
+            self.backoffice_grant_application = self.backoffice_service.get_grant_application(
+                obj.backoffice_grant_application_id
+            )
         return obj
 
 
@@ -19,9 +20,10 @@ class InitialDataMixin:
 
     def get_initial(self):
         initial = super().get_initial()
-        for field in self.form_class._meta.fields:
-            if self.backoffice_grant_application.get(field) is not None:
-                initial[field] = self.backoffice_grant_application.get(field)
+        if hasattr(self, 'backoffice_grant_application'):
+            for field in self.form_class._meta.fields:
+                if self.backoffice_grant_application.get(field) is not None:
+                    initial[field] = self.backoffice_grant_application.get(field)
         return initial
 
 

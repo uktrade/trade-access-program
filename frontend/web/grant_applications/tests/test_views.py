@@ -314,7 +314,13 @@ class TestAboutTheEventView(BaseTestCase):
         self.assertFormError(response, 'form', 'event', 'This field is required.')
 
 
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
+@patch.object(
+    BackofficeService, 'get_grant_application',
+    side_effect=[
+        FAKE_GRANT_APPLICATION, FAKE_GRANT_APPLICATION, FAKE_FLATTENED_GRANT_APPLICATION,
+        FAKE_FLATTENED_GRANT_APPLICATION
+    ]
+)
 @patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
 class TestEventFinanceView(BaseTestCase):
 
