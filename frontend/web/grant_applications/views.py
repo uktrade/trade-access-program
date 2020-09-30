@@ -88,6 +88,14 @@ class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMix
         'heading': _('Event finance')
     }
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'].format_label(
+            field_name='is_already_committed_to_event',
+            event_name=self.backoffice_grant_application['event']['name']
+        )
+        return context
+
 
 class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
                             InitialDataMixin, BackofficeMixin, ConfirmationRedirectMixin,

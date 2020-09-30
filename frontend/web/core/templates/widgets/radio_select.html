@@ -1,4 +1,9 @@
 <fieldset class="govuk-fieldset">
+
+  {% if widget.attrs.details %}
+    {% include "core/govt_uk_details.html" with text=widget.attrs.details.text summary_text=widget.attrs.details.summary_text %}
+  {% endif %}
+
   <div class="{{ widget.attrs.class|default:'govuk-radios' }}">
     {% for _, item, _ in widget.optgroups %}
       {% for item_data in item %}
