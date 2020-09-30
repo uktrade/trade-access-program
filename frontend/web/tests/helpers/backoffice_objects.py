@@ -25,7 +25,10 @@ FAKE_GRANT_APPLICATION = {
     'de_minimis_aid_date_received': None,
     'event': {
         'id': 1,
-        'name': 'Event 1'
+        'name': 'Event 1',
+        'sector': 'Sector 1',
+        'start_date': '2020-12-12',
+        'end_date': '2020-12-14'
     },
     'company': {
         'id': '0dc205e4-1f11-4a81-90a6-f7a733da055e',
@@ -35,10 +38,13 @@ FAKE_GRANT_APPLICATION = {
         'applications_in_review': 1,
         'last_dnb_get_company_response': {
             'id': '3cceee4e-32fa-4570-b8fa-514238823e25',
+            'company_registration_number': '012345',
+            'company_address': 'An address',
             'data': {
                 'annual_sales': 1000,
                 'employee_number': 3,
                 'domain': 'www.test.com',
+                'registration_numbers': []
             }
         }
     },
@@ -57,6 +63,7 @@ FAKE_GRANT_APPLICATION = {
 FAKE_FLATTENED_GRANT_APPLICATION = FAKE_GRANT_APPLICATION.copy()
 FAKE_FLATTENED_GRANT_APPLICATION['event'] = 'Event 1'
 FAKE_FLATTENED_GRANT_APPLICATION['company'] = 'ABC'
+FAKE_FLATTENED_GRANT_APPLICATION['duns_number'] = 1
 FAKE_FLATTENED_GRANT_APPLICATION['sector'] = 'Sector 1'
 FAKE_FLATTENED_GRANT_APPLICATION['grant_management_process'] = \
     '98d123ef-4218-4485-8285-c3c064f73893'

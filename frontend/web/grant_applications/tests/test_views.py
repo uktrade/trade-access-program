@@ -14,7 +14,7 @@ from web.grant_applications.tests.factories.grant_application_link import (
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, AboutYouView, AboutTheEventView,
     PreviousApplicationsView, EventIntentionView, BusinessInformationView, ExportExperienceView,
-    StateAidView, ApplicationReviewView
+    StateAidView, ApplicationReviewView, EligibilityReviewView, EventFinanceView
 )
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_COMPANY,
@@ -208,119 +208,13 @@ class TestSelectCompanyView(BaseTestCase):
         self.assertIsNone(self.gal.backoffice_grant_application_id)
 
 
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
 @patch.object(
-    BackofficeService, 'list_trade_events',
-    return_value=[{'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg', 'display_name': 'An Event'}]
+    BackofficeService, 'search_companies',
+    return_value=[{
+        'primary_name': FAKE_GRANT_APPLICATION['company']['name'],
+        'duns_number': str(FAKE_GRANT_APPLICATION['company']['duns_number'])
+    }]
 )
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestAboutYouView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:about-you', kwargs={'pk': self.gal.pk})
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, AboutYouView.template_name)
-
-    def test_post_redirects(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'applicant_full_name': 'A Name',
-                'applicant_email': 'test@test.com',
-            })
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response=response,
-            expected_url=reverse('grant-applications:about-the-event', kwargs={'pk': self.gal.pk})
-        )
-
-    def test_post_data_is_saved(self, *mocks):
-        self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'applicant_full_name': 'A Name',
-                'applicant_email': 'test@test.com',
-            })
-        )
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            applicant_full_name='A Name',
-            applicant_email='test@test.com'
-        )
-
-
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(
-    BackofficeService, 'list_trade_events',
-    return_value=[{'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg', 'display_name': 'An Event'}]
-)
-class TestAboutTheEventView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:about-the-event', kwargs={'pk': self.gal.pk})
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, AboutTheEventView.template_name)
-
-    def test_post_redirects(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'event': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg',
-                'is_already_committed_to_event': True,
-                'is_intending_on_other_financial_support': True,
-            })
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response=response, expected_url=reverse(
-                'grant-applications:event-intention', args=(self.gal.pk,)
-            )
-        )
-
-    def test_post_data_is_saved(self, *mocks):
-        self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'event': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg',
-                'is_already_committed_to_event': True,
-                'is_intending_on_other_financial_support': False,
-            })
-        )
-        mocks[1].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            is_already_committed_to_event=True,
-            is_intending_on_other_financial_support=False,
-            event='235678a7-b3ff-4256-b6ae-ce7ddb4d18gg'
-        )
-
-    def test_boolean_fields_must_be_present(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'event': 1})
-        )
-        self.assertFormError(
-            response, 'form', 'is_already_committed_to_event', 'This field is required.'
-        )
-        self.assertFormError(
-            response, 'form', 'is_intending_on_other_financial_support', 'This field is required.'
-        )
-
-
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
 @patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
 class TestPreviousApplicationsView(BaseTestCase):
@@ -372,6 +266,187 @@ class TestPreviousApplicationsView(BaseTestCase):
             data=urlencode({'event': 1})
         )
         self.assertFormError(response, 'form', 'has_previously_applied', 'This field is required.')
+
+
+@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
+@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
+@patch.object(
+    BackofficeService, 'list_trade_events',
+    return_value=[{'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg', 'display_name': 'An Event'}]
+)
+class TestAboutTheEventView(BaseTestCase):
+
+    def setUp(self):
+        self.gal = GrantApplicationLinkFactory()
+        self.url = reverse('grant-applications:about-the-event', args=(self.gal.pk,))
+
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, AboutTheEventView.template_name)
+
+    def test_post_redirects(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'event': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg'})
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response=response,
+            expected_url=reverse(AboutTheEventView.success_url_name, args=(self.gal.pk,))
+        )
+
+    def test_post_data_is_saved(self, *mocks):
+        self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'event': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg'})
+        )
+        mocks[1].assert_called_once_with(
+            grant_application_id=str(self.gal.backoffice_grant_application_id),
+            event='235678a7-b3ff-4256-b6ae-ce7ddb4d18gg'
+        )
+
+    def test_event_must_be_present(self, *mocks):
+        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        self.assertFormError(response, 'form', 'event', 'This field is required.')
+
+
+@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
+@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
+class TestEventFinanceView(BaseTestCase):
+
+    def setUp(self):
+        self.gal = GrantApplicationLinkFactory()
+        self.url = reverse('grant-applications:event-finance', args=(self.gal.pk,))
+
+    def test_get_template(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, EventFinanceView.template_name)
+
+    def test_post_redirects(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'is_already_committed_to_event': True,
+                'is_intending_on_other_financial_support': True,
+                'has_received_de_minimis_aid': False,
+            })
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response=response,
+            expected_url=reverse(EventFinanceView.success_url_name, args=(self.gal.pk,))
+        )
+
+    def test_post_data_is_saved(self, *mocks):
+        self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'is_already_committed_to_event': True,
+                'is_intending_on_other_financial_support': False,
+                'has_received_de_minimis_aid': False,
+            })
+        )
+        mocks[0].assert_called_once_with(
+            grant_application_id=str(self.gal.backoffice_grant_application_id),
+            is_already_committed_to_event=True,
+            is_intending_on_other_financial_support=False,
+            has_received_de_minimis_aid=False
+        )
+
+    def test_boolean_fields_must_be_present(self, *mocks):
+        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        self.assertFormError(
+            response, 'form', 'is_already_committed_to_event', 'This field is required.'
+        )
+        self.assertFormError(
+            response, 'form', 'is_intending_on_other_financial_support', 'This field is required.'
+        )
+        self.assertFormError(
+            response, 'form', 'has_received_de_minimis_aid', 'This field is required.'
+        )
+
+
+@patch.object(
+    BackofficeService,
+    'get_grant_application',
+    side_effect=[
+        FAKE_GRANT_APPLICATION, FAKE_FLATTENED_GRANT_APPLICATION, FAKE_FLATTENED_GRANT_APPLICATION
+    ]
+)
+@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
+class TestEligibilityReviewView(BaseTestCase):
+
+    def setUp(self):
+        self.gal = GrantApplicationLinkFactory()
+        self.url = reverse('grant-applications:eligibility-review', args=(self.gal.pk,))
+
+    def test_get_template(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, EligibilityReviewView.template_name)
+
+    def test_summary_lists(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('summary_lists', response.context_data)
+
+    def test_post(self, *mocks):
+        self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        mocks[0].assert_not_called()
+
+
+@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
+@patch.object(
+    BackofficeService, 'list_trade_events',
+    return_value=[{'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg', 'display_name': 'An Event'}]
+)
+@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
+class TestAboutYouView(BaseTestCase):
+
+    def setUp(self):
+        self.gal = GrantApplicationLinkFactory()
+        self.url = reverse('grant-applications:about-you', kwargs={'pk': self.gal.pk})
+
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, AboutYouView.template_name)
+
+    def test_post_redirects(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'applicant_full_name': 'A Name',
+                'applicant_email': 'test@test.com',
+            })
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response=response,
+            expected_url=reverse(AboutYouView.success_url_name, kwargs={'pk': self.gal.pk})
+        )
+
+    def test_post_data_is_saved(self, *mocks):
+        self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'applicant_full_name': 'A Name',
+                'applicant_email': 'test@test.com',
+            })
+        )
+        mocks[0].assert_called_once_with(
+            grant_application_id=str(self.gal.backoffice_grant_application_id),
+            applicant_full_name='A Name',
+            applicant_email='test@test.com'
+        )
 
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)

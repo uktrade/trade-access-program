@@ -38,7 +38,7 @@ class DnbGetCompanyResponseFactory(BaseMetaFactory):
         'address_town': 'LONDON',
         'address_county': '',
         'address_postcode': 'SW1W 9TQ',
-        'address_country': 'GB',
+        'address_country': 'UK',
         'registered_address_line_1': '',
         'registered_address_line_2': '',
         'registered_address_town': 'LONDON',

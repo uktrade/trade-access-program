@@ -6,9 +6,8 @@ class PageContextMixin:
     page = {}
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['page'] = self.page
-        return context
+        kwargs['page'] = self.page
+        return super().get_context_data(**kwargs)
 
 
 class BackContextMixin:
@@ -16,23 +15,20 @@ class BackContextMixin:
     back_url = '#'
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
+        back_url = self.back_url
         if hasattr(self, 'get_back_url'):
             back_url = self.get_back_url()
         elif hasattr(self, 'back_url_name') and self.object:
             back_url = reverse(self.back_url_name, kwargs={'pk': self.object.pk})
         elif hasattr(self, 'back_url_name'):
             back_url = reverse(self.back_url_name)
-        else:
-            back_url = self.back_url
 
-        context['back'] = {
+        kwargs['back'] = {
             'text': self.back_text or _('Back'),
             'url': back_url
         }
 
-        return context
+        return super().get_context_data(**kwargs)
 
 
 class SuccessUrlObjectPkMixin:
