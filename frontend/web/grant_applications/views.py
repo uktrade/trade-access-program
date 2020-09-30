@@ -29,7 +29,7 @@ class SearchCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
 
 
 class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
-                        ConfirmationRedirectMixin, UpdateView):
+                        BackofficeMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = SelectCompanyForm
     template_name = 'grant_applications/select_company.html'
@@ -42,9 +42,16 @@ class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     def get_back_url():
         return reverse('grant-applications:search-company')
 
+    def get_initial(self):
+        initial = super().get_initial()
+        if hasattr(self, 'backoffice_grant_application'):
+            initial['duns_number'] = self.backoffice_grant_application['company']['duns_number']
+        return initial
+
 
 class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
-                               InitialDataMixin, BackofficeMixin, UpdateView):
+                               BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                               UpdateView):
     model = GrantApplicationLink
     form_class = PreviousApplicationsForm
     template_name = 'grant_applications/previous_applications.html'
@@ -75,6 +82,11 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     page = {
         'heading': _('Select an event')
     }
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['event'] = self.backoffice_grant_application['event']['id']
+        return initial
 
 
 class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
@@ -151,7 +163,7 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
             'heading': _('Event'),
             'summary': [
                 {
-                    'key': _('Event name'),
+                    'key': _('Name'),
                     'value': self.backoffice_grant_application['event']['name']
                 },
                 {
@@ -159,11 +171,11 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
                     'value': self.backoffice_grant_application['event']['sector'],
                 },
                 {
-                    'key': _('Event start date'),
+                    'key': _('Start date'),
                     'value': self.backoffice_grant_application['event']['start_date'],
                 },
                 {
-                    'key': _('Event end date'),
+                    'key': _('End date'),
                     'value': self.backoffice_grant_application['event']['end_date'],
                     'action': {
                         'url': reverse('grant-applications:about-the-event', args=(self.object.pk,))
@@ -266,7 +278,7 @@ class EventIntentionView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkM
 
 
 class BusinessInformationView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
-                              InitialDataMixin, ConfirmationRedirectMixin, BackofficeMixin,
+                              BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
                               UpdateView):
     model = GrantApplicationLink
     form_class = BusinessInformationForm

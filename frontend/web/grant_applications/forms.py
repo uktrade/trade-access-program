@@ -184,6 +184,9 @@ class EventFinanceForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, 
         label=_('Have you received over €200,000 de minimis aid during the last 3 fiscal years?')
     )
 
+    def format_field_labels(self):
+        self.format_label('is_already_committed_to_event', event_name=self.data['event'])
+
 
 class AboutYouForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
 

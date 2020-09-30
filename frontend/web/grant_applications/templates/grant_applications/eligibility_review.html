@@ -9,7 +9,7 @@
     <h2 class="govuk-heading-l">{{ page.heading }}</h2>
 
     {% for summary_list in summary_lists %}
-      {% include "core/govt_summary_list.html" with summary_list=summary_list %}
+      {% include "core/govt_summary_list.html" with summary_list=summary_list class="govuk-summary-list"%}
     {% endfor %}
 
   </div>
