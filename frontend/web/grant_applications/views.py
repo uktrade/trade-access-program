@@ -51,7 +51,7 @@ class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObj
     back_url_name = 'grant-applications:select-company'
     success_url_name = 'grant_applications:about-the-event'
     page = {
-        'heading': _('Your application')
+        'heading': _('Previous TAP grants')
     }
 
     def get_form_kwargs(self):
@@ -69,7 +69,7 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = AboutTheEventForm
-    template_name = 'grant_applications/generic_form_page.html'
+    template_name = 'grant_applications/about_the_event.html'
     back_url_name = 'grant-applications:previous-applications'
     success_url_name = 'grant_applications:event-finance'
     page = {
@@ -81,7 +81,7 @@ class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMix
                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = EventFinanceForm
-    template_name = 'grant_applications/generic_form_page.html'
+    template_name = 'grant_applications/event_finance.html'
     back_url_name = 'grant-applications:about-the-event'
     success_url_name = 'grant_applications:eligibility-review'
     page = {
@@ -98,7 +98,8 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
     back_url_name = 'grant-applications:event-finance'
     success_url_name = 'grant_applications:about-you'
     page = {
-        'heading': _('Confirm your answers')
+        'heading': _('Confirm your answers'),
+        'form_button_text': _('Confirm')
     }
 
     def company_summary_list(self):
