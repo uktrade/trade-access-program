@@ -14,3 +14,7 @@ class RadioSelect(forms.widgets.RadioSelect):
 
 class CurrencyInput(forms.widgets.TextInput):
     template_name = 'widgets/currency_input.html'
+
+
+class WrappedTextInput(forms.TextInput):
+    template_name = 'widgets/wrapped_text_input.html'
