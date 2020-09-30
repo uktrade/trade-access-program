@@ -10,3 +10,9 @@ class UpdateBackofficeGrantApplicationMixin:
                 **{k: v for k, v in self.cleaned_data.items() if v is not None}
             )
         return super().save(*args, **kwargs)
+
+
+class FormatLabelMixin:
+
+    def format_label(self, field_name, **kwargs):
+        self[field_name].label = self[field_name].label.format(**kwargs)

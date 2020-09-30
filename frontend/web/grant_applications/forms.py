@@ -12,7 +12,10 @@ from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException, get_company_select_options,
     get_sector_select_options, get_trade_event_select_options
 )
-from web.grant_applications.form_mixins import UpdateBackofficeGrantApplicationMixin
+from web.grant_applications.form_mixins import (
+    UpdateBackofficeGrantApplicationMixin,
+    FormatLabelMixin
+)
 
 
 class SearchCompanyForm(forms.ModelForm):
@@ -125,7 +128,7 @@ class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
     )
 
 
-class EventFinanceForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+class EventFinanceForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, forms.ModelForm):
     class Meta:
         model = GrantApplicationLink
         fields = [
@@ -136,13 +139,27 @@ class EventFinanceForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
     is_already_committed_to_event = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_('Are you already financially committed to attending this event?'),
+        widget=widgets.RadioSelect(
+            attrs={
+                'details': {
+                    'summary_text': 'What do we mean by committed?',
+                    'text': 'TODO',  # TODO: Content needed
+                }
+            }
+        ),
+        label=_('Have you already committed to purchasing exhibition space for {event_name}?'),
     )
     is_intending_on_other_financial_support = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
+        widget=widgets.RadioSelect(
+            attrs={
+                'details': {
+                    'summary_text': 'Examples of financial support and costs',
+                    'text': 'TODO',  # TODO: Content needed
+                }
+            }
+        ),
         label=_('Will you receive or are you applying for any other financial support '
                 'to exhibit at this event?')
     )
@@ -150,7 +167,14 @@ class EventFinanceForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
         choices=settings.BOOLEAN_CHOICES,
         required=True,
         coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
+        widget=widgets.RadioSelect(
+            attrs={
+                'details': {
+                    'summary_text': 'What is de minimis aid?',
+                    'text': 'TODO',  # TODO: Content needed
+                }
+            }
+        ),
         label=_('Have you received over €200,000 de minimis aid during the last 3 fiscal years?')
     )
 
@@ -178,7 +202,7 @@ class AboutYouForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
     )
 
 
-class EventIntentionForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+class EventIntentionForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
@@ -200,9 +224,6 @@ class EventIntentionForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm)
             attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
         )
     )
-
-    def format_label(self, field_name, **kwargs):
-        self[field_name].label = self[field_name].label.format(**kwargs)
 
     def format_field_labels(self):
         self.format_label('is_first_exhibit_at_event', event_name=self.data['event'])
