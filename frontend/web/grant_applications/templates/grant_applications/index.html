@@ -1,0 +1,30 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+    <div class="govuk-grid-row">
+
+      <div class="govuk-grid-column-two-thirds">
+        <h2 class="govuk-heading-l">Apply for a Tradeshow Access Programme (TAP) grant</h2>
+
+        <p class="govuk-body">
+          Use this service to apply for a TAP grant.
+        </p>
+
+        <p class="govuk-body">
+          These are available for <a href="https://www.gov.uk/guidance/tradeshow-access-programme#eligibility" class="govuk-link" target="_blank">eligible businesses taking part in the programme</a> and can help towards the direct costs of attending TAP supported events to promote your business.
+        </p>
+
+        <p class="govuk-body">
+          To begin, check your eligibility for the grant. If you are eligibile you can then complete and submit the rest of the grant application.
+        </p>
+
+        <a href="{% url 'grant-applications:search-company'%}" role="button" draggable="false" class="govuk-button govuk-!-margin-top-2 govuk-!-margin-bottom-8 govuk-button--start" data-module="govuk-button">
+          Check your eligibility
+          <svg class="govuk-button__start-icon" xmlns="http://www.w3.org/2000/svg" width="17.5" height="19" viewBox="0 0 33 40" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
+          </svg>
+        </a>
+      </div>
+
+    </div>
+{% endblock %}

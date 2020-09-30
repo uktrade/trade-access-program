@@ -10,7 +10,7 @@ aliases:
       POSTGRES_PASSWORD: tap
 
 jobs:
-  test:
+  test-frontend:
     docker:
       - image: circleci/python:3.8.3
         environment:
@@ -26,21 +26,57 @@ jobs:
     steps:
       - checkout
       - python/load-cache:
-          dependency-file: requirements/dev.txt
+          dependency-file: frontend/requirements/dev.txt
       - python/install-deps:
-          dependency-file: requirements/dev.txt
+          dependency-file: frontend/requirements/dev.txt
       - python/save-cache:
-          dependency-file: requirements/dev.txt
+          dependency-file: frontend/requirements/dev.txt
       - run:
           name: Run linter
-          command: flake8 .
+          command: cd frontend && flake8 .
       - run:
           name: Run Tests
-          command: pytest -p no:sugar -v
+          command: |
+            cd frontend
+            pytest -p no:sugar -v
       - store_artifacts:
-          path: reports
+          path: frontend/reports
       - store_test_results:
-          path: reports/coverage/junitxml
+          path: frontend/reports/coverage/junitxml
+
+  test-backoffice:
+    docker:
+      - image: circleci/python:3.8.3
+        environment:
+          DJANGO_SETTINGS_MODULE: config.settings.ci
+          SECRET_KEY: ci-secret-key
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          <<: *db_env
+      - image: circleci/postgres:11
+        environment:
+          <<: *db_env
+
+    steps:
+      - checkout
+      - python/load-cache:
+          dependency-file: backoffice/requirements/dev.txt
+      - python/install-deps:
+          dependency-file: backoffice/requirements/dev.txt
+      - python/save-cache:
+          dependency-file: backoffice/requirements/dev.txt
+      - run:
+          name: Run linter
+          command: cd backoffice && flake8 .
+      - run:
+          name: Run Tests
+          command: |
+            cd backoffice
+            pytest -p no:sugar -v
+      - store_artifacts:
+          path: backoffice/reports
+      - store_test_results:
+          path: backoffice/reports/coverage/junitxml
 
   generate-erd:
     machine:
@@ -49,31 +85,39 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Set up .env file
+          name: Set up backoffice .env files
           command: |
             echo "DJANGO_SETTINGS_MODULE=config.settings.ci
             SECRET_KEY=ci-secret-key
-            POSTGRES_HOST=db
+            POSTGRES_HOST=backoffice_db
             POSTGRES_PORT=5432
             POSTGRES_USER=tap
             POSTGRES_DB=tap
-            POSTGRES_PASSWORD=tap" > .env
+            POSTGRES_PASSWORD=tap" > backoffice/.env
+            echo "DJANGO_SETTINGS_MODULE=config.settings.ci
+            SECRET_KEY=ci-secret-key
+            POSTGRES_HOST=frontend_db
+            POSTGRES_PORT=5432
+            POSTGRES_USER=tap
+            POSTGRES_DB=tap
+            POSTGRES_PASSWORD=tap" > frontend/.env
       - run:
           name: Build docker images
-          command: make build
+          command: make build-backoffice
       - run:
           name: Migrate DB
-          command: make django-migrate
+          command: make -C backoffice django-migrate
       - run:
           name: Generate ERDs
           command: |
-            mkdir -p reports/diagrams
-            make graph-models
+            mkdir -p backoffice/reports/diagrams
+            make -C backoffice graph-models
       - store_artifacts:
-          path: reports
+          path: backoffice/reports
 
 workflows:
   build:
     jobs:
-      - test
       - generate-erd
+      - test-backoffice
+      - test-frontend

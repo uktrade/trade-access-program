@@ -132,9 +132,9 @@ dmypy.json
 .pyre/
 
 # TAP Project
-/static
-/reports
-node_modules
+static/
+reports/
+node_modules/
 *.csv
 
 #CSS

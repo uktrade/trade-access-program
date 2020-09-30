@@ -1,0 +1,21 @@
+<dl class="govuk-summary-list govuk-!-margin-bottom-9">
+
+  {% if summary_list.heading %}
+  <h2 class="govuk-heading-m">{{ summary_list.heading }}</h2>
+  {% endif %}
+
+  {% for row in summary_list.summary %}
+    <div class="govuk-summary-list__row">
+      <dt class="govuk-summary-list__key">{{ row.key }}</dt>
+      <dd class="govuk-summary-list__value">{{ row.value }}</dd>
+      {% if row.action %}
+      <dd class="govuk-summary-list__actions">
+        <a class="govuk-link" href="{{ row.action.url }}">
+          {{ row.action.text|default:"Change" }}<span class="govuk-visually-hidden"> {{ row.key }}</span>
+        </a>
+      </dd>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+</dl>
