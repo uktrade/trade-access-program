@@ -4,7 +4,8 @@ from django.views.generic import TemplateView
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, AboutYouView, AboutTheEventView,
     PreviousApplicationsView, EventIntentionView, BusinessInformationView, ExportExperienceView,
-    StateAidView, ApplicationReviewView, ConfirmationView, EligibilityReviewView, EventFinanceView
+    StateAidView, ApplicationReviewView, ConfirmationView, EligibilityReviewView, EventFinanceView,
+    EligibilityConfirmationView
 )
 
 app_name = 'grant_applications'
@@ -22,6 +23,11 @@ urlpatterns = [
         name='previous-applications'
     ),
     path('<pk>/eligibility-review/', EligibilityReviewView.as_view(), name='eligibility-review'),
+    path(
+        '<pk>/eligibility-confirmation/',
+        EligibilityConfirmationView.as_view(),
+        name='eligibility-confirmation'
+    ),
     path('<pk>/event-intention/', EventIntentionView.as_view(), name='event-intention'),
     path(
         '<pk>/business-information/',

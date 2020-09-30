@@ -7,7 +7,7 @@ from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin, Back
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, AboutYouForm, AboutTheEventForm, PreviousApplicationsForm,
     EventIntentionForm, BusinessInformationForm, ExportExperienceForm, StateAidForm,
-    ApplicationReviewForm, EligibilityReviewForm, EventFinanceForm
+    ApplicationReviewForm, EligibilityReviewForm, EventFinanceForm, EligibilityConfirmationForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -73,7 +73,7 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     back_url_name = 'grant-applications:previous-applications'
     success_url_name = 'grant_applications:event-finance'
     page = {
-        'heading': _('What event are you intending to exhibit at?')
+        'heading': _('Select an event')
     }
 
 
@@ -104,7 +104,7 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
     form_class = EligibilityReviewForm
     template_name = 'grant_applications/eligibility_review.html'
     back_url_name = 'grant-applications:event-finance'
-    success_url_name = 'grant_applications:about-you'
+    success_url_name = 'grant_applications:eligibility-confirmation'
     page = {
         'heading': _('Confirm your answers'),
         'form_button_text': _('Confirm')
@@ -192,6 +192,30 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
             self.event_summary_list(),
             self.event_finance_summary_list()
         ]
+        return super().get_context_data(**kwargs)
+
+
+class EligibilityConfirmationView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
+                                  InitialDataMixin, BackofficeMixin, ConfirmationRedirectMixin,
+                                  UpdateView):
+    model = GrantApplicationLink
+    form_class = EligibilityConfirmationForm
+    template_name = 'grant_applications/eligibility_confirmation.html'
+    # TODO: End user journey here for now
+    success_url_name = 'grant_applications:eligibility-confirmation'
+    page = {
+        'heading': _('You are eligible for a TAP grant'),
+        'form_button_text': _('Apply for a grant')
+    }
+
+    def get_context_data(self, **kwargs):
+        kwargs['table'] = {
+            'rows': [{
+                'label': f"Grant available for "
+                         f"{self.backoffice_grant_application['event']['name']}",
+                'value': '£1500',  # TODO: get event grant value from event data
+            }]
+        }
         return super().get_context_data(**kwargs)
 
 

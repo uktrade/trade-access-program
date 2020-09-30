@@ -14,7 +14,8 @@ from web.grant_applications.tests.factories.grant_application_link import (
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, AboutYouView, AboutTheEventView,
     PreviousApplicationsView, EventIntentionView, BusinessInformationView, ExportExperienceView,
-    StateAidView, ApplicationReviewView, EligibilityReviewView, EventFinanceView
+    StateAidView, ApplicationReviewView, EligibilityReviewView, EventFinanceView,
+    EligibilityConfirmationView
 )
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_COMPANY,
@@ -370,6 +371,29 @@ class TestEventFinanceView(BaseTestCase):
         self.assertFormError(
             response, 'form', 'has_received_de_minimis_aid', 'This field is required.'
         )
+
+
+@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
+@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
+class TestEligibilityConfirmationView(BaseTestCase):
+
+    def setUp(self):
+        self.gal = GrantApplicationLinkFactory()
+        self.url = reverse('grant-applications:eligibility-confirmation', args=(self.gal.pk,))
+
+    def test_get_template(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, EligibilityConfirmationView.template_name)
+
+    def test_table_context(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('table', response.context_data)
+
+    def test_post(self, *mocks):
+        self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        mocks[0].assert_not_called()
 
 
 @patch.object(
