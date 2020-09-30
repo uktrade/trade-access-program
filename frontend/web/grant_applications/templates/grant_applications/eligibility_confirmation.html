@@ -1,0 +1,20 @@
+{% extends 'grant_applications/generic_form_page.html' %}
+
+{% block content %}
+  <h2 class="govuk-heading-l">{{ page.heading }}</h2>
+
+  <hr class="govuk-section-break govuk-!-width-two-thirds govuk-section-break--visible">
+  {% include "core/govt_uk_table.html" with table=table %}
+
+  <h4 class="govuk-heading-s">Before you apply</h4>
+  <p class="govuk-body">We’ll need to know:</p>
+  <ul class="govuk-list govuk-list--bullet">
+    <li>your contact details</li>
+    <li>your company details</li>
+    <li>details of your products and services</li>
+    <li>information about your export and trade show experience</li>
+    <li>details of any state aid you may have received</li>
+    <li>details for any Trade Challenge Partners (TCPs) or Department for International Trade (DIT) trade advisors you’re in contact with</li>
+  </ul>
+  {% include "core/govt_uk_form.html" %}
+{% endblock %}

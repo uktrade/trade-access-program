@@ -106,6 +106,12 @@ class EligibilityReviewForm(UpdateBackofficeGrantApplicationMixin, forms.ModelFo
         fields = []
 
 
+class EligibilityConfirmationForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+    class Meta:
+        model = GrantApplicationLink
+        fields = []
+
+
 class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
 
     class Meta:
@@ -118,7 +124,7 @@ class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
         self.fields['event'].choices = trade_event_options['choices']
 
     event = forms.ChoiceField(
-        label=_('Select event'),
+        label=_('What event are you intending to exhibit at'),
         widget=forms.Select(
             attrs={
                 'class': 'govuk-select govuk-!-width-two-thirds',
