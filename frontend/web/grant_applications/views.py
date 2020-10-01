@@ -80,7 +80,7 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     back_url_name = 'grant-applications:previous-applications'
     success_url_name = 'grant_applications:event-finance'
     page = {
-        'heading': _('Select an event')
+        'heading': _('Select an event'),
     }
 
     def get_initial(self):
@@ -88,6 +88,50 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         if self.backoffice_grant_application['event']:
             initial['event'] = self.backoffice_grant_application['event']['id']
         return initial
+
+    def _get_form_button_name(self):
+        has_form_button_name = [i for i in self.request.POST if '_button' in i]
+        if has_form_button_name:
+            return has_form_button_name[0]
+
+    def get_form(self, form_class=None):
+        if self.request.method == 'GET':
+            return super().get_form(form_class)
+
+        if form_class is None:
+            form_class = self.get_form_class()
+
+        form_kwargs = self.get_form_kwargs()
+
+        if self.form_button_name == 'form_button':
+            return form_class(**form_kwargs)
+        elif self.form_button_name == 'apply_filters_button':
+            form_kwargs['initial'] = {}
+            form_kwargs['data'] = form_kwargs['data'].copy()
+            form_kwargs['data'].pop('event', None)
+            return form_class(**form_kwargs)
+        elif self.form_button_name == 'clear_filters_button':
+            form_kwargs['data'] = {}
+            return form_class(**form_kwargs)
+
+        form = super().get_form(form_class)
+        form.add_error(None, forms.ValidationError('Form button name required.'))
+        return form
+
+    def form_valid(self, form):
+        if self.form_button_name == 'form_button':
+            # If button name is "form_button" then we submit the form and redirect
+            return super().form_valid(form)
+        elif self.form_button_name in ['apply_filters_button', 'clear_filters_button']:
+            # If button name is "*_filter_button" then we apply filters and redisplay the form
+            return self.render_to_response(self.get_context_data(form=form))
+
+        # If no form button was clicked (in a POST/PUT request) then something has gone wrong
+        raise forms.ValidationError('Form button name required.')
+
+    def post(self, request, *args, **kwargs):
+        self.form_button_name = self._get_form_button_name()
+        return super(AboutTheEventView, self).post(request, *args, **kwargs)
 
 
 class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,

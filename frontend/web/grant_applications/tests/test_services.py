@@ -236,7 +236,19 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
             body=self.ler_response_body,
             match_querystring=False
         )
-        ler = self.service.list_trade_events()
+        ler = self.service.list_trade_events(params={})
+        self.assertEqual(ler, self.ler)
+
+    @httpretty.activate
+    def test_list_trade_events_with_filter(self):
+        httpretty.register_uri(
+            httpretty.GET,
+            self.service.trade_events_url,
+            status=200,
+            body=self.ler_response_body,
+            match_querystring=False
+        )
+        ler = self.service.list_trade_events(params={'key': 'value'})
         self.assertEqual(ler, self.ler)
 
     @httpretty.activate
@@ -299,4 +311,11 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
         self.service.get_grant_application(self.bga['id'])
         self.log_capture.check_present(
             ('web.grant_applications.services', 'INFO', f'EXTERNAL GET : {url} : No content'),
+        )
+
+    @httpretty.activate
+    def test_request_factory_unknown_object_type(self):
+        self.assertRaises(
+            ValueError, self.service.request_factory,
+            object_type='bad-type', choice_id_key='', choice_name_key='',
         )

@@ -1,6 +1,7 @@
 from unittest import skip
 from unittest.mock import patch
 
+from bs4 import BeautifulSoup
 from django.urls import reverse, resolve
 from django.utils.datetime_safe import date
 from django.utils.http import urlencode
@@ -19,7 +20,7 @@ from web.grant_applications.views import (
 )
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_COMPANY,
-    FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_FLATTENED_GRANT_APPLICATION
+    FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT
 )
 from web.tests.helpers.testcases import BaseTestCase
 
@@ -271,10 +272,7 @@ class TestPreviousApplicationsView(BaseTestCase):
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
 @patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(
-    BackofficeService, 'list_trade_events',
-    return_value=[{'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg', 'display_name': 'An Event'}]
-)
+@patch.object(BackofficeService, 'list_trade_events', return_value=[FAKE_EVENT])
 class TestAboutTheEventView(BaseTestCase):
 
     def setUp(self):
@@ -286,27 +284,50 @@ class TestAboutTheEventView(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, AboutTheEventView.template_name)
 
-    def test_initial_data(self, *mocks):
+    def test_initial_filters_are_set_to_all(self, *mocks):
         response = self.client.get(self.url)
+        soup = BeautifulSoup(response.content, 'html.parser')
         self.assertEqual(response.status_code, 200)
-        self.assertInHTML(
-            '<option value="235678a7-b3ff-4256-b6ae-ce7ddb4d18gg" selected>An Event</option>',
-            response.content.decode()
+        # Filter by start date
+        self.assertEqual(
+            soup.find(id='id_filter_by_start_date').find('option', selected=True).text, 'All'
+        )
+        # Filter by country
+        self.assertEqual(
+            soup.find(id='id_filter_by_country').find('option', selected=True).text, 'All'
+        )
+        # Filter by sector
+        self.assertEqual(
+            soup.find(id='id_filter_by_sector').find('option', selected=True).text, 'All'
         )
 
+    def test_event_initial_is_backoffice_event_when_filters_set_to_all(self, *mocks):
+        response = self.client.get(self.url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        selected_event = soup.find(id='id_event').find('option', selected=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertInHTML(selected_event.attrs['value'], FAKE_EVENT['id'])
+        self.assertInHTML(selected_event.text, FAKE_EVENT['display_name'])
+
     @patch.object(BackofficeService, 'get_grant_application')
-    def test_initial_data_when_no_event_set(self, *mocks):
+    def test_initial_when_no_event_set(self, *mocks):
         mocks[3].return_value = FAKE_GRANT_APPLICATION.copy()
         mocks[3].return_value['event'] = None
         response = self.client.get(self.url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        selected_event = soup.find(id='id_event').find('option', selected=True)
         self.assertEqual(response.status_code, 200)
-        self.assertInHTML('<option value="" selected>Select...</option>', response.content.decode())
+        self.assertInHTML(selected_event.attrs['value'], '')
+        self.assertInHTML(selected_event.text, 'Select...')
 
     def test_post_redirects(self, *mocks):
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
-            data=urlencode({'event': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg'})
+            data=urlencode({
+                'event': FAKE_EVENT['id'],
+                'form_button': ''
+            })
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
@@ -314,20 +335,88 @@ class TestAboutTheEventView(BaseTestCase):
             expected_url=reverse(AboutTheEventView.success_url_name, args=(self.gal.pk,))
         )
 
-    def test_post_data_is_saved(self, *mocks):
-        self.client.post(
+    def test_event_is_saved_on_form_continue_button(self, *mocks):
+        response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
-            data=urlencode({'event': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg'})
+            data=urlencode({
+                'event': FAKE_EVENT['id'],
+                'form_button': ''
+            })
         )
+        self.assertEqual(response.status_code, 302)
         mocks[1].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
-            event='235678a7-b3ff-4256-b6ae-ce7ddb4d18gg'
+            event=FAKE_EVENT['id']
         )
 
-    def test_event_must_be_present(self, *mocks):
+    def test_filter_by_start_date(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'apply_filter_button': '',
+                'filter_by_start_date': '2020-12-04',
+            })
+        )
+        self.assertEqual(response.status_code, 200)
+        mocks[0].assert_any_call(params={'start_date': '2020-12-04'})
+
+    def test_filter_by_country(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'apply_filter_button': '',
+                'filter_by_country': 'Country 1',
+            })
+        )
+        self.assertEqual(response.status_code, 200)
+        mocks[0].assert_any_call(params={'country': 'Country 1'})
+
+    def test_filter_by_sector(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'apply_filter_button': '',
+                'filter_by_sector': 'Sector 1',
+            })
+        )
+        self.assertEqual(response.status_code, 200)
+        mocks[0].assert_any_call(params={'sector': 'Sector 1'})
+
+    def test_form_error_on_post_when_no_button_name_provided(self, *mocks):
         response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        self.assertFormError(response, 'form', None, 'Form button name required.')
+
+    def test_event_required_on_form_button_submit(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'form_button': ''})
+        )
         self.assertFormError(response, 'form', 'event', 'This field is required.')
+
+    def test_event_not_required_on_apply_filter_button_submit(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'apply_filters_button': ''})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, AboutTheEventView.template_name)
+        self.assertFalse(response.context_data['form'].errors)
+
+    def test_event_not_required_on_clear_filter_button_submit(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'clear_filters_button': ''})
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, AboutTheEventView.template_name)
+        self.assertFalse(response.context_data['form'].errors)
 
 
 @patch.object(
@@ -348,6 +437,12 @@ class TestEventFinanceView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, EventFinanceView.template_name)
+
+    def test_form_details(self, *mocks):
+        response = self.client.get(self.url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(soup.find_all('details')), 3)
 
     def test_post_redirects(self, *mocks):
         response = self.client.post(
@@ -448,10 +543,7 @@ class TestEligibilityReviewView(BaseTestCase):
 
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(
-    BackofficeService, 'list_trade_events',
-    return_value=[{'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg', 'display_name': 'An Event'}]
-)
+@patch.object(BackofficeService, 'list_trade_events', return_value=[FAKE_EVENT])
 @patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
 class TestAboutYouView(BaseTestCase):
 
@@ -832,10 +924,7 @@ class TestStateAidView(BaseTestCase):
         'duns_number': str(FAKE_GRANT_APPLICATION['company']['duns_number'])
     }]
 )
-@patch.object(
-    BackofficeService, 'list_trade_events',
-    return_value=[{'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg', 'display_name': 'An Event'}]
-)
+@patch.object(BackofficeService, 'list_trade_events', return_value=[FAKE_EVENT])
 @patch.object(
     BackofficeService, 'list_sectors',
     return_value=[{'id': 1, 'full_name': 'full-name-1'}, {'id': 2, 'full_name': 'full-name-2'}]
