@@ -79,11 +79,13 @@ jobs:
           path: backoffice/reports/coverage/junitxml
 
   generate-erd:
-    machine:
-      docker_layer_caching: true
+    docker:
+      - image: circleci/python:3.8.3
 
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
           name: Set up backoffice .env files
           command: |
