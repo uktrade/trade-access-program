@@ -129,19 +129,15 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
             'heading': _('Your company details'),
             'summary': [
                 {
-                    'key': _('Company name'),
-                    'value': self.backoffice_grant_application['company']['name'],
+                    'key': _('Company'),
+                    'value': '\n'.join([
+                        self.backoffice_grant_application['company']['name'],
+                        dnb['company_registration_number'],
+                        dnb['company_address'],
+                    ]),
                     'action': {
                         'url': reverse('grant-applications:search-company')
                     }
-                },
-                {
-                    'key': _('Company registration number'),
-                    'value': dnb['company_registration_number']
-                },
-                {
-                    'key': _('Company address'),
-                    'value': dnb['company_address']
                 }
             ]
         }
@@ -149,11 +145,9 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
     def previous_apps_summary_list(self):
         summary = generate_grant_application_summary(
             form_class=PreviousApplicationsView.form_class,
-            grant_application=self.object
+            grant_application=self.object,
+            url=reverse('grant-applications:previous-applications', args=(self.object.pk,))
         )
-        summary[0]['action'] = {
-            'url': reverse('grant-applications:previous-applications', args=(self.object.pk,))
-        }
         return {
             'heading': _('Previous TAP grants'),
             'summary': summary
@@ -161,26 +155,19 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
 
     def event_summary_list(self):
         return {
-            'heading': _('Event'),
+            'heading': _('Event details'),
             'summary': [
                 {
-                    'key': _('Name'),
-                    'value': self.backoffice_grant_application['event']['name'],
+                    'key': _('Event'),
+                    'value': '\n'.join([
+                        self.backoffice_grant_application['event']['name'],
+                        self.backoffice_grant_application['event']['sector'],
+                        f"{self.backoffice_grant_application['event']['start_date']} to "
+                        f"{self.backoffice_grant_application['event']['end_date']}"
+                    ]),
                     'action': {
                         'url': reverse('grant-applications:about-the-event', args=(self.object.pk,))
                     }
-                },
-                {
-                    'key': _('Sector'),
-                    'value': self.backoffice_grant_application['event']['sector'],
-                },
-                {
-                    'key': _('Start date'),
-                    'value': self.backoffice_grant_application['event']['start_date'],
-                },
-                {
-                    'key': _('End date'),
-                    'value': self.backoffice_grant_application['event']['end_date']
                 }
             ]
         }
@@ -188,11 +175,9 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
     def event_finance_summary_list(self):
         summary = generate_grant_application_summary(
             form_class=EventFinanceView.form_class,
-            grant_application=self.object
+            grant_application=self.object,
+            url=reverse('grant-applications:event-finance', args=(self.object.pk,))
         )
-        summary[0]['action'] = {
-            'url': reverse('grant-applications:event-finance', args=(self.object.pk,))
-        }
         return {
             'heading': _('Event finance'),
             'summary': summary

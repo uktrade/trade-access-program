@@ -849,10 +849,7 @@ class TestApplicationReviewView(BaseTestCase):
     def test_get(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertIn(
-            '<dl class="govuk-summary-list govuk-!-margin-bottom-9">',
-            response.content.decode()
-        )
+        self.assertIn('<dl class="govuk-summary-list">', response.content.decode())
 
     def test_post_redirects(self, *mocks):
         self.client.get(self.url)
