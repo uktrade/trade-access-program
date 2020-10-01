@@ -286,6 +286,22 @@ class TestAboutTheEventView(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, AboutTheEventView.template_name)
 
+    def test_initial_data(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertInHTML(
+            '<option value="235678a7-b3ff-4256-b6ae-ce7ddb4d18gg" selected>An Event</option>',
+            response.content.decode()
+        )
+
+    @patch.object(BackofficeService, 'get_grant_application')
+    def test_initial_data_when_no_event_set(self, *mocks):
+        mocks[3].return_value = FAKE_GRANT_APPLICATION.copy()
+        mocks[3].return_value['event'] = None
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertInHTML('<option value="" selected>Select...</option>', response.content.decode())
+
     def test_post_redirects(self, *mocks):
         response = self.client.post(
             self.url,

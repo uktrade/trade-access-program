@@ -24,7 +24,7 @@ FAKE_GRANT_APPLICATION = {
     'de_minimis_aid_recipient': None,
     'de_minimis_aid_date_received': None,
     'event': {
-        'id': 1,
+        'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg',
         'name': 'Event 1',
         'sector': 'Sector 1',
         'start_date': '2020-12-12',

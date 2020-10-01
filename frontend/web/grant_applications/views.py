@@ -85,7 +85,8 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
 
     def get_initial(self):
         initial = super().get_initial()
-        initial['event'] = self.backoffice_grant_application['event']['id']
+        if self.backoffice_grant_application['event']:
+            initial['event'] = self.backoffice_grant_application['event']['id']
         return initial
 
 
