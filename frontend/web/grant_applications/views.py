@@ -130,7 +130,10 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
             'summary': [
                 {
                     'key': _('Company name'),
-                    'value': self.backoffice_grant_application['company']['name']
+                    'value': self.backoffice_grant_application['company']['name'],
+                    'action': {
+                        'url': reverse('grant-applications:search-company')
+                    }
                 },
                 {
                     'key': _('Company registration number'),
@@ -138,10 +141,7 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
                 },
                 {
                     'key': _('Company address'),
-                    'value': dnb['company_address'],
-                    'action': {
-                        'url': reverse('grant-applications:search-company')
-                    }
+                    'value': dnb['company_address']
                 }
             ]
         }
@@ -151,7 +151,7 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
             form_class=PreviousApplicationsView.form_class,
             grant_application=self.object
         )
-        summary[-1]['action'] = {
+        summary[0]['action'] = {
             'url': reverse('grant-applications:previous-applications', args=(self.object.pk,))
         }
         return {
@@ -165,7 +165,10 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
             'summary': [
                 {
                     'key': _('Name'),
-                    'value': self.backoffice_grant_application['event']['name']
+                    'value': self.backoffice_grant_application['event']['name'],
+                    'action': {
+                        'url': reverse('grant-applications:about-the-event', args=(self.object.pk,))
+                    }
                 },
                 {
                     'key': _('Sector'),
@@ -177,10 +180,7 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
                 },
                 {
                     'key': _('End date'),
-                    'value': self.backoffice_grant_application['event']['end_date'],
-                    'action': {
-                        'url': reverse('grant-applications:about-the-event', args=(self.object.pk,))
-                    }
+                    'value': self.backoffice_grant_application['event']['end_date']
                 }
             ]
         }
@@ -190,7 +190,7 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
             form_class=EventFinanceView.form_class,
             grant_application=self.object
         )
-        summary[-1]['action'] = {
+        summary[0]['action'] = {
             'url': reverse('grant-applications:event-finance', args=(self.object.pk,))
         }
         return {

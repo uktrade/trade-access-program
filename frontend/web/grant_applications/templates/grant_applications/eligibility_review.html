@@ -9,7 +9,8 @@
     <h2 class="govuk-heading-l">{{ page.heading }}</h2>
 
     {% for summary_list in summary_lists %}
-      {% include "core/govt_summary_list.html" with summary_list=summary_list class="govuk-summary-list"%}
+      <hr class="govuk-section-break govuk-section-break--visible">
+      {% include "core/govt_summary_list.html" with summary_list=summary_list class="govuk-summary-list govuk-summary-list--no-border govuk-!-margin-top-7"%}
     {% endfor %}
 
   </div>
