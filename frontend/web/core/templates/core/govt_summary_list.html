@@ -1,4 +1,4 @@
-<dl class="{{ class|default:'govuk-summary-list govuk-!-margin-bottom-9' }}">
+<dl class="{{ class|default:'govuk-summary-list' }}">
 
   {% if summary_list.heading %}
   <h2 class="govuk-heading-m">{{ summary_list.heading }}</h2>
@@ -7,7 +7,7 @@
   {% for row in summary_list.summary %}
     <div class="govuk-summary-list__row">
       <dt class="govuk-summary-list__key">{{ row.key }}</dt>
-      <dd class="govuk-summary-list__value">{{ row.value }}</dd>
+      <dd class="govuk-summary-list__value">{{ row.value|linebreaks }}</dd>
       {% if row.action %}
       <dd class="govuk-summary-list__actions">
         <a class="govuk-link" href="{{ row.action.url }}">
