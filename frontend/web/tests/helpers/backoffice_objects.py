@@ -2,6 +2,8 @@ FAKE_GRANT_APPLICATION = {
     'id': '993c394c-dd5d-413c-bd70-1ba4f1e2b050',
     'applicant_full_name': 'A',
     'applicant_email': 'A@test.com',
+    'applicant_mobile_number': '+447777777777',
+    'applicant_position_within_business': 'Director',
     'is_already_committed_to_event': True,
     'is_intending_on_other_financial_support': True,
     'has_previously_applied': True,

@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db.models import TextChoices
 from django.utils.translation import gettext_lazy as _
+from phonenumber_field.formfields import PhoneNumberField
 
 from web.core import widgets
 from web.core.utils import str_to_bool
@@ -13,8 +14,7 @@ from web.grant_applications.services import (
     get_sector_select_options, get_trade_event_select_options, get_trade_event_filter_options
 )
 from web.grant_applications.form_mixins import (
-    UpdateBackofficeGrantApplicationMixin,
-    FormatLabelMixin
+    UpdateBackofficeGrantApplicationMixin, FormatLabelMixin
 )
 
 
@@ -239,16 +239,19 @@ class AboutYouForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
-        fields = ['applicant_full_name', 'applicant_email']
+        fields = [
+            'applicant_full_name', 'applicant_email', 'applicant_mobile_number',
+            'applicant_position_within_business'
+        ]
 
     applicant_full_name = forms.CharField(
-        label=_('Your full name'),
+        label=_('Full name'),
         widget=forms.TextInput(
             attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
         )
     )
     applicant_email = forms.CharField(
-        label=_('Your email address'),
+        label=_('Email address'),
         widget=forms.TextInput(
             attrs={
                 'class': 'govuk-input govuk-!-width-two-thirds',
@@ -256,6 +259,28 @@ class AboutYouForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
             }
         )
     )
+    applicant_mobile_number = PhoneNumberField(
+        label=_('Mobile number'),
+        region='GB',
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input govuk-input--width-10'}
+        )
+    )
+    applicant_position_within_business = forms.ChoiceField(
+        label=_('What is your position within the business?'),
+        choices=[
+            ('director', 'Director'), ('company-secretary', 'Company secretary'),
+            ('owner', 'Owner'), ('other', 'Other')
+        ],
+        widget=widgets.RadioSelect()
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if 'applicant_mobile_number' in cleaned_data:
+            cleaned_data['applicant_mobile_number'] = \
+                cleaned_data['applicant_mobile_number'].as_e164
+        return cleaned_data
 
 
 class EventIntentionForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, forms.ModelForm):

@@ -243,8 +243,7 @@ class EligibilityConfirmationView(BackContextMixin, PageContextMixin, SuccessUrl
     model = GrantApplicationLink
     form_class = EligibilityConfirmationForm
     template_name = 'grant_applications/eligibility_confirmation.html'
-    # TODO: End user journey here for now
-    success_url_name = 'grant_applications:eligibility-confirmation'
+    success_url_name = 'grant_applications:about-you'
     page = {
         'heading': _('You are eligible for a TAP grant'),
         'form_button_text': _('Apply for a grant')
@@ -267,7 +266,7 @@ class AboutYouView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin, 
     form_class = AboutYouForm
     template_name = 'grant_applications/generic_form_page.html'
     back_url_name = 'grant-applications:about-the-event'
-    success_url_name = 'grant_applications:event-intention'
+    success_url_name = 'grant_applications:about-you'  # TODO: End user journey here for now
     page = {
         'heading': _('About you')
     }

@@ -11,11 +11,13 @@ django-appconf==1.0.4     # via django-compressor
 django-compressor==2.4    # via -r requirements/base.in
 django-environ==0.4.5     # via -r requirements/base.in
 django-filter==2.3.0      # via -r requirements/base.in
+django-phonenumber-field==5.0.0  # via -r requirements/base.in
 django-sass-processor==0.8.2  # via -r requirements/base.in
-django==3.1.1             # via -r requirements/base.in, django-filter
+django==3.1.1             # via -r requirements/base.in, django-filter, django-phonenumber-field
 gunicorn==20.0.4          # via -r requirements/base.in
 idna==2.10                # via requests
 libsass==0.20.1           # via -r requirements/base.in
+phonenumbers==8.12.10     # via -r requirements/base.in
 psycopg2==2.8.6           # via -r requirements/base.in
 pytz==2020.1              # via django
 rcssmin==1.0.6            # via django-compressor
