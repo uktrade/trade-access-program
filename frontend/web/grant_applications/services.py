@@ -112,8 +112,8 @@ class BackofficeService:
         response = self.session.get(url, params={'search_term': search_term})
         return response.json()
 
-    def list_trade_events(self):
-        response = self.session.get(self.trade_events_url)
+    def list_trade_events(self, params):
+        response = self.session.get(self.trade_events_url, params=params)
         return response.json()
 
     def list_sectors(self):
@@ -126,7 +126,7 @@ class BackofficeService:
                 return []
             return self.search_companies(search_term=request_kwargs['search_term'])
         elif object_type == 'trade_events':
-            return self.list_trade_events()
+            return self.list_trade_events(params=request_kwargs.get('params', {}))
         elif object_type == 'sectors':
             return self.list_sectors()
         raise ValueError(f'Unknown object type {object_type}')
@@ -158,9 +158,28 @@ def get_company_select_options(search_term):
     )
 
 
-def get_trade_event_select_options():
+def get_trade_event_filter_options(attribute):
     backoffice_options = get_backoffice_options(
-        'trade_events', choice_id_key='id', choice_name_key='display_name'
+        'trade_events', choice_id_key=attribute, choice_name_key=attribute
+    )
+    backoffice_options['choices'] = list(set(backoffice_options['choices']))  # remove duplicates
+    backoffice_options['choices'].sort(key=lambda x: x[0])  # sort chronologically
+    backoffice_options['choices'].insert(0, ('', 'All'))
+    return backoffice_options
+
+
+def get_trade_event_select_options(start_date=None, country=None, sector=None):
+    params = {}
+    if start_date:
+        params['start_date'] = start_date
+    if country:
+        params['country'] = country
+    if sector:
+        params['sector'] = sector
+
+    backoffice_options = get_backoffice_options(
+        'trade_events', choice_id_key='id', choice_name_key='display_name',
+        request_kwargs={'params': params}
     )
     backoffice_options['choices'].insert(0, ('', 'Select...'))
     backoffice_options['choices'].append(('0', 'Choice not listed'))

@@ -10,7 +10,7 @@ from web.core.widgets import CurrencyInput
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException, get_company_select_options,
-    get_sector_select_options, get_trade_event_select_options
+    get_sector_select_options, get_trade_event_select_options, get_trade_event_filter_options
 )
 from web.grant_applications.form_mixins import (
     UpdateBackofficeGrantApplicationMixin,
@@ -113,25 +113,72 @@ class EligibilityConfirmationForm(UpdateBackofficeGrantApplicationMixin, forms.M
 
 
 class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+    grant_application_fields = ['event']
 
     class Meta:
         model = GrantApplicationLink
-        fields = ['event']
+        fields = ['filter_by_start_date', 'filter_by_country', 'filter_by_sector', 'event']
 
     def __init__(self, *args, **kwargs):
-        trade_event_options = get_trade_event_select_options()
+        filter_by_start_date_options = get_trade_event_filter_options(attribute='start_date')
+        filter_by_country_options = get_trade_event_filter_options(attribute='country')
+        filter_by_sector_options = get_trade_event_filter_options(attribute='sector')
+
+        trade_event_options = get_trade_event_select_options(
+            start_date=kwargs.get('data', {}).get('filter_by_start_date'),
+            country=kwargs.get('data', {}).get('filter_by_country'),
+            sector=kwargs.get('data', {}).get('filter_by_sector')
+        )
+
         super().__init__(*args, **kwargs)
+
+        self.fields['filter_by_start_date'].choices = filter_by_start_date_options['choices']
+        self.fields['filter_by_country'].choices = filter_by_country_options['choices']
+        self.fields['filter_by_sector'].choices = filter_by_sector_options['choices']
         self.fields['event'].choices = trade_event_options['choices']
 
+    filter_by_start_date = forms.ChoiceField(
+        required=False,
+        label=_('Filter by date'),
+        widget=forms.Select(
+            attrs={
+                'class': 'govuk-select govuk-grid-column-full',
+            }
+        )
+    )
+    filter_by_country = forms.ChoiceField(
+        required=False,
+        label=_('Filter by location'),
+        widget=forms.Select(
+            attrs={
+                'class': 'govuk-select govuk-grid-column-full',
+            }
+        )
+    )
+    filter_by_sector = forms.ChoiceField(
+        required=False,
+        widget=forms.Select(
+            attrs={
+                'class': 'govuk-select govuk-grid-column-full',
+            }
+        )
+    )
     event = forms.ChoiceField(
+        required=False,
         label=_('What event are you intending to exhibit at'),
         widget=forms.Select(
             attrs={
                 'class': 'govuk-select govuk-!-width-two-thirds',
-                'placeholder': 'Select the event...',
             }
         ),
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        event = cleaned_data.get('event')
+
+        if 'form_button' in self.data and not event:
+            self.add_error('event', forms.ValidationError('This field is required.'))
 
 
 class EventFinanceForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, forms.ModelForm):

@@ -88,8 +88,13 @@ FAKE_SEARCH_COMPANIES = [
 ]
 
 FAKE_EVENT = {
-    'id': 1,
-    'display_name': 'An Event'
+    'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg',
+    'name': 'Event 1',
+    'sector': 'Sector 1',
+    'country': 'Country 1',
+    'start_date': '2020-12-12',
+    'end_date': '2020-12-14',
+    'display_name': 'Event 1 | Sector 1 | Country 1 | 2020-12-12',
 }
 
 FAKE_SECTOR = {

@@ -1,29 +1,8 @@
 <form class="form" method="POST" novalidate>
-
   {% csrf_token %}
-
-  {% if form.non_field_errors %}
-  <div class="govuk-error-summary" aria-labelledby="error-summary-title" role="alert" tabindex="-1" data-module="govuk-error-summary">
-    <h2 class="govuk-error-summary__title" id="error-summary-title">
-      There is a problem
-    </h2>
-    <div class="govuk-error-summary__body">
-      <ul class="govuk-list govuk-error-summary__list">
-          {% for error in form.non_field_errors %}
-          <li>
-              {{ error }}
-          </li>
-          {% endfor %}
-      </ul>
-    </div>
-  </div>
-  {% endif %}
+  {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
   {% for field in form %}
     {% include "core/govt_uk_form_field.html" with field=field %}
   {% endfor %}
-
-  <button class="govuk-button govuk-!-margin-top-4" data-module="govuk-button">
-    {{ page.form_button_text | default:"Continue" }}
-  </button>
-
+  {% include "core/govt_uk_form_button.html" with button_class=button_class button_name=button_name button_text=page.form_button_text %}
 </form>
