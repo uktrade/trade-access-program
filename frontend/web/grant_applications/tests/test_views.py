@@ -6,21 +6,18 @@ from django.urls import reverse, resolve
 from django.utils.datetime_safe import date
 from django.utils.http import urlencode
 
-from web.grant_applications.forms import BusinessInformationForm
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import BackofficeServiceException, BackofficeService
-from web.grant_applications.tests.factories.grant_application_link import (
-    GrantApplicationLinkFactory
-)
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, AboutYouView, AboutTheEventView,
     PreviousApplicationsView, EventIntentionView, BusinessInformationView, ExportExperienceView,
     StateAidView, ApplicationReviewView, EligibilityReviewView, EventFinanceView,
     EligibilityConfirmationView
 )
+from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_COMPANY,
-    FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT
+    FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT, FAKE_SECTOR
 )
 from web.tests.helpers.testcases import BaseTestCase
 
@@ -570,6 +567,7 @@ class TestEligibilityConfirmationView(BaseTestCase):
         )
 
 
+@patch.object(BackofficeService, 'list_sectors', return_value=[FAKE_SECTOR])
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
 @patch.object(BackofficeService, 'list_trade_events', return_value=[FAKE_EVENT])
 @patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
@@ -655,6 +653,74 @@ class TestAboutYouView(BaseTestCase):
 
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
+@patch.object(BackofficeService, 'list_sectors', return_value=[FAKE_SECTOR])
+@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
+class TestBusinessInformationView(BaseTestCase):
+
+    def setUp(self):
+        self.gal = GrantApplicationLinkFactory()
+        self.url = reverse('grant-applications:business-information', kwargs={'pk': self.gal.pk})
+
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, BusinessInformationView.template_name)
+
+    def test_sector_choices_come_from_sector_model(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        options = soup.find_all('option')
+        self.assertEqual(options[1].text, FAKE_SECTOR['full_name'])
+
+    def test_post(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'goods_and_services_description': 'A description',
+                'other_business_names': 'A name',
+                'sector': FAKE_SECTOR['id'],
+            })
+        )
+        self.assertEqual(response.status_code, 302)
+        mocks[0].assert_called_once_with(
+            grant_application_id=str(self.gal.backoffice_grant_application_id),
+            goods_and_services_description='A description',
+            other_business_names='A name',
+            sector=FAKE_SECTOR['id'],
+        )
+
+    def test_initial_form_data_from_grant_application_object(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        self.assertEqual(
+            soup.find('textarea', attrs={'name': 'goods_and_services_description'}).text,
+            FAKE_GRANT_APPLICATION['goods_and_services_description']
+        )
+        self.assertInHTML(
+            soup.find('input', attrs={'name': 'other_business_names'}).attrs['value'],
+            FAKE_GRANT_APPLICATION['other_business_names']
+        )
+        self.assertEqual(
+            soup.find(id='id_sector').find('option', selected=True).attrs['value'],
+            FAKE_GRANT_APPLICATION['sector']['id']
+        )
+
+    def test_redirect_to_confirmation_page_if_application_already_sent_for_review(self, *mocks):
+        self.gal.sent_for_review = True
+        self.gal.save()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
+        )
+
+
+@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
 @patch.object(
     BackofficeService, 'list_sectors',
     return_value=[{'id': 1, 'full_name': 'full-name-1'}, {'id': 2, 'full_name': 'full-name-2'}]
@@ -700,170 +766,6 @@ class TestEventIntentionView(BaseTestCase):
             grant_application_id=str(self.gal.backoffice_grant_application_id),
             is_first_exhibit_at_event=True,
             number_of_times_exhibited_at_event=0
-        )
-
-
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(
-    BackofficeService, 'list_sectors',
-    return_value=[{'id': 1, 'full_name': 'full-name-1'}, {'id': 2, 'full_name': 'full-name-2'}]
-)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestBusinessInformationView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:business-information', kwargs={'pk': self.gal.pk})
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, BusinessInformationView.template_name)
-
-    def test_sector_choices_come_from_sector_model(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertInHTML('<option value="1">full-name-1</option>', response.content.decode())
-        self.assertInHTML('<option value="2">full-name-2</option>', response.content.decode())
-
-    def test_number_of_employees_get_choice_by_number(self, *mocks):
-        fake_ga = FAKE_GRANT_APPLICATION.copy()
-        fake_ga['number_of_employees'] = None
-        mocks[2].return_value = fake_ga
-
-        expected_html = '<input class="govuk-radios__input" id="id_number_of_employees_{}"' \
-                        ' checked type="radio" name="number_of_employees" value="{}">'
-
-        # HAS_FEWER_THAN_10
-        fake_ga['company']['last_dnb_get_company_response']['data']['employee_number'] = 2
-        response = self.client.get(self.url)
-        self.assertInHTML(
-            expected_html.format(0, BusinessInformationForm.NumberOfEmployees.HAS_FEWER_THAN_10),
-            response.content.decode()
-        )
-
-        # HAS_10_TO_49
-        fake_ga['company']['last_dnb_get_company_response']['data']['employee_number'] = 20
-        response = self.client.get(self.url)
-        self.assertInHTML(
-            expected_html.format(1, BusinessInformationForm.NumberOfEmployees.HAS_10_TO_49),
-            response.content.decode()
-        )
-
-        # HAS_50_TO_249
-        fake_ga['company']['last_dnb_get_company_response']['data']['employee_number'] = 51
-        response = self.client.get(self.url)
-        self.assertInHTML(
-            expected_html.format(2, BusinessInformationForm.NumberOfEmployees.HAS_50_TO_249),
-            response.content.decode()
-        )
-
-        # HAS_250_OR_MORE
-        fake_ga['company']['last_dnb_get_company_response']['data']['employee_number'] = 500
-        response = self.client.get(self.url)
-        self.assertInHTML(
-            expected_html.format(3, BusinessInformationForm.NumberOfEmployees.HAS_250_OR_MORE),
-            response.content.decode()
-        )
-
-    def test_post(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'goods_and_services_description': 'A description',
-                'business_name_at_exhibit': 'A name',
-                'turnover': 1234,
-                'number_of_employees': BusinessInformationForm.NumberOfEmployees.HAS_FEWER_THAN_10,
-                'sector': 1,
-                'website': 'www.a-website.com',
-            })
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            goods_and_services_description='A description',
-            business_name_at_exhibit='A name',
-            number_of_employees='fewer-than-10',
-            turnover=1234,
-            website='http://www.a-website.com',
-            sector='1',
-        )
-
-    def test_initial_form_data_from_dnb_company_data(self, *mocks):
-        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['business_name_at_exhibit'] = None
-        fake_grant_application['turnover'] = None
-        fake_grant_application['number_of_employees'] = None
-        fake_grant_application['website'] = None
-        mocks[2].return_value = fake_grant_application
-
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertInHTML(
-            f'<input type="text" name="business_name_at_exhibit" id="id_business_name_at_exhibit" '
-            f'value="{FAKE_GRANT_APPLICATION["company"]["name"]}" required '
-            f'class="govuk-input govuk-!-width-two-thirds" >',
-            response.content.decode()
-        )
-        self.assertInHTML(
-            '<input type="text" name="turnover" value="1000" '
-            'class="govuk-input govuk-!-width-one-quarter" required id="id_turnover">',
-            response.content.decode()
-        )
-        self.assertInHTML(
-            '<input class="govuk-radios__input" id="id_number_of_employees_0" checked type="radio"'
-            ' name="number_of_employees" value="fewer-than-10">',
-            response.content.decode()
-        )
-        self.assertInHTML(
-            '<input type="text" name="website" value="www.test.com" '
-            'class="govuk-input govuk-!-width-two-thirds" required '
-            'id="id_website">',
-            response.content.decode()
-        )
-
-    def test_initial_form_data_from_grant_application_object(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertInHTML(
-            f'<input type="text" name="business_name_at_exhibit" id="id_business_name_at_exhibit" '
-            f'value="{FAKE_GRANT_APPLICATION["business_name_at_exhibit"]}" required '
-            f'class="govuk-input govuk-!-width-two-thirds" >',
-            response.content.decode()
-        )
-        self.assertInHTML(
-            f'<input type="text" name="turnover" value="{FAKE_GRANT_APPLICATION["turnover"]}" '
-            f'class="govuk-input govuk-!-width-one-quarter" required id="id_turnover">',
-            response.content.decode()
-        )
-        self.assertInHTML(
-            f'<input class="govuk-radios__input" id="id_number_of_employees_0" checked type="radio"'
-            f' name="number_of_employees" value="{FAKE_GRANT_APPLICATION["number_of_employees"]}">',
-            response.content.decode()
-        )
-        self.assertInHTML(
-            f'<input type="text" name="website" value="{FAKE_GRANT_APPLICATION["website"]}" '
-            f'class="govuk-input govuk-!-width-two-thirds" required '
-            f'id="id_website">',
-            response.content.decode()
-        )
-
-    def test_website_validation(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'website': 'Not a website'})
-        )
-        self.assertFormError(response, 'form', 'website', 'Enter a valid URL.')
-
-    def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
-        self.gal.sent_for_review = True
-        self.gal.save()
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
         )
 
 

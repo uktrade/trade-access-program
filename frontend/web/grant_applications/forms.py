@@ -1,20 +1,19 @@
 from django import forms
 from django.conf import settings
 from django.core.validators import MinValueValidator
-from django.db.models import TextChoices
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
 from web.core import widgets
+from web.core.form_fields import MaxAllowedCharField
 from web.core.utils import str_to_bool
-from web.core.widgets import CurrencyInput
+from web.grant_applications.form_mixins import (
+    UpdateBackofficeGrantApplicationMixin, FormatLabelMixin
+)
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException, get_company_select_options,
     get_sector_select_options, get_trade_event_select_options, get_trade_event_filter_options
-)
-from web.grant_applications.form_mixins import (
-    UpdateBackofficeGrantApplicationMixin, FormatLabelMixin
 )
 
 
@@ -315,64 +314,41 @@ class BusinessInformationForm(UpdateBackofficeGrantApplicationMixin, forms.Model
 
     class Meta:
         model = GrantApplicationLink
-        fields = [
-            'goods_and_services_description', 'business_name_at_exhibit', 'number_of_employees',
-            'turnover', 'sector', 'website'
-        ]
-
-    class NumberOfEmployees(TextChoices):
-        HAS_FEWER_THAN_10 = 'fewer-than-10', _('Fewer than 10')
-        HAS_10_TO_49 = '10-to-49', _('10 to 49')
-        HAS_50_TO_249 = '50-to-249', _('50 to 249')
-        HAS_250_OR_MORE = '250-or-more', _('250 or More')
-
-        @classmethod
-        def get_choice_by_number(cls, number_of_employees):
-            if number_of_employees < 10:
-                return cls.HAS_FEWER_THAN_10
-            elif 10 <= number_of_employees <= 49:
-                return cls.HAS_10_TO_49
-            elif 50 <= number_of_employees <= 249:
-                return cls.HAS_50_TO_249
-            elif number_of_employees >= 250:
-                return cls.HAS_250_OR_MORE
+        fields = ['goods_and_services_description', 'other_business_names', 'sector']
 
     def __init__(self, *args, **kwargs):
         sector_options = get_sector_select_options()
         super().__init__(*args, **kwargs)
         self.fields['sector'].choices = sector_options['choices']
 
-    goods_and_services_description = forms.CharField(
-        label=_('Description of goods or services, and whether they are from UK origin'),
-        widget=forms.Textarea(
-            attrs={'class': 'govuk-textarea govuk-!-width-two-thirds'}
+    goods_and_services_description = MaxAllowedCharField(
+        label=_('Describe your main products and services'),
+        help_text=_(
+            'If possible include any advantages they offer over competitors in overseas markets'
+        ),
+        max_length=200,
+        widget=widgets.CharacterCountTextArea(
+            attrs={
+                'class': 'govuk-textarea govuk-js-character-count govuk-!-width-two-thirds',
+                'rows': 3,
+                'counter': 200
+            }
         )
     )
-    business_name_at_exhibit = forms.CharField(
-        label=_('Business name that you will use on the stand'),
+    other_business_names = forms.CharField(
+        required=False,
+        label=_('Business names'),
+        help_text=_(
+            'Add any brand or trading names used in addition to the registered company name'
+        ),
         widget=forms.TextInput(
             attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
         )
     )
-    number_of_employees = forms.ChoiceField(
-        choices=NumberOfEmployees.choices,
-        widget=widgets.RadioSelect(),
-    )
-    turnover = forms.IntegerField(widget=CurrencyInput())
     sector = forms.ChoiceField(
+        label=_('Industry sector'),
         widget=forms.Select(
-            attrs={
-                'class': 'govuk-select govuk-!-width-two-thirds',
-                'placeholder': 'Select your sector...',
-            }
-        )
-    )
-    website = forms.URLField(
-        widget=forms.URLInput(
-            attrs={
-                'class': 'govuk-input govuk-!-width-two-thirds',
-                'type': 'text'
-            }
+            attrs={'class': 'govuk-select govuk-!-width-two-thirds'}
         )
     )
 

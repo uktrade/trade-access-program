@@ -25,6 +25,7 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     number_of_times_exhibited_at_event = 0
     goods_and_services_description = factory.Sequence(lambda n: f'description-{n}')
     business_name_at_exhibit = factory.Sequence(lambda n: f'name-{n}')
+    other_business_names = factory.Sequence(lambda n: f'other-business-names-{n}')
     turnover = 1000
     number_of_employees = GrantApplication.NumberOfEmployees.HAS_FEWER_THAN_10
     sector = factory.SubFactory('web.tests.factories.sector.SectorFactory')

@@ -7,6 +7,6 @@
   },
   "dependencies": {
     "@hmcts/frontend": "0.0.41-alpha",
-    "govuk-frontend": "^3.7.0"
+    "govuk-frontend": "^3.9.1"
   }
 }

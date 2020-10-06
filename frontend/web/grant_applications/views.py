@@ -270,13 +270,34 @@ class AboutYouView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin, 
                    InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = AboutYouForm
-    template_name = 'grant_applications/generic_form_page.html'
+    template_name = 'grant_applications/about_you.html'
     back_url_name = 'grant-applications:about-the-event'
-    success_url_name = 'grant_applications:about-you'  # TODO: End user journey here for now
+    success_url_name = 'grant_applications:business-information'
     page = {
         'heading': _('About you'),
         'caption': _('Grant application')
     }
+
+
+class BusinessInformationView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
+                              BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                              UpdateView):
+    model = GrantApplicationLink
+    form_class = BusinessInformationForm
+    template_name = 'grant_applications/business_information.html'
+    back_url_name = 'grant-applications:about-you'
+    # TODO: End user journey here for now
+    success_url_name = 'grant_applications:business-information'
+    page = {
+        'heading': _('About your business'),
+        'caption': _('Grant application')
+    }
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.backoffice_grant_application['sector']:
+            initial['sector'] = self.backoffice_grant_application['sector']['id']
+        return initial
 
 
 class EventIntentionView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
@@ -284,8 +305,8 @@ class EventIntentionView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkM
     model = GrantApplicationLink
     form_class = EventIntentionForm
     template_name = 'grant_applications/event_intention.html'
-    back_url_name = 'grant-applications:about-you'
-    success_url_name = 'grant_applications:business-information'
+    back_url_name = 'grant-applications:business-information'
+    success_url_name = 'grant_applications:export-experience'
     page = {
         'heading': _('Your application')
     }
@@ -311,41 +332,6 @@ class EventIntentionView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkM
                     'number_of_times_exhibited_at_event': 0
                 }
         return kwargs
-
-
-class BusinessInformationView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
-                              BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                              UpdateView):
-    model = GrantApplicationLink
-    form_class = BusinessInformationForm
-    template_name = 'grant_applications/generic_form_page.html'
-    back_url_name = 'grant-applications:event-intention'
-    success_url_name = 'grant_applications:export-experience'
-    page = {
-        'heading': _('About your business')
-    }
-
-    def get_initial(self):
-        initial = super().get_initial()
-        company_data = self.backoffice_grant_application['company']
-
-        if not self.backoffice_grant_application['business_name_at_exhibit']:
-            initial['business_name_at_exhibit'] = company_data['name']
-
-        if not self.backoffice_grant_application['turnover']:
-            initial['turnover'] = int(
-                company_data['last_dnb_get_company_response']['data']['annual_sales']
-            )
-
-        if not self.backoffice_grant_application['number_of_employees']:
-            initial['number_of_employees'] = self.form_class.NumberOfEmployees.get_choice_by_number(
-                company_data['last_dnb_get_company_response']['data']['employee_number']
-            )
-
-        if not self.backoffice_grant_application['website']:
-            initial['website'] = company_data['last_dnb_get_company_response']['data']['domain']
-
-        return initial
 
 
 class ExportExperienceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,

@@ -12,9 +12,16 @@ class RadioSelect(forms.widgets.RadioSelect):
         return option
 
 
-class CurrencyInput(forms.widgets.TextInput):
-    template_name = 'widgets/currency_input.html'
+class CharacterCountTextArea(forms.Textarea):
+    template_name = 'widgets/character_count_text_area.html'
 
 
 class WrappedTextInput(forms.TextInput):
     template_name = 'widgets/wrapped_text_input.html'
+
+
+class CurrencyTextInput(WrappedTextInput):
+
+    def get_context(self, name, value, attrs):
+        attrs['prefix'] = '£'
+        return super().get_context(name, value, attrs)

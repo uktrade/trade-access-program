@@ -11,7 +11,8 @@ FAKE_GRANT_APPLICATION = {
     'is_first_exhibit_at_event': False,
     'number_of_times_exhibited_at_event': 2,
     'goods_and_services_description': 'E',
-    'business_name_at_exhibit': 'E',
+    'business_name_at_exhibit': 'F',
+    'other_business_names': 'G',
     'number_of_employees': 'fewer-than-10',
     'turnover': 1000,
     'website': 'www.test.com',
@@ -100,9 +101,9 @@ FAKE_EVENT = {
 }
 
 FAKE_SECTOR = {
-    'id': 'ee211091-9b84-4460-a626-3be843823901',
+    'id': 'e98cee83-9f4e-4ad2-8d10-7f25867b91b5',
     'sector_code': 'SL0001',
-    'cluster_name': 'Technology and Advanced Manufacturing',
-    'full_name': 'Advanced engineering',
-    'name': 'Advanced engineering'
+    'cluster_name': 'Sector 1 Cluster',
+    'full_name': 'Sector 1 Full Name',
+    'name': 'Sector 1'
 }
