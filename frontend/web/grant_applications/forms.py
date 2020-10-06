@@ -342,7 +342,10 @@ class BusinessInformationForm(UpdateBackofficeGrantApplicationMixin, forms.Model
             'Add any brand or trading names used in addition to the registered company name'
         ),
         widget=forms.TextInput(
-            attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+            attrs={
+                'class': 'govuk-input govuk-!-width-two-thirds',
+                'optional': True
+            }
         )
     )
     sector = forms.ChoiceField(
