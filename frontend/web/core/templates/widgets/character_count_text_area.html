@@ -1,0 +1,8 @@
+<div class="govuk-character-count" data-module="govuk-character-count" data-maxlength="{{ widget.attrs.counter|default:0 }}">
+  <div class="govuk-form-group">
+    <textarea class="{{ widget.attrs.class|default:'govuk-textarea govuk-js-character-count'}}" id="{{ widget.attrs.id }}" name="{{ widget.name }}" aria-describedby="{{ widget.attrs.id }}-info {{ widget.attrs.id }}-hint" {% include "django/forms/widgets/attrs.html" %}>{% if widget.value %}{{ widget.value }}{% endif %}</textarea>
+  </div>
+  <div id="{{ widget.attrs.id }}-info" class="govuk-hint govuk-character-count__message" aria-live="polite">
+    You can enter up to {{ widget.attrs.counter|default:0 }} characters
+  </div>
+</div>

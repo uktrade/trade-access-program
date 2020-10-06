@@ -66,6 +66,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                 'number_of_times_exhibited_at_event': ga.number_of_times_exhibited_at_event,
                 'goods_and_services_description': ga.goods_and_services_description,
                 'business_name_at_exhibit': ga.business_name_at_exhibit,
+                'other_business_names': ga.other_business_names,
                 'turnover': ga.turnover,
                 'number_of_employees': ga.number_of_employees,
                 'sector': {
@@ -157,6 +158,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                 'number_of_times_exhibited_at_event': None,
                 'goods_and_services_description': None,
                 'business_name_at_exhibit': None,
+                'other_business_names': None,
                 'turnover': None,
                 'number_of_employees': None,
                 'sector': None,

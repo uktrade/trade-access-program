@@ -1,5 +1,0 @@
-<div id="amount-currency" class="govuk-visually-hidden">in pounds</div>
-<div class="hmcts-currency-input">
-  <div class="hmcts-currency-input__symbol" aria-hidden="true">£</div>
-  <input class="govuk-input govuk-!-width-one-quarter" type="{{ widget.type }}" name="{{ widget.name }}"{% if widget.value != None %} value="{{ widget.value|stringformat:'s' }}"{% endif %}{% include "django/forms/widgets/attrs.html" %}>
-</div>
