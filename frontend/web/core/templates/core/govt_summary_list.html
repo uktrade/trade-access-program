@@ -10,7 +10,7 @@
       <dd class="govuk-summary-list__value">{{ row.value|linebreaks }}</dd>
       {% if row.action %}
       <dd class="govuk-summary-list__actions">
-        <a class="govuk-link" href="{{ row.action.url }}">
+        <a class="govuk-link govuk-link--no-visited-state" href="{{ row.action.url }}">
           {{ row.action.text|default:"Change" }}<span class="govuk-visually-hidden"> {{ row.key }}</span>
         </a>
       </dd>

@@ -1,8 +1,5 @@
 {% extends 'grant_applications/generic_form_page.html' %}
 
-{% block content %}
-  <span class="govuk-caption-l">Check your eligibility</span>
-  <h2 class="govuk-heading-l">{{ page.heading }}</h2>
-  {% include "core/govt_uk_form.html" %}
+{% block after_content %}
   <a href="#" class="govuk-link govuk-link--no-visited-state">My details are not listed</a>
 {% endblock %}
