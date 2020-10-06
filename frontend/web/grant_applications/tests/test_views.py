@@ -490,6 +490,55 @@ class TestEventFinanceView(BaseTestCase):
         )
 
 
+@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
+class TestEligibilityReviewView(BaseTestCase):
+
+    def setUp(self):
+        self.gal = GrantApplicationLinkFactory()
+        self.url = reverse('grant-applications:eligibility-review', args=(self.gal.pk,))
+
+    @patch.object(
+        BackofficeService, 'get_grant_application',
+        side_effect=[
+            FAKE_GRANT_APPLICATION, FAKE_FLATTENED_GRANT_APPLICATION,
+            FAKE_FLATTENED_GRANT_APPLICATION
+        ]
+    )
+    def test_get_template(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, EligibilityReviewView.template_name)
+
+    @patch.object(
+        BackofficeService, 'get_grant_application',
+        side_effect=[
+            FAKE_GRANT_APPLICATION, FAKE_FLATTENED_GRANT_APPLICATION,
+            FAKE_FLATTENED_GRANT_APPLICATION
+        ]
+    )
+    def test_summary_lists(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('summary_lists', response.context_data)
+
+    @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
+    def test_post(self, *mocks):
+        self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        mocks[1].assert_not_called()
+
+    @patch.object(
+        BackofficeService, 'get_grant_application',
+        side_effect=[FAKE_GRANT_APPLICATION, FAKE_GRANT_APPLICATION]
+    )
+    def test_post_redirects(self, *mocks):
+        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            expected_url=reverse(EligibilityReviewView.success_url_name, args=(self.gal.pk,))
+        )
+
+
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
 @patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
 class TestEligibilityConfirmationView(BaseTestCase):
@@ -512,34 +561,13 @@ class TestEligibilityConfirmationView(BaseTestCase):
         self.client.post(self.url, content_type='application/x-www-form-urlencoded')
         mocks[0].assert_not_called()
 
-
-@patch.object(
-    BackofficeService,
-    'get_grant_application',
-    side_effect=[
-        FAKE_GRANT_APPLICATION, FAKE_FLATTENED_GRANT_APPLICATION, FAKE_FLATTENED_GRANT_APPLICATION
-    ]
-)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestEligibilityReviewView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:eligibility-review', args=(self.gal.pk,))
-
-    def test_get_template(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, EligibilityReviewView.template_name)
-
-    def test_summary_lists(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('summary_lists', response.context_data)
-
-    def test_post(self, *mocks):
-        self.client.post(self.url, content_type='application/x-www-form-urlencoded')
-        mocks[0].assert_not_called()
+    def test_post_redirects(self, *mocks):
+        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            expected_url=reverse(EligibilityConfirmationView.success_url_name, args=(self.gal.pk,))
+        )
 
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
@@ -563,6 +591,8 @@ class TestAboutYouView(BaseTestCase):
             data=urlencode({
                 'applicant_full_name': 'A Name',
                 'applicant_email': 'test@test.com',
+                'applicant_mobile_number': '+447777777777',
+                'applicant_position_within_business': 'director'
             })
         )
         self.assertEqual(response.status_code, 302)
@@ -571,6 +601,15 @@ class TestAboutYouView(BaseTestCase):
             expected_url=reverse(AboutYouView.success_url_name, kwargs={'pk': self.gal.pk})
         )
 
+    def test_required_fields(self, *mocks):
+        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        self.assertEqual(response.status_code, 200)
+        msg = 'This field is required.'
+        self.assertFormError(response, 'form', 'applicant_full_name', msg)
+        self.assertFormError(response, 'form', 'applicant_email', msg)
+        self.assertFormError(response, 'form', 'applicant_mobile_number', msg)
+        self.assertFormError(response, 'form', 'applicant_position_within_business', msg)
+
     def test_post_data_is_saved(self, *mocks):
         self.client.post(
             self.url,
@@ -578,12 +617,40 @@ class TestAboutYouView(BaseTestCase):
             data=urlencode({
                 'applicant_full_name': 'A Name',
                 'applicant_email': 'test@test.com',
+                'applicant_mobile_number': '07777777777',
+                'applicant_position_within_business': 'director'
             })
         )
         mocks[0].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
             applicant_full_name='A Name',
-            applicant_email='test@test.com'
+            applicant_email='test@test.com',
+            applicant_mobile_number='+447777777777',
+            applicant_position_within_business='director'
+        )
+
+    def test_mobile_must_be_gb_number_international(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'applicant_mobile_number': '+457777777777'})
+        )
+        self.assertFormError(
+            response, 'form', 'applicant_mobile_number',
+            "Enter a valid phone number (e.g. 0121 234 5678) or a number with an international "
+            "call prefix."
+        )
+
+    def test_mobile_must_be_gb_number_national(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'applicant_mobile_number': '2025550154'})
+        )
+        self.assertFormError(
+            response, 'form', 'applicant_mobile_number',
+            "Enter a valid phone number (e.g. 0121 234 5678) or a number with an international "
+            "call prefix."
         )
 
 
