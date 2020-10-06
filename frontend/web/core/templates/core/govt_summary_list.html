@@ -6,10 +6,10 @@
 
   {% for row in summary_list.summary %}
     <div class="govuk-summary-list__row">
-      <dt class="govuk-summary-list__key">{{ row.key }}</dt>
-      <dd class="govuk-summary-list__value">{{ row.value|linebreaks }}</dd>
+      <dt class="govuk-summary-list__key {{ override_classes }}">{{ row.key }}</dt>
+      <dd class="govuk-summary-list__value {{ override_classes }}">{{ row.value|linebreaks }}</dd>
       {% if row.action %}
-      <dd class="govuk-summary-list__actions">
+      <dd class="govuk-summary-list__actions {{ override_classes }}">
         <a class="govuk-link govuk-link--no-visited-state" href="{{ row.action.url }}">
           {{ row.action.text|default:"Change" }}<span class="govuk-visually-hidden"> {{ row.key }}</span>
         </a>

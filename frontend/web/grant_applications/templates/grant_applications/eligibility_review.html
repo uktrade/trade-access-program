@@ -9,7 +9,7 @@
     <h2 class="govuk-heading-l">{{ page.heading }}</h2>
 
     {% for summary_list in summary_lists %}
-      {% include "core/govt_summary_list.html" with summary_list=summary_list class="govuk-summary-list govuk-!-margin-top-9"%}
+      {% include "core/govt_summary_list.html" with summary_list=summary_list class="govuk-summary-list govuk-!-margin-top-9" override_classes="govuk-!-font-weight-regular govuk-!-font-size-16" %}
     {% endfor %}
 
   </div>
