@@ -61,7 +61,9 @@
   <div class="govuk-width-container ">
     {% block breadcrumbs %}{% endblock %}
     <main class="govuk-main-wrapper " id="main-content" role="main">
+        {% block before_content %}{% endblock %}
         {% block content %}{% endblock %}
+        {% block after_content %}{% endblock %}
     </main>
   </div>
 

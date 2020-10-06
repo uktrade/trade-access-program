@@ -1,10 +1,6 @@
 {% extends 'grant_applications/generic_form_page.html' %}
 
-{% block content %}
-  <span class="govuk-caption-l">Check your eligibility</span>
-
-  <h2 class="govuk-heading-l">{{ page.heading }}</h2>
-
+{% block form %}
   <form class="form" method="POST" novalidate>
 
     {% csrf_token %}
@@ -49,11 +45,8 @@
       </fieldset>
     </div>
 
-    <button class="govuk-button" data-module="govuk-button">
-      {{ page.form_button_text | default:"Continue" }}
-    </button>
+    {% include "core/govt_uk_form_button.html" %}
 
   </form>
-
 
 {% endblock %}

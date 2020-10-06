@@ -6,7 +6,19 @@
   {% endif %}
 {% endblock %}
 
+{% block before_content %}{% endblock %}
+
 {% block content %}
-  <h2 class="govuk-heading-l">{{ page.heading }}</h2>
+
+{% block headings %}
+  <span class="govuk-caption-l">{{ page.caption|default:"Tradeshow access program" }}</span>
+  <h2 class="govuk-heading-l">{{ page.heading|default:"Tradeshow access program" }}</h2>
+{% endblock %}
+
+{% block form %}
   {% include "core/govt_uk_form.html" %}
 {% endblock %}
+
+{% endblock %}
+
+{% block after_content %}{% endblock %}

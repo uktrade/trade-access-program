@@ -24,7 +24,8 @@ class SearchCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     back_url_name = 'grant-applications:index'
     success_url_name = 'grant-applications:select-company'
     page = {
-        'heading': _('Search for your company')
+        'heading': _('Search for your company'),
+        'caption': _('Check your eligibility')
     }
 
 
@@ -35,7 +36,8 @@ class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     template_name = 'grant_applications/select_company.html'
     success_url_name = 'grant-applications:previous-applications'
     page = {
-        'heading': _('Select your company')
+        'heading': _('Select your company'),
+        'caption': _('Check your eligibility')
     }
 
     @staticmethod
@@ -58,7 +60,8 @@ class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObj
     back_url_name = 'grant-applications:select-company'
     success_url_name = 'grant_applications:about-the-event'
     page = {
-        'heading': _('Previous TAP grants')
+        'heading': _('Previous TAP grants'),
+        'caption': _('Check your eligibility')
     }
 
     def get_form_kwargs(self):
@@ -81,6 +84,7 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     success_url_name = 'grant_applications:event-finance'
     page = {
         'heading': _('Select an event'),
+        'caption': _('Check your eligibility')
     }
 
     def get_initial(self):
@@ -142,7 +146,8 @@ class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMix
     back_url_name = 'grant-applications:about-the-event'
     success_url_name = 'grant_applications:eligibility-review'
     page = {
-        'heading': _('Event finance')
+        'heading': _('Event finance'),
+        'caption': _('Check your eligibility')
     }
 
     def get_context_data(self, **kwargs):
@@ -164,6 +169,7 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
     success_url_name = 'grant_applications:eligibility-confirmation'
     page = {
         'heading': _('Confirm your answers'),
+        'caption': _('Check your eligibility'),
         'form_button_text': _('Confirm')
     }
 
@@ -268,7 +274,8 @@ class AboutYouView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin, 
     back_url_name = 'grant-applications:about-the-event'
     success_url_name = 'grant_applications:about-you'  # TODO: End user journey here for now
     page = {
-        'heading': _('About you')
+        'heading': _('About you'),
+        'caption': _('Grant application')
     }
 
 

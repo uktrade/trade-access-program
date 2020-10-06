@@ -1,45 +1,38 @@
 {% extends 'grant_applications/generic_form_page.html' %}
 
-{% block content %}
-  <span class="govuk-caption-l">Check your eligibility</span>
-  <h2 class="govuk-heading-l">{{ page.heading }}</h2>
+{% block form %}
 
-      <form class="form" method="POST" novalidate>
+  <form class="form" method="POST" novalidate>
 
-        {% csrf_token %}
+  {% csrf_token %}
 
-        {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
+  {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
 
-        <!-- Filter fields -->
+  <!-- Filter fields -->
 
-        <div class="govuk-grid-row">
-          <div class="govuk-grid-column-one-third">
-            {% include "core/govt_uk_form_field.html" with field=form.filter_by_start_date %}
-          </div>
-          <div class="govuk-grid-column-one-third">
-            {% include "core/govt_uk_form_field.html" with field=form.filter_by_country %}
-          </div>
-          <div class="govuk-grid-column-one-third">
-            {% include "core/govt_uk_form_field.html" with field=form.filter_by_sector %}
-          </div>
-        </div>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-one-third">
+      {% include "core/govt_uk_form_field.html" with field=form.filter_by_start_date %}
+    </div>
+    <div class="govuk-grid-column-one-third">
+      {% include "core/govt_uk_form_field.html" with field=form.filter_by_country %}
+    </div>
+    <div class="govuk-grid-column-one-third">
+      {% include "core/govt_uk_form_field.html" with field=form.filter_by_sector %}
+    </div>
+  </div>
 
-        <div class="govuk-grid-row govuk-!-margin-bottom-2">
-          <div class="govuk-grid-column-full">
+  <div class="govuk-grid-row govuk-!-margin-bottom-2">
+    <div class="govuk-grid-column-full">
+      {% include "core/govt_uk_form_button.html" with button_class="govuk-button govuk-!-margin-right-1" button_name="apply_filters_button" button_text="Apply filters" %}
+      {% include "core/govt_uk_form_button.html" with button_class="govuk-button govuk-button--secondary" button_name="clear_filters_button" button_text="Clear filters" %}
+    </div>
+  </div>
 
-            <button class="govuk-button govuk-!-margin-right-1" name="apply_filters_button" data-module="govuk-button">
-              Apply filters
-            </button>
-            <button class="govuk-button govuk-button--secondary" name="clear_filters_button" data-module="govuk-button">
-              Clear filters
-            </button>
-          </div>
-        </div>
+  <!-- Event select field -->
+  {% include "core/govt_uk_form_field.html" with field=form.event %}
+  {% include "core/govt_uk_form_button.html" with button_text=page.form_button_text %}
 
-        <!-- Event select field -->
-        {% include "core/govt_uk_form_field.html" with field=form.event %}
-        {% include "core/govt_uk_form_button.html" with button_text=page.form_button_text %}
-
-      </form>
+  </form>
 
 {% endblock %}
