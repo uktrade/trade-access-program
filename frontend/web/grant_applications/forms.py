@@ -337,6 +337,7 @@ class BusinessInformationForm(UpdateBackofficeGrantApplicationMixin, forms.Model
     )
     other_business_names = forms.CharField(
         required=False,
+        empty_value=None,
         label=_('Business names'),
         help_text=_(
             'Add any brand or trading names used in addition to the registered company name'
