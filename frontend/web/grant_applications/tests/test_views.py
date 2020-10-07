@@ -692,6 +692,22 @@ class TestBusinessInformationView(BaseTestCase):
             sector=FAKE_SECTOR['id'],
         )
 
+    def test_other_business_names_not_required(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'goods_and_services_description': 'A description',
+                'sector': FAKE_SECTOR['id'],
+            })
+        )
+        self.assertEqual(response.status_code, 302)
+        mocks[0].assert_called_once_with(
+            grant_application_id=str(self.gal.backoffice_grant_application_id),
+            goods_and_services_description='A description',
+            sector=FAKE_SECTOR['id'],
+        )
+
     def test_initial_form_data_from_grant_application_object(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
