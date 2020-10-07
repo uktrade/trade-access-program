@@ -86,6 +86,11 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         'heading': _('Select an event'),
         'caption': _('Check your eligibility')
     }
+    form_button_name = 'form_button'
+    clear_filters_button_name = 'clear_filters_button'
+    apply_filters_button_name = 'apply_filters_button'
+    filter_button_names = [clear_filters_button_name, apply_filters_button_name]
+    button_names = filter_button_names + [form_button_name]
 
     def get_initial(self):
         initial = super().get_initial()
@@ -93,10 +98,10 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
             initial['event'] = self.backoffice_grant_application['event']['id']
         return initial
 
-    def _get_form_button_name(self):
-        has_form_button_name = [i for i in self.request.POST if '_button' in i]
-        if has_form_button_name:
-            return has_form_button_name[0]
+    def _get_button_name(self):
+        has_button_name = set(self.request.POST) & set(self.button_names)
+        if has_button_name:
+            return has_button_name.pop()
 
     def get_form(self, form_class=None):
         if self.request.method == 'GET':
@@ -107,14 +112,14 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
 
         form_kwargs = self.get_form_kwargs()
 
-        if self.form_button_name == 'form_button':
+        if self.button_name == self.form_button_name:
             return form_class(**form_kwargs)
-        elif self.form_button_name == 'apply_filters_button':
-            form_kwargs['initial'] = {}
+        elif self.button_name == self.apply_filters_button_name:
+            form_kwargs['initial'] = {}  # remove initial event data when filters are applied
             form_kwargs['data'] = form_kwargs['data'].copy()
-            form_kwargs['data'].pop('event', None)
+            form_kwargs['data'].pop('event', None)  # remove selected event data
             return form_class(**form_kwargs)
-        elif self.form_button_name == 'clear_filters_button':
+        elif self.button_name == self.clear_filters_button_name:
             form_kwargs['data'] = {}
             return form_class(**form_kwargs)
 
@@ -123,10 +128,10 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         return form
 
     def form_valid(self, form):
-        if self.form_button_name == 'form_button':
+        if self.button_name == self.form_button_name:
             # If button name is "form_button" then we submit the form and redirect
             return super().form_valid(form)
-        elif self.form_button_name in ['apply_filters_button', 'clear_filters_button']:
+        elif self.button_name in self.filter_button_names:
             # If button name is "*_filter_button" then we apply filters and redisplay the form
             return self.render_to_response(self.get_context_data(form=form))
 
@@ -134,7 +139,7 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         raise forms.ValidationError('Form button name required.')
 
     def post(self, request, *args, **kwargs):
-        self.form_button_name = self._get_form_button_name()
+        self.button_name = self._get_button_name()
         return super(AboutTheEventView, self).post(request, *args, **kwargs)
 
 
