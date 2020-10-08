@@ -35,6 +35,8 @@ class GrantApplication(BaseMetaModel):
         OTHER = 'other', _('Other')
 
     search_term = models.CharField(max_length=500)
+    is_based_in_uk = models.BooleanField(null=True)
+    is_turnover_greater_than = models.BooleanField(null=True)
     company = models.ForeignKey('companies.Company', on_delete=PROTECT, null=True)
     applicant_full_name = models.CharField(null=True, max_length=500)
     applicant_email = models.EmailField(null=True)

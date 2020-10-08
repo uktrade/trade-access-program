@@ -123,18 +123,13 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
             status=201,
             body=self.bga_response_body
         )
-        bga = self.service.create_grant_application(
-            company_id=self.company['id'], search_term='search-term'
-        )
+        bga = self.service.create_grant_application(search_term='search-term')
         self.assertEqual(bga['id'], self.bga['id'])
 
         requests = httpretty.latest_requests()
         self.assertEqual(len(requests), 1)
         self.assertEqual(requests[0].method, 'POST')
-        self.assertDictEqual(
-            requests[0].parsed_body,
-            {'company': self.company['id'], 'search_term': 'search-term'}
-        )
+        self.assertDictEqual(requests[0].parsed_body, {'search_term': 'search-term'})
 
     @httpretty.activate
     def test_update_grant_application(self):

@@ -1,5 +1,5 @@
 {% extends 'grant_applications/generic_form_page.html' %}
 
 {% block after_content %}
-  <a href="#" class="govuk-link govuk-link--no-visited-state">My details are not listed</a>
+  <a href="{% url 'grant-applications:business-details' pk=grantapplicationlink.pk %}" id="id_details_not_listed" class="govuk-link govuk-link--no-visited-state">My details are not listed</a>
 {% endblock %}

@@ -73,17 +73,15 @@ class BackofficeService:
         if companies and len(companies) == 1:
             company = companies[0]
         elif companies and len(companies) != 1:
+            logger.error('Too many companies')
             raise BackofficeServiceException('Too many companies')
         else:
             company = self.create_company(duns_number=duns_number, name=name)
 
         return company
 
-    def create_grant_application(self, company_id, search_term):
-        response = self.session.post(
-            self.grant_applications_url,
-            json={'company': company_id, 'search_term': search_term}
-        )
+    def create_grant_application(self, search_term):
+        response = self.session.post(self.grant_applications_url, json={'search_term': search_term})
         return response.json()
 
     def update_grant_application(self, grant_application_id, **data):

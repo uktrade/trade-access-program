@@ -26,6 +26,8 @@ class GrantApplicationsApiTests(BaseAPITestCase):
             data_contains={
                 'id': ga.id_str,
                 'search_term': ga.search_term,
+                'is_based_in_uk': ga.is_based_in_uk,
+                'is_turnover_greater_than': ga.is_turnover_greater_than,
                 'company': {
                     'id': ga.company.id_str,
                     'duns_number': ga.company.duns_number,
@@ -135,16 +137,15 @@ class GrantApplicationsApiTests(BaseAPITestCase):
 
     def test_on_create_all_optional_fields_are_none(self, *mocks):
         path = reverse('grant-applications-list')
-        company = CompanyFactory()
-        response = self.client.post(
-            path, data={'company': company.id, 'search_term': 'company-1'}
-        )
+        response = self.client.post(path, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, HTTP_201_CREATED, msg=response.data)
         self.assert_response_data_contains(
             response,
             data_contains={
                 'search_term': 'company-1',
-                'company': company.id,
+                'is_based_in_uk': None,
+                'is_turnover_greater_than': None,
+                'company': None,
                 'applicant_full_name': None,
                 'applicant_email': None,
                 'applicant_mobile_number': None,
