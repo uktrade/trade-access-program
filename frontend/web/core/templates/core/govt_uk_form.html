@@ -2,7 +2,9 @@
   {% csrf_token %}
   {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
   {% for field in form %}
-    {% include "core/govt_uk_form_field.html" with field=field %}
+    {% if not field.is_hidden %}
+      {% include "core/govt_uk_form_field.html" with field=field %}
+    {% endif %}
   {% endfor %}
   {% include "core/govt_uk_form_button.html" with button_class=button_class button_name=button_name button_text=page.form_button_text %}
 </form>

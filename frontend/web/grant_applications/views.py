@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from django import forms
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -7,7 +9,8 @@ from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin, Back
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, AboutYouForm, AboutTheEventForm, PreviousApplicationsForm,
     EventIntentionForm, BusinessInformationForm, ExportExperienceForm, StateAidForm,
-    ApplicationReviewForm, EligibilityReviewForm, EventFinanceForm, EligibilityConfirmationForm
+    ApplicationReviewForm, EligibilityReviewForm, EventFinanceForm, EligibilityConfirmationForm,
+    BusinessDetailsForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -46,9 +49,24 @@ class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
 
     def get_initial(self):
         initial = super().get_initial()
-        if hasattr(self, 'backoffice_grant_application'):
+        if hasattr(self, 'backoffice_grant_application') \
+                and self.backoffice_grant_application['company']:
             initial['duns_number'] = self.backoffice_grant_application['company']['duns_number']
         return initial
+
+
+class BusinessDetailsView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
+                          BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                          UpdateView):
+    model = GrantApplicationLink
+    form_class = BusinessDetailsForm
+    template_name = 'grant_applications/business_details.html'
+    back_url_name = 'grant-applications:select-company'
+    success_url_name = 'grant_applications:previous-applications'
+    page = {
+        'heading': _('Your company details'),
+        'caption': _('Check your eligibility')
+    }
 
 
 class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
@@ -57,12 +75,16 @@ class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObj
     model = GrantApplicationLink
     form_class = PreviousApplicationsForm
     template_name = 'grant_applications/previous_applications.html'
-    back_url_name = 'grant-applications:select-company'
     success_url_name = 'grant_applications:about-the-event'
     page = {
         'heading': _('Previous TAP grants'),
         'caption': _('Check your eligibility')
     }
+
+    def get_back_url(self):
+        if 'Referer' in self.request.headers:
+            return urlparse(self.request.headers['Referer']).path
+        return reverse('grant-applications:select-company', args=(self.object.pk,))
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

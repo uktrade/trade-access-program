@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.core.validators import MinValueValidator
+from django.db.models import TextChoices
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
@@ -34,6 +35,23 @@ class SearchCompanyForm(forms.ModelForm):
         )
     )
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data:
+            try:
+                self.backoffice_grant_application = BackofficeService().create_grant_application(
+                    search_term=cleaned_data['search_term']
+                )
+            except BackofficeServiceException:
+                raise forms.ValidationError(
+                    'An unexpected error occurred. Please resubmit the form.'
+                )
+        return cleaned_data
+
+    def save(self, *args, **kwargs):
+        self.instance.backoffice_grant_application_id = self.backoffice_grant_application['id']
+        return super().save(*args, **kwargs)
+
 
 class SelectCompanyForm(forms.ModelForm):
 
@@ -56,15 +74,10 @@ class SelectCompanyForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         if cleaned_data:
-            service = BackofficeService()
             try:
-                company = service.get_or_create_company(
+                self.company = BackofficeService().get_or_create_company(
                     duns_number=self.cleaned_data['duns_number'],
                     name=dict(self.fields['duns_number'].choices)[self.cleaned_data['duns_number']]
-                )
-                self.backoffice_grant_application = service.create_grant_application(
-                    company_id=company['id'],
-                    search_term=self.instance.search_term
                 )
             except BackofficeServiceException:
                 raise forms.ValidationError(
@@ -73,7 +86,53 @@ class SelectCompanyForm(forms.ModelForm):
         return cleaned_data
 
     def save(self, *args, **kwargs):
-        self.instance.backoffice_grant_application_id = self.backoffice_grant_application['id']
+        BackofficeService().update_grant_application(
+            grant_application_id=str(self.instance.backoffice_grant_application_id),
+            company=self.company['id'],
+            # Set manual company details to None in case they have previously been set
+            is_based_in_uk=None,
+            number_of_employees=None,
+            is_turnover_greater_than=None
+        )
+        return super().save(*args, **kwargs)
+
+
+class BusinessDetailsForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = ['is_based_in_uk', 'number_of_employees', 'is_turnover_greater_than']
+
+    class NumberOfEmployees(TextChoices):
+        HAS_FEWER_THAN_10 = 'fewer-than-10', _('Fewer than 10')
+        HAS_10_TO_49 = '10-to-49', _('10 to 49')
+        HAS_50_TO_249 = '50-to-249', _('50 to 249')
+        HAS_250_OR_MORE = '250-or-more', _('250 or More')
+
+    is_based_in_uk = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_('Is your business based in the UK?')
+    )
+    number_of_employees = forms.ChoiceField(
+        choices=NumberOfEmployees.choices,
+        widget=widgets.RadioSelect(),
+        label=_('How many employees are currently on your payroll in the UK, across all sites?')
+    )
+    is_turnover_greater_than = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_(
+            'Was your turnover in the last fiscal year greater than €50m or your balance sheet '
+            '(or Statement of Financial Position) greater than €43m?'
+        )
+    )
+
+    def save(self, *args, **kwargs):
+        # Set company to None in case it has been set previously
+        kwargs['grant_application_data'] = {'company': None}
         return super().save(*args, **kwargs)
 
 

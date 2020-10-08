@@ -5,6 +5,9 @@ from testfixtures import LogCapture
 
 
 class BaseTestCase(TestCase):
+    errors = {
+        'required': 'This field is required.'
+    }
 
     def set_session_value(self, key, value):
         s = self.client.session

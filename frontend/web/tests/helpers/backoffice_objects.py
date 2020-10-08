@@ -35,8 +35,8 @@ FAKE_GRANT_APPLICATION = {
     },
     'company': {
         'id': '0dc205e4-1f11-4a81-90a6-f7a733da055e',
-        'duns_number': 1,
-        'name': 'ABC',
+        'duns_number': 1234,
+        'name': 'Company 1',
         'previous_applications': 1,
         'applications_in_review': 1,
         'last_dnb_get_company_response': {
@@ -65,7 +65,7 @@ FAKE_GRANT_APPLICATION = {
 
 FAKE_FLATTENED_GRANT_APPLICATION = FAKE_GRANT_APPLICATION.copy()
 FAKE_FLATTENED_GRANT_APPLICATION['event'] = 'Event 1'
-FAKE_FLATTENED_GRANT_APPLICATION['company'] = 'ABC'
+FAKE_FLATTENED_GRANT_APPLICATION['company'] = 'Company 1'
 FAKE_FLATTENED_GRANT_APPLICATION['duns_number'] = 1
 FAKE_FLATTENED_GRANT_APPLICATION['sector'] = 'Sector 1'
 FAKE_FLATTENED_GRANT_APPLICATION['grant_management_process'] = \
@@ -82,12 +82,11 @@ FAKE_GRANT_MANAGEMENT_PROCESS = {
 FAKE_COMPANY = {
     'id': '0dc205e4-1f11-4a81-90a6-f7a733da055e',
     'duns_number': 1234,
-    'name': 'ABC'
+    'name': 'Company 1'
 }
 
 FAKE_SEARCH_COMPANIES = [
-    {'duns_number': '1', 'primary_name': 'Company 1'},
-    {'duns_number': '2', 'primary_name': 'Company 2'}
+    {'duns_number': '1234', 'primary_name': 'Company 1'}
 ]
 
 FAKE_EVENT = {
