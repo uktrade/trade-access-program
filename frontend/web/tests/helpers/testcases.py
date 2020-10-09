@@ -3,11 +3,11 @@ import logging
 from django.test import TestCase
 from testfixtures import LogCapture
 
+from web.core.forms import FORM_MSGS
+
 
 class BaseTestCase(TestCase):
-    errors = {
-        'required': 'This field is required.'
-    }
+    form_msgs = FORM_MSGS
 
     def set_session_value(self, key, value):
         s = self.client.session

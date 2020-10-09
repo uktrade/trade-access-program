@@ -49,7 +49,7 @@ class TestSearchCompanyView(BaseTestCase):
 
     def test_search_term_required(self, *mocks):
         response = self.client.post(self.url)
-        self.assertFormError(response, 'form', 'search_term', self.errors['required'])
+        self.assertFormError(response, 'form', 'search_term', self.form_msgs['required'])
 
     def test_search_company_saves_search_term(self, *mocks):
         response = self.client.post(self.url, data={'search_term': 'company-1'})
@@ -71,9 +71,7 @@ class TestSearchCompanyView(BaseTestCase):
         response = self.client.post(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
         mocks[0].assert_called_once_with(search_term='company-1')
-        self.assertFormError(
-            response, 'form', None, 'An unexpected error occurred. Please resubmit the form.'
-        )
+        self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])
 
     def test_search_company_post_form_redirect_path(self, *mocks):
         response = self.client.post(self.url, data={'search_term': 'company-1'})
@@ -133,7 +131,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
 
     def test_post_required_fields(self, *mocks):
         response = self.client.post(self.url)
-        self.assertFormError(response, 'form', 'duns_number', self.errors['required'])
+        self.assertFormError(response, 'form', 'duns_number', self.form_msgs['required'])
 
     def test_post_form_redirect_path(self, *mocks):
         response = self.client.post(
@@ -183,9 +181,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         )
 
         # This means there is a problem in the backoffice api
-        self.assertFormError(
-            response, 'form', None, 'An unexpected error occurred. Please resubmit the form.'
-        )
+        self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])
 
         m_create_company.assert_not_called()
         self.log_capture.check_present(
@@ -199,9 +195,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
             data={'duns_number': FAKE_GRANT_APPLICATION['company']['duns_number']},
             follow=True
         )
-        self.assertFormError(
-            response, 'form', None, 'An unexpected error occurred. Please resubmit the form.'
-        )
+        self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])
 
     def test_post_updates_backoffice_grant_application_company(self, m_search_companies,
                                                                m_update_grant_application,
@@ -290,9 +284,11 @@ class TestBusinessDetailsView(BaseTestCase):
 
     def test_required_fields(self, *mocks):
         response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
-        self.assertFormError(response, 'form', 'is_based_in_uk', self.errors['required'])
-        self.assertFormError(response, 'form', 'number_of_employees', self.errors['required'])
-        self.assertFormError(response, 'form', 'is_turnover_greater_than', self.errors['required'])
+        self.assertFormError(response, 'form', 'is_based_in_uk', self.form_msgs['required'])
+        self.assertFormError(response, 'form', 'number_of_employees', self.form_msgs['required'])
+        self.assertFormError(
+            response, 'form', 'is_turnover_greater_than', self.form_msgs['required']
+        )
 
 
 @patch.object(BackofficeService, 'search_companies', return_value=FAKE_SEARCH_COMPANIES)
@@ -358,20 +354,27 @@ class TestPreviousApplicationsView(BaseTestCase):
             previous_applications=FAKE_GRANT_APPLICATION['previous_applications']
         )
 
-    def test_true_has_previously_applied_gives_0_previous_applications(self, *mocks):
+    def test_false_for_has_previously_applied_makes_previous_applications_optional(self, *mocks):
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'has_previously_applied': True,
-            })
+            data=urlencode({'has_previously_applied': False})
         )
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
-            has_previously_applied=True,
-            previous_applications=0
+            has_previously_applied=False,
+            previous_applications=None
         )
+
+    def test_true_for_has_previously_applied_makes_previous_applications_required(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'has_previously_applied': True})
+        )
+        self.assertFormError(response, 'form', 'previous_applications', self.form_msgs['required'])
+        mocks[0].assert_not_called()
 
     def test_boolean_field_must_be_present(self, *mocks):
         response = self.client.post(
@@ -379,7 +382,7 @@ class TestPreviousApplicationsView(BaseTestCase):
             content_type='application/x-www-form-urlencoded',
             data=urlencode({'event': 1})
         )
-        self.assertFormError(response, 'form', 'has_previously_applied', self.errors['required'])
+        self.assertFormError(response, 'form', 'has_previously_applied', self.form_msgs['required'])
 
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
@@ -508,7 +511,7 @@ class TestAboutTheEventView(BaseTestCase):
             content_type='application/x-www-form-urlencoded',
             data=urlencode({'form_button': ''})
         )
-        self.assertFormError(response, 'form', 'event', self.errors['required'])
+        self.assertFormError(response, 'form', 'event', self.form_msgs['required'])
 
     def test_event_not_required_on_apply_filter_button_submit(self, *mocks):
         response = self.client.post(
@@ -592,13 +595,13 @@ class TestEventFinanceView(BaseTestCase):
     def test_boolean_fields_must_be_present(self, *mocks):
         response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
         self.assertFormError(
-            response, 'form', 'is_already_committed_to_event', self.errors['required']
+            response, 'form', 'is_already_committed_to_event', self.form_msgs['required']
         )
         self.assertFormError(
-            response, 'form', 'is_intending_on_other_financial_support', self.errors['required']
+            response, 'form', 'is_intending_on_other_financial_support', self.form_msgs['required']
         )
         self.assertFormError(
-            response, 'form', 'has_received_de_minimis_aid', self.errors['required']
+            response, 'form', 'has_received_de_minimis_aid', self.form_msgs['required']
         )
 
 
@@ -885,7 +888,7 @@ class TestEventIntentionView(BaseTestCase):
             number_of_times_exhibited_at_event=1
         )
 
-    def test_true_is_first_exhibit_at_event_gives_0_number_of_times_exhibited(self, *mocks):
+    def test_true_is_first_exhibit_at_event_makes_number_of_times_exhibited_optional(self, *mocks):
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
@@ -897,8 +900,19 @@ class TestEventIntentionView(BaseTestCase):
         mocks[0].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
             is_first_exhibit_at_event=True,
-            number_of_times_exhibited_at_event=0
+            number_of_times_exhibited_at_event=None
         )
+
+    def test_false_is_first_exhibit_at_event_makes_number_of_times_exhibited_required(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'is_first_exhibit_at_event': False})
+        )
+        self.assertFormError(
+            response, 'form', 'number_of_times_exhibited_at_event', self.form_msgs['required']
+        )
+        mocks[0].assert_not_called()
 
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
@@ -997,7 +1011,7 @@ class TestStateAidView(BaseTestCase):
             data=urlencode({'has_received_de_minimis_aid': True})
         )
         self.assertEqual(response.status_code, 200)
-        msg = self.errors['required']
+        msg = self.form_msgs['required']
         self.assertFormError(response, 'form', 'de_minimis_aid_public_authority', msg)
         self.assertFormError(response, 'form', 'de_minimis_aid_date_awarded', msg)
         self.assertFormError(response, 'form', 'de_minimis_aid_amount', msg)
@@ -1066,9 +1080,7 @@ class TestApplicationReviewView(BaseTestCase):
         mocks[3].side_effect = [BackofficeServiceException]
         self.client.get(self.url)
         response = self.client.post(self.url, follow=True)
-        self.assertFormError(
-            response, 'form', None, 'An unexpected error occurred. Please resubmit the form.'
-        )
+        self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])
         self.gal.refresh_from_db()
         self.assertFalse(self.gal.sent_for_review)
 
