@@ -27,7 +27,7 @@ urlpatterns = [
     # eg. node_modules/govuk-frontend/govuk/helpers/_font-faces.scss
     path(
         "assets/<path:asset_path>",
-        RedirectView.as_view(url='/static/govuk/assets/%(asset_path)s'),
+        RedirectView.as_view(url='/static/govuk-frontend/govuk/assets/%(asset_path)s'),
     ),
 
     path('admin/', admin.site.urls),

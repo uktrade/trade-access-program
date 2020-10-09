@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@hmcts/frontend": "0.0.41-alpha",
+    "accessible-autocomplete": "^2.0.3",
     "govuk-frontend": "^3.9.1"
   }
 }
