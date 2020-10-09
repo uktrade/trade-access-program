@@ -86,16 +86,6 @@ class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObj
             return urlparse(self.request.headers['Referer']).path
         return reverse('grant-applications:select-company', args=(self.object.pk,))
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        if self.request.method in ('POST', 'PUT'):
-            if kwargs['data'].get('has_previously_applied') == 'True':
-                kwargs['data'] = {
-                    'has_previously_applied': True,
-                    'previous_applications': 0
-                }
-        return kwargs
-
 
 class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
@@ -349,16 +339,6 @@ class EventIntentionView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkM
             event_name=self.backoffice_grant_application['event']['name']
         )
         return context
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        if self.request.method in ('POST', 'PUT'):
-            if kwargs['data'].get('is_first_exhibit_at_event') == 'True':
-                kwargs['data'] = {
-                    'is_first_exhibit_at_event': True,
-                    'number_of_times_exhibited_at_event': 0
-                }
-        return kwargs
 
 
 class ExportExperienceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,

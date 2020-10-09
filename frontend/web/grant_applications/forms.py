@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
 from web.core import widgets
-from web.core.form_fields import MaxAllowedCharField
+from web.core.forms import MaxAllowedCharField, FORM_MSGS
 from web.core.utils import str_to_bool
 from web.grant_applications.form_mixins import (
     UpdateBackofficeGrantApplicationMixin, FormatLabelMixin
@@ -43,9 +43,7 @@ class SearchCompanyForm(forms.ModelForm):
                     search_term=cleaned_data['search_term']
                 )
             except BackofficeServiceException:
-                raise forms.ValidationError(
-                    'An unexpected error occurred. Please resubmit the form.'
-                )
+                self.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))
         return cleaned_data
 
     def save(self, *args, **kwargs):
@@ -80,9 +78,7 @@ class SelectCompanyForm(forms.ModelForm):
                     name=dict(self.fields['duns_number'].choices)[self.cleaned_data['duns_number']]
                 )
             except BackofficeServiceException:
-                raise forms.ValidationError(
-                    'An unexpected error occurred. Please resubmit the form.'
-                )
+                self.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))
         return cleaned_data
 
     def save(self, *args, **kwargs):
@@ -150,11 +146,23 @@ class PreviousApplicationsForm(UpdateBackofficeGrantApplicationMixin, forms.Mode
     )
 
     previous_applications = forms.TypedChoiceField(
+        required=False,
+        empty_value=None,
         coerce=int,
         choices=[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, '6 or more')],
         widget=widgets.RadioSelect(),
         label=_('How many TAP grants have you received since 1 April 2009?'),
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        has_previously_applied = cleaned_data.get('has_previously_applied')
+        previous_applications = cleaned_data.get('previous_applications')
+        if has_previously_applied and previous_applications is None:
+            self.add_error(
+                'previous_applications', forms.ValidationError(FORM_MSGS['required'])
+            )
+        return cleaned_data
 
 
 class EligibilityReviewForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
@@ -236,7 +244,7 @@ class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
         event = cleaned_data.get('event')
 
         if 'form_button' in self.data and not event:
-            self.add_error('event', forms.ValidationError('This field is required.'))
+            self.add_error('event', forms.ValidationError(FORM_MSGS['required']))
 
 
 class EventFinanceForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, forms.ModelForm):
@@ -357,6 +365,7 @@ class EventIntentionForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin
     )
 
     number_of_times_exhibited_at_event = forms.IntegerField(
+        required=False,
         min_value=0,
         label=_("How many times have you exhibited at this {event_name} previously?"),
         widget=forms.NumberInput(
@@ -367,6 +376,17 @@ class EventIntentionForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin
     def format_field_labels(self):
         self.format_label('is_first_exhibit_at_event', event_name=self.data['event'])
         self.format_label('number_of_times_exhibited_at_event', event_name=self.data['event'])
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_first_exhibit_at_event = cleaned_data.get('is_first_exhibit_at_event')
+        number_of_times_exhibited_at_event = cleaned_data.get('number_of_times_exhibited_at_event')
+        if not is_first_exhibit_at_event and number_of_times_exhibited_at_event is None:
+            self.add_error(
+                'number_of_times_exhibited_at_event',
+                forms.ValidationError(FORM_MSGS['required'])
+            )
+        return cleaned_data
 
 
 class BusinessInformationForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
@@ -520,7 +540,7 @@ class StateAidForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
         """Used for conditionally marking many fields as required."""
         for field in fields:
             if cleaned_data.get(field) is None:
-                msg = forms.ValidationError('This field is required.')
+                msg = forms.ValidationError(FORM_MSGS['required'])
                 self.add_error(field, msg)
         return cleaned_data
 
