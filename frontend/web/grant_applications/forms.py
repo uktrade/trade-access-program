@@ -207,35 +207,27 @@ class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
         required=False,
         label=_('Filter by date'),
         widget=forms.Select(
-            attrs={
-                'class': 'govuk-select govuk-grid-column-full',
-            }
+            attrs={'class': 'govuk-select govuk-grid-column-full'}
         )
     )
     filter_by_country = forms.ChoiceField(
         required=False,
         label=_('Filter by location'),
         widget=forms.Select(
-            attrs={
-                'class': 'govuk-select govuk-grid-column-full',
-            }
+            attrs={'class': 'govuk-select govuk-grid-column-full'}
         )
     )
     filter_by_sector = forms.ChoiceField(
         required=False,
         widget=forms.Select(
-            attrs={
-                'class': 'govuk-select govuk-grid-column-full',
-            }
+            attrs={'class': 'govuk-select govuk-grid-column-full'}
         )
     )
     event = forms.ChoiceField(
         required=False,
         label=_('What event are you intending to exhibit at'),
-        widget=forms.Select(
-            attrs={
-                'class': 'govuk-select govuk-!-width-two-thirds',
-            }
+        widget=widgets.AutocompleteSelect(
+            attrs={'class': 'govuk-select govuk-!-width-two-thirds'}
         ),
     )
 
