@@ -354,34 +354,46 @@ class TestPreviousApplicationsView(BaseTestCase):
             previous_applications=FAKE_GRANT_APPLICATION['previous_applications']
         )
 
-    def test_false_for_has_previously_applied_makes_previous_applications_optional(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'has_previously_applied': False})
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            has_previously_applied=False,
-            previous_applications=None
-        )
-
-    def test_true_for_has_previously_applied_makes_previous_applications_required(self, *mocks):
+    def test_true_for_has_previously_applied_makes_previous_applications_None(self, *mocks):
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
             data=urlencode({'has_previously_applied': True})
         )
+        self.assertEqual(response.status_code, 302)
+        mocks[0].assert_called_once_with(
+            grant_application_id=str(self.gal.backoffice_grant_application_id),
+            has_previously_applied=True,
+            previous_applications=None
+        )
+
+    def test_null_out_previous_applications_when_has_previously_applied_true(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({
+                'has_previously_applied': True,
+                'previous_applications': 2
+            })
+        )
+        self.assertEqual(response.status_code, 302)
+        mocks[0].assert_called_once_with(
+            grant_application_id=str(self.gal.backoffice_grant_application_id),
+            has_previously_applied=True,
+            previous_applications=None
+        )
+
+    def test_false_for_has_previously_applied_makes_previous_applications_required(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'has_previously_applied': False})
+        )
         self.assertFormError(response, 'form', 'previous_applications', self.form_msgs['required'])
         mocks[0].assert_not_called()
 
     def test_boolean_field_must_be_present(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'event': 1})
-        )
+        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
         self.assertFormError(response, 'form', 'has_previously_applied', self.form_msgs['required'])
 
 
