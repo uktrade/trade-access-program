@@ -2,9 +2,8 @@
 
 {% block form %}
   <form class="form" method="POST" novalidate>
-
     {% csrf_token %}
-
+    {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
     <div class="govuk-form-group{% if form.has_previously_applied.errors %} govuk-form-group--error{% endif %}">
 
       {% include "core/govt_uk_form_field_label.html" with field=form.has_previously_applied %}

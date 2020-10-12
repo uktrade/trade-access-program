@@ -158,10 +158,12 @@ class PreviousApplicationsForm(UpdateBackofficeGrantApplicationMixin, forms.Mode
         cleaned_data = super().clean()
         has_previously_applied = cleaned_data.get('has_previously_applied')
         previous_applications = cleaned_data.get('previous_applications')
-        if has_previously_applied and previous_applications is None:
+        if not has_previously_applied and previous_applications is None:
             self.add_error(
                 'previous_applications', forms.ValidationError(FORM_MSGS['required'])
             )
+        if has_previously_applied and previous_applications is not None:
+            cleaned_data['previous_applications'] = None
         return cleaned_data
 
 
@@ -341,46 +343,6 @@ class AboutYouForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
         return cleaned_data
 
 
-class EventIntentionForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, forms.ModelForm):
-
-    class Meta:
-        model = GrantApplicationLink
-        fields = [
-            'is_first_exhibit_at_event', 'number_of_times_exhibited_at_event',
-        ]
-
-    is_first_exhibit_at_event = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_("Is this the first time you intend to exhibit at {event_name}?")
-    )
-
-    number_of_times_exhibited_at_event = forms.IntegerField(
-        required=False,
-        min_value=0,
-        label=_("How many times have you exhibited at this {event_name} previously?"),
-        widget=forms.NumberInput(
-            attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
-        )
-    )
-
-    def format_field_labels(self):
-        self.format_label('is_first_exhibit_at_event', event_name=self.data['event'])
-        self.format_label('number_of_times_exhibited_at_event', event_name=self.data['event'])
-
-    def clean(self):
-        cleaned_data = super().clean()
-        is_first_exhibit_at_event = cleaned_data.get('is_first_exhibit_at_event')
-        number_of_times_exhibited_at_event = cleaned_data.get('number_of_times_exhibited_at_event')
-        if not is_first_exhibit_at_event and number_of_times_exhibited_at_event is None:
-            self.add_error(
-                'number_of_times_exhibited_at_event',
-                forms.ValidationError(FORM_MSGS['required'])
-            )
-        return cleaned_data
-
-
 class BusinessInformationForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
 
     class Meta:
@@ -426,6 +388,47 @@ class BusinessInformationForm(UpdateBackofficeGrantApplicationMixin, forms.Model
             attrs={'class': 'govuk-select govuk-!-width-two-thirds'}
         )
     )
+
+
+class EventIntentionForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = [
+            'is_first_exhibit_at_event', 'number_of_times_exhibited_at_event',
+        ]
+
+    is_first_exhibit_at_event = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_("Is this the first time you intend to exhibit at {event_name}?")
+    )
+
+    number_of_times_exhibited_at_event = forms.IntegerField(
+        required=False,
+        min_value=0,
+        label=_("How many times have you exhibited at this {event_name} previously?"),
+        widget=forms.NumberInput(
+            attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
+        )
+    )
+
+    def format_field_labels(self):
+        self.format_label('is_first_exhibit_at_event', event_name=self.data['event'])
+        self.format_label('number_of_times_exhibited_at_event', event_name=self.data['event'])
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_first_exhibit_at_event = cleaned_data.get('is_first_exhibit_at_event')
+        number_of_times_exhibited_at_event = cleaned_data.get('number_of_times_exhibited_at_event')
+
+        if not is_first_exhibit_at_event and number_of_times_exhibited_at_event is None:
+            self.add_error(
+                'number_of_times_exhibited_at_event',
+                forms.ValidationError(FORM_MSGS['required'])
+            )
+        return cleaned_data
 
 
 class ExportExperienceForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
