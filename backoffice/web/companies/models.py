@@ -5,7 +5,8 @@ from web.core.abstract_models import BaseMetaModel
 
 
 class Company(BaseMetaModel):
-    duns_number = models.IntegerField(unique=True)
+    duns_number = models.CharField(unique=True, max_length=20)
+    registration_number = models.CharField(unique=True, max_length=20)
     name = models.CharField(max_length=500)
 
     class Meta:
@@ -20,11 +21,11 @@ class DnbGetCompanyResponse(BaseMetaModel):
     company = models.ForeignKey(
         Company, on_delete=PROTECT, null=True, related_name='dnb_get_company_responses'
     )
-    data = models.JSONField()
+    dnb_data = models.JSONField()
 
     @property
-    def company_registration_number(self):
-        registration_numbers = self.data.get('registration_numbers') or []
+    def registration_number(self):
+        registration_numbers = self.dnb_data.get('registration_numbers') or []
         reg_number_list = [
             r for r in registration_numbers
             if r['registration_type'] == 'uk_companies_house_number'
@@ -35,5 +36,5 @@ class DnbGetCompanyResponse(BaseMetaModel):
     @property
     def company_address(self):
         return ', '.join(
-            [v for k, v in self.data.items() if k.startswith('address_') and v]
+            [v for k, v in self.dnb_data.items() if k.startswith('address_') and v]
         ) or None

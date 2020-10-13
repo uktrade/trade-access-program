@@ -18,7 +18,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
 
     def test_get_grant_application_detail(self, *mocks):
         ga = GrantApplicationFactory()
-        path = reverse('grant-applications-detail', args=(ga.id,))
+        path = reverse('grant-applications:grant-applications-detail', args=(ga.id,))
         response = self.client.get(path)
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assert_response_data_contains(
@@ -31,13 +31,14 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                 'company': {
                     'id': ga.company.id_str,
                     'duns_number': ga.company.duns_number,
+                    'registration_number': ga.company.registration_number,
                     'name': ga.company.name,
                     'last_dnb_get_company_response': {
                         'id': ga.company.last_dnb_get_company_response.id_str,
-                        'data': ga.company.last_dnb_get_company_response.data,
+                        'dnb_data': ga.company.last_dnb_get_company_response.dnb_data,
                         'company_address': ga.company.last_dnb_get_company_response.company_address,
-                        'company_registration_number':
-                            ga.company.last_dnb_get_company_response.company_registration_number
+                        'registration_number':
+                            ga.company.last_dnb_get_company_response.registration_number
                     },
                     'previous_applications': 0,
                     'applications_in_review': 0,
@@ -92,7 +93,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
 
     def test_list_grant_applications(self, *mocks):
         gas = GrantApplicationFactory.create_batch(size=3)
-        path = reverse('grant-applications-list')
+        path = reverse('grant-applications:grant-applications-list')
         response = self.client.get(path=path)
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assert_response_data_contains(
@@ -123,20 +124,20 @@ class GrantApplicationsApiTests(BaseAPITestCase):
 
         # Create a new grant application
         ga = GrantApplicationFactory(company=company)
-        path = reverse('grant-applications-detail', args=(ga.id,))
+        path = reverse('grant-applications:grant-applications-detail', args=(ga.id,))
 
         response = self.client.get(path)
         self.assertEqual(response.data['company']['previous_applications'], 2)
         self.assertEqual(response.data['company']['applications_in_review'], 1)
 
     def test_create_new_grant_application(self, *mocks):
-        path = reverse('grant-applications-list')
+        path = reverse('grant-applications:grant-applications-list')
         response = self.client.post(path, {'search_term': 'company-1'})
         self.assertEqual(response.status_code, HTTP_201_CREATED, msg=response.data)
         self.assert_response_data_contains(response, data_contains={'search_term': 'company-1'})
 
     def test_on_create_all_optional_fields_are_none(self, *mocks):
-        path = reverse('grant-applications-list')
+        path = reverse('grant-applications:grant-applications-list')
         response = self.client.post(path, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, HTTP_201_CREATED, msg=response.data)
         self.assert_response_data_contains(
@@ -179,26 +180,26 @@ class GrantApplicationsApiTests(BaseAPITestCase):
         )
 
     def test_new_grant_application_refreshes_dnb_company_data(self, *mocks):
-        path = reverse('grant-applications-list')
+        path = reverse('grant-applications:grant-applications-list')
         company = CompanyFactory()
         self.client.post(path, data={'company': company.id, 'search_term': 'company-1'})
         mocks[1].assert_called_once_with(company)
 
     def test_new_grant_application_does_not_refresh_dnb_company_data_if_no_company(self, *mocks):
-        path = reverse('grant-applications-list')
+        path = reverse('grant-applications:grant-applications-list')
         self.client.post(path, data={'search_term': 'company-1'})
         mocks[1].assert_not_called()
 
     def test_update_grant_application(self, *mocks):
         event = EventFactory()
         ga = GrantApplicationFactory()
-        path = reverse('grant-applications-detail', args=(ga.id,))
+        path = reverse('grant-applications:grant-applications-detail', args=(ga.id,))
         response = self.client.patch(path, {'event': event.id})
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assert_response_data_contains(response, data_contains={'event': event.id})
 
     def test_create_new_grant_application_with_existing_company(self, *mocks):
-        path = reverse('grant-applications-list')
+        path = reverse('grant-applications:grant-applications-list')
         company = CompanyFactory()
         response = self.client.post(
             path,
@@ -213,7 +214,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
 
     def test_grant_application_send_for_review(self, *mocks):
         ga = GrantApplicationFactory()
-        path = reverse('grant-applications-send-for-review', args=(ga.id,))
+        path = reverse('grant-applications:grant-applications-send-for-review', args=(ga.id,))
         response = self.client.post(path)
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(response.data['grant_management_process']['grant_application'], ga.id)

@@ -5,7 +5,10 @@ from urllib.parse import urljoin
 
 import httpretty
 
-from web.grant_applications.services import BackofficeService, BackofficeServiceException
+from web.grant_applications.services import (
+    BackofficeService, BackofficeServiceException,
+    get_backoffice_choices
+)
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_SEARCH_COMPANIES, FAKE_COMPANY,
     FAKE_SECTOR, FAKE_EVENT
@@ -53,7 +56,9 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
             body=self.company_response_body,
         )
         company = self.service.create_company(
-            duns_number=self.company['duns_number'], name=self.company['name']
+            duns_number=self.company['duns_number'],
+            registration_number=self.company['registration_number'],
+            name=self.company['name']
         )
         requests = httpretty.latest_requests()
         self.assertEqual(company['id'], self.company['id'])
@@ -86,7 +91,9 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
     def test_get_or_create_company_for_existing_company(self, list_mock, create_mock):
         list_mock.return_value = [self.company]
         company = self.service.get_or_create_company(
-            duns_number=self.company['duns_number'], name=self.company['name']
+            duns_number=self.company['duns_number'],
+            registration_number=self.company['registration_number'],
+            name=self.company['name']
         )
         create_mock.assert_not_called()
         self.assertEqual(company, self.company)
@@ -97,11 +104,15 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
         list_mock.return_value = []
         create_mock.return_value = self.company
         company = self.service.get_or_create_company(
-            duns_number=self.company['duns_number'], name=self.company['name']
+            duns_number=self.company['duns_number'],
+            registration_number=self.company['registration_number'],
+            name=self.company['name']
         )
         self.assertEqual(company, self.company)
         create_mock.assert_called_once_with(
-            duns_number=self.company['duns_number'], name=self.company['name']
+            duns_number=self.company['duns_number'],
+            registration_number=self.company['registration_number'],
+            name=self.company['name']
         )
 
     @patch.object(BackofficeService, 'create_company')
@@ -112,6 +123,7 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
             BackofficeServiceException,
             self.service.get_or_create_company,
             duns_number=self.company['duns_number'],
+            registration_number=self.company['registration_number'],
             name=self.company['name']
         )
 
@@ -314,3 +326,13 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
             ValueError, self.service.request_factory,
             object_type='bad-type', choice_id_key='', choice_name_key='',
         )
+
+
+class TestServices(BaseTestCase):
+
+    @patch.object(BackofficeService, 'request_factory', side_effect=BackofficeServiceException)
+    def test_get_backoffice_choices_exception_gives_empty_list(self, _):
+        choices = get_backoffice_choices(
+            object_type='fake', choice_id_key='fake', choice_name_key='fake'
+        )
+        self.assertListEqual(choices, [])

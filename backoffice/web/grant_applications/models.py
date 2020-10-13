@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import JSONField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import PROTECT
@@ -76,7 +75,7 @@ class GrantApplication(BaseMetaModel):
     de_minimis_aid_description = models.CharField(null=True, blank=True, max_length=500)
     de_minimis_aid_recipient = models.CharField(null=True, blank=True, max_length=500)
     de_minimis_aid_date_received = models.DateField(null=True, blank=True)
-    application_summary = JSONField(default=list)
+    application_summary = models.JSONField(default=list)
 
     def send_for_review(self):
         return GrantManagementFlow.start.run(grant_application=self)

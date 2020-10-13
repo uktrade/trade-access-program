@@ -6,17 +6,9 @@ from django.conf import settings
 from requests.adapters import HTTPAdapter, Retry
 
 from web.companies.models import DnbGetCompanyResponse
-from web.core.exceptions import DnbServiceClientException
+from web.core.exceptions import DnbServiceClientException, CompaniesHouseApiException
 
 logger = logging.getLogger(__name__)
-
-
-def _raise_for_status(response, **kwargs):
-    try:
-        response.raise_for_status()
-    except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        logger.error(str(e), exc_info=e)
-        raise DnbServiceClientException
 
 
 def _log_hook(response, **kwargs):
@@ -43,7 +35,15 @@ class DnbServiceClient:
         self.session.mount(self.base_url, retry_adapter)
 
         # Attach response hooks
-        self.session.hooks['response'] = [_log_hook, _raise_for_status]
+        self.session.hooks['response'] = [_log_hook, self._raise_for_status]
+
+    @staticmethod
+    def _raise_for_status(response, **kwargs):
+        try:
+            response.raise_for_status()
+        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+            logger.error(str(e), exc_info=e)
+            raise DnbServiceClientException
 
     @staticmethod
     def _filter_gb(results):
@@ -52,22 +52,56 @@ class DnbServiceClient:
             if (r.get('registered_address_country') or r.get('address_country')) == 'GB'
         ]
 
-    def get_company(self, duns_number):
-        response = self.session.post(self.company_url, json={'duns_number': duns_number})
-        results = self._filter_gb(response.json()['results'])
-        if results:
+    def get_company(self, **params):
+        results = self.search_companies(**params)
+        if results and len(results) == 1:
             return results[0]
+        elif len(results) > 1:
+            raise DnbServiceClientException(
+                f'Search parameters returned too many companies [{len(results)}]'
+            )
         return None
 
-    def search_companies(self, search_term):
-        response = self.session.post(self.company_url, json={'search_term': search_term})
+    def search_companies(self, **params):
+        response = self.session.post(self.company_url, json=params)
         return self._filter_gb(results=response.json()['results'])
 
 
 def refresh_dnb_company_response_data(company):
-    dnb_company_data = DnbServiceClient().get_company(company.duns_number)
+    dnb_company_data = DnbServiceClient().get_company(duns_number=company.duns_number)
     if dnb_company_data:
         dnb_get_company_response = DnbGetCompanyResponse.objects.create(
-            company=company, data=dnb_company_data
+            company=company, dnb_data=dnb_company_data
         )
         return dnb_get_company_response
+
+
+class CompaniesHouseClient:
+
+    def __init__(self):
+        self.base_url = settings.COMPANIES_HOUSE_URL
+        self.company_url = settings.COMPANIES_HOUSE_COMPANIES_URL
+
+        self.session = requests.Session()
+        # self.session.params.update(access_token=settings.COMPANIES_HOUSE_API_KEY)
+        self.session.auth = (settings.COMPANIES_HOUSE_API_KEY, "")
+
+        # Attach retry adapter
+        retry_strategy = Retry(total=3, status_forcelist=[500], method_whitelist=['GET', 'POST'])
+        retry_adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount(self.base_url, retry_adapter)
+        self.session.mount(self.company_url, retry_adapter)
+
+        # Attach response hooks
+        self.session.hooks['response'] = [_log_hook, self._raise_for_status]
+
+    @staticmethod
+    def _raise_for_status(response, **kwargs):
+        try:
+            response.raise_for_status()
+        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
+            logger.error(str(e), exc_info=e)
+            raise CompaniesHouseApiException
+
+    def search_companies(self, search_term):
+        return self.session.get(self.company_url, params={'q': search_term}).json()['items']

@@ -18,13 +18,13 @@ class SupportingInformationContent:
             # Look in local DB Cache first.
             dnb_company_response = self.grant_application.company.last_dnb_get_company_response
             if dnb_company_response:
-                self._dnb_company_data = dnb_company_response.data
+                self._dnb_company_data = dnb_company_response.dnb_data
 
             # If not available then go to dnb-service
             if not self._dnb_company_data:
                 try:
                     self._dnb_company_data = self.dnb_client.get_company(
-                        self.grant_application.company.duns_number
+                        duns_number=self.grant_application.company.duns_number
                     )
                 except DnbServiceClientException:
                     # leave self._dnb_company as None if not available

@@ -53,9 +53,14 @@ class BackofficeService:
         # Attach response hooks
         self.session.hooks['response'] = [_log_hook, _raise_for_status]
 
-    def create_company(self, duns_number, name):
+    def create_company(self, duns_number, registration_number, name):
         response = self.session.post(
-            self.companies_url, json={'duns_number': duns_number, 'name': name}
+            self.companies_url,
+            json={
+                'duns_number': duns_number,
+                'registration_number': registration_number,
+                'name': name
+            }
         )
         return response.json()
 
@@ -67,8 +72,10 @@ class BackofficeService:
         response = self.session.get(self.companies_url, params=params)
         return response.json()
 
-    def get_or_create_company(self, duns_number, name):
-        companies = self.list_companies(duns_number=duns_number)
+    def get_or_create_company(self, duns_number, registration_number, name):
+        companies = self.list_companies(
+            duns_number=duns_number, registration_number=registration_number
+        )
 
         if companies and len(companies) == 1:
             company = companies[0]
@@ -76,7 +83,9 @@ class BackofficeService:
             logger.error('Too many companies')
             raise BackofficeServiceException('Too many companies')
         else:
-            company = self.create_company(duns_number=duns_number, name=name)
+            company = self.create_company(
+                duns_number=duns_number, registration_number=registration_number, name=name
+            )
 
         return company
 
@@ -105,9 +114,9 @@ class BackofficeService:
         )
         return response.json()
 
-    def search_companies(self, search_term):
+    def search_companies(self, **params):
         url = urljoin(self.companies_url, 'search/')
-        response = self.session.get(url, params={'search_term': search_term})
+        response = self.session.get(url, params=params)
         return response.json()
 
     def list_trade_events(self, params):
@@ -119,54 +128,38 @@ class BackofficeService:
         return response.json()
 
     def request_factory(self, object_type, **request_kwargs):
-        if object_type == 'companies':
-            if not request_kwargs.get('search_term'):
-                return []
-            return self.search_companies(search_term=request_kwargs['search_term'])
-        elif object_type == 'trade_events':
+        if object_type == 'trade_events':
             return self.list_trade_events(params=request_kwargs.get('params', {}))
         elif object_type == 'sectors':
             return self.list_sectors()
         raise ValueError(f'Unknown object type {object_type}')
 
 
-def get_backoffice_options(object_type, choice_id_key, choice_name_key,
-                           hint_keys=None, request_kwargs=None):
+def get_backoffice_choices(object_type, choice_id_key, choice_name_key, request_kwargs=None):
     request_kwargs = request_kwargs or {}
-    hint_keys = hint_keys or []
-    backoffice_options = defaultdict(list)
+    backoffice_choices = []
     try:
         backoffice_objects = BackofficeService().request_factory(object_type, **request_kwargs)
     except BackofficeServiceException:
-        backoffice_options = {'choices': [], 'hints': []}
+        return backoffice_choices
     else:
         for bo in backoffice_objects:
-            backoffice_options['choices'].append((bo[choice_id_key], bo[choice_name_key]))
-            backoffice_options['hints'].append(
-                {hint_key: bo[hint_key] for hint_key in hint_keys}
-            )
+            backoffice_choices.append((bo[choice_id_key], bo[choice_name_key]))
 
-    return backoffice_options
+    return backoffice_choices
 
 
-def get_company_select_options(search_term):
-    return get_backoffice_options(
-        'companies', choice_id_key='duns_number', choice_name_key='primary_name',
-        hint_keys=['duns_number'], request_kwargs={'search_term': search_term}
-    )
-
-
-def get_trade_event_filter_options(attribute):
-    backoffice_options = get_backoffice_options(
+def get_trade_event_filter_choices(attribute):
+    backoffice_choices = get_backoffice_choices(
         'trade_events', choice_id_key=attribute, choice_name_key=attribute
     )
-    backoffice_options['choices'] = list(set(backoffice_options['choices']))  # remove duplicates
-    backoffice_options['choices'].sort(key=lambda x: x[0])  # sort chronologically
-    backoffice_options['choices'].insert(0, ('', 'All'))
-    return backoffice_options
+    backoffice_choices = list(set(backoffice_choices))  # remove duplicates
+    backoffice_choices.sort(key=lambda x: x[0])  # sort chronologically
+    backoffice_choices.insert(0, ('', 'All'))
+    return backoffice_choices
 
 
-def get_trade_event_select_options(start_date=None, country=None, sector=None):
+def get_trade_event_select_choices(start_date=None, country=None, sector=None):
     params = {}
     if start_date:
         params['start_date'] = start_date
@@ -175,21 +168,36 @@ def get_trade_event_select_options(start_date=None, country=None, sector=None):
     if sector:
         params['sector'] = sector
 
-    backoffice_options = get_backoffice_options(
+    backoffice_choices = get_backoffice_choices(
         'trade_events', choice_id_key='id', choice_name_key='display_name',
         request_kwargs={'params': params}
     )
-    backoffice_options['choices'].insert(0, ('', 'Select...'))
-    backoffice_options['choices'].append(('0', 'Choice not listed'))
-    return backoffice_options
+    backoffice_choices.insert(0, ('', 'Select...'))
+    backoffice_choices.append(('0', 'Choice not listed'))
+    return backoffice_choices
 
 
-def get_sector_select_options():
-    backoffice_options = get_backoffice_options(
+def get_sector_select_choices():
+    backoffice_choices = get_backoffice_choices(
         'sectors', choice_id_key='id', choice_name_key='full_name'
     )
-    backoffice_options['choices'].insert(0, ('', 'Select...'))
-    backoffice_options['choices'].append(('0', 'Choice not listed'))
+    backoffice_choices.insert(0, ('', 'Select...'))
+    backoffice_choices.append(('0', 'Choice not listed'))
+    return backoffice_choices
+
+
+def get_company_select_options(search_term):
+    backoffice_options = defaultdict(list)
+    try:
+        response = BackofficeService().search_companies(search_term=search_term)
+    except BackofficeServiceException:
+        backoffice_options = {'choices': [], 'hints': []}
+    else:
+        for c in response:
+            backoffice_options['choices'].append(
+                (c['dnb_data']['duns_number'], c['dnb_data']['primary_name'])
+            )
+            backoffice_options['hints'].append(c['registration_number'])
     return backoffice_options
 
 

@@ -7,3 +7,9 @@ class DnbServiceClientException(APIException):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     default_detail = _('Could not communicate with dnb-service.')
     default_code = 'error'
+
+
+class CompaniesHouseApiException(APIException):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = _('Could not communicate with companies house api.')
+    default_code = 'error'

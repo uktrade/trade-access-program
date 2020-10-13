@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import path
 from rest_framework.routers import SimpleRouter
 
 from web.companies.apis import CompaniesViewSet, SearchCompaniesView
@@ -6,7 +6,8 @@ from web.companies.apis import CompaniesViewSet, SearchCompaniesView
 router = SimpleRouter()
 router.register('companies', CompaniesViewSet, basename='companies')
 
+app_name = 'companies'
 
 urlpatterns = [
-    url(r'^companies/search/$', SearchCompaniesView.as_view(), name='companies-search'),
+    path('companies/search/', SearchCompaniesView.as_view(), name='search'),
 ] + router.urls

@@ -35,15 +35,16 @@ FAKE_GRANT_APPLICATION = {
     },
     'company': {
         'id': '0dc205e4-1f11-4a81-90a6-f7a733da055e',
-        'duns_number': 1234,
+        'duns_number': '1234',
+        'registration_number': '5678',
         'name': 'Company 1',
         'previous_applications': 1,
         'applications_in_review': 1,
         'last_dnb_get_company_response': {
             'id': '3cceee4e-32fa-4570-b8fa-514238823e25',
-            'company_registration_number': '012345',
+            'registration_number': '012345',
             'company_address': 'An address',
-            'data': {
+            'dnb_data': {
                 'annual_sales': 1000,
                 'employee_number': 3,
                 'domain': 'www.test.com',
@@ -81,13 +82,25 @@ FAKE_GRANT_MANAGEMENT_PROCESS = {
 
 FAKE_COMPANY = {
     'id': '0dc205e4-1f11-4a81-90a6-f7a733da055e',
-    'duns_number': 1234,
+    'duns_number': '1234',
+    'registration_number': '5678',
     'name': 'Company 1'
 }
 
-FAKE_SEARCH_COMPANIES = [
-    {'duns_number': '1234', 'primary_name': 'Company 1'}
-]
+FAKE_SEARCH_COMPANIES = [{
+    'id': '70c53a9c-eb5b-4547-9e26-967c719e1ba0',
+    'company': None,
+    'company_address': None,
+    'registration_number': '5678',
+    'dnb_data': {
+        'primary_name': 'Company 1',
+        'duns_number': '1234',
+        'registration_numbers': [
+            {'registration_number': '5678', 'registration_type': 'uk_companies_house_number'}
+        ]
+    }
+}]
+
 
 FAKE_EVENT = {
     'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg',

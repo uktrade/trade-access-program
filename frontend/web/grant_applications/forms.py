@@ -14,7 +14,7 @@ from web.grant_applications.form_mixins import (
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException, get_company_select_options,
-    get_sector_select_options, get_trade_event_select_options, get_trade_event_filter_options
+    get_sector_select_choices, get_trade_event_select_choices, get_trade_event_filter_choices
 )
 
 
@@ -72,13 +72,18 @@ class SelectCompanyForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         if cleaned_data:
+            service = BackofficeService()
             try:
-                self.company = BackofficeService().get_or_create_company(
+                company = service.search_companies(duns_number=self.cleaned_data['duns_number'])
+                if not company:
+                    raise forms.ValidationError(FORM_MSGS['resubmit'])
+                self.company = service.get_or_create_company(
                     duns_number=self.cleaned_data['duns_number'],
+                    registration_number=company[0]['registration_number'],
                     name=dict(self.fields['duns_number'].choices)[self.cleaned_data['duns_number']]
                 )
             except BackofficeServiceException:
-                self.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))
+                raise forms.ValidationError(FORM_MSGS['resubmit'])
         return cleaned_data
 
     def save(self, *args, **kwargs):
@@ -188,11 +193,11 @@ class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
         fields = ['filter_by_start_date', 'filter_by_country', 'filter_by_sector', 'event']
 
     def __init__(self, *args, **kwargs):
-        filter_by_start_date_options = get_trade_event_filter_options(attribute='start_date')
-        filter_by_country_options = get_trade_event_filter_options(attribute='country')
-        filter_by_sector_options = get_trade_event_filter_options(attribute='sector')
+        filter_by_start_date_choices = get_trade_event_filter_choices(attribute='start_date')
+        filter_by_country_choices = get_trade_event_filter_choices(attribute='country')
+        filter_by_sector_choices = get_trade_event_filter_choices(attribute='sector')
 
-        trade_event_options = get_trade_event_select_options(
+        trade_event_choices = get_trade_event_select_choices(
             start_date=kwargs.get('data', {}).get('filter_by_start_date'),
             country=kwargs.get('data', {}).get('filter_by_country'),
             sector=kwargs.get('data', {}).get('filter_by_sector')
@@ -200,10 +205,10 @@ class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        self.fields['filter_by_start_date'].choices = filter_by_start_date_options['choices']
-        self.fields['filter_by_country'].choices = filter_by_country_options['choices']
-        self.fields['filter_by_sector'].choices = filter_by_sector_options['choices']
-        self.fields['event'].choices = trade_event_options['choices']
+        self.fields['filter_by_start_date'].choices = filter_by_start_date_choices
+        self.fields['filter_by_country'].choices = filter_by_country_choices
+        self.fields['filter_by_sector'].choices = filter_by_sector_choices
+        self.fields['event'].choices = trade_event_choices
 
     filter_by_start_date = forms.ChoiceField(
         required=False,
@@ -350,9 +355,9 @@ class BusinessInformationForm(UpdateBackofficeGrantApplicationMixin, forms.Model
         fields = ['goods_and_services_description', 'other_business_names', 'sector']
 
     def __init__(self, *args, **kwargs):
-        sector_options = get_sector_select_options()
+        sector_choices = get_sector_select_choices()
         super().__init__(*args, **kwargs)
-        self.fields['sector'].choices = sector_options['choices']
+        self.fields['sector'].choices = sector_choices
 
     goods_and_services_description = MaxAllowedCharField(
         label=_('Describe your main products and services'),

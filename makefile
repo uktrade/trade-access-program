@@ -17,6 +17,12 @@ lint-%:  ## Run linting for a specific project
 build-%:  ## Build a service
 	docker-compose build $*
 
+run-background-services:  ## Start all backing helper services in the background
+	docker-compose up -d backoffice_db frontend_db
+
+run-%-debug:  ## Run a service in debug mode, eg. `make run-frontend-debug`. Available options: frontend, backoffice
+	docker-compose run --use-aliases --service-ports $*
+
 ##@ Main
 build:  ## Build the project
 	docker-compose build
@@ -26,4 +32,5 @@ lint-all:  ## Run linting in all projects
 
 test-all:  ## Run tests in all projects
 	$(MAKE) test-$(SUB_PROJECTS)
+
 
