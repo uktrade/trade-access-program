@@ -165,6 +165,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         self.assertEqual(response.status_code, 302)
         m_create_company.assert_called_once_with(
             duns_number=str(FAKE_GRANT_APPLICATION['company']['duns_number']),
+            registration_number=FAKE_GRANT_APPLICATION['company']['registration_number'],
             name=FAKE_GRANT_APPLICATION['company']['name']
         )
 

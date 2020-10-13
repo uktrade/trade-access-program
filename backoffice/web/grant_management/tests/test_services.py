@@ -35,7 +35,7 @@ class TestGrantManagementSupportingInformation(BaseTestCase):
 
     @patch.object(DnbServiceClient, 'get_company', return_value={'primary_name': 'company-1'})
     def test_dnb_company_data_from_db_cache_instead_of_dnb_service(self, *mocks):
-        DnbGetCompanyResponseFactory(company=self.ga.company, data={'response': 1})
-        DnbGetCompanyResponseFactory(company=self.ga.company, data={'response': 2})
+        DnbGetCompanyResponseFactory(company=self.ga.company, dnb_data={'response': 1})
+        DnbGetCompanyResponseFactory(company=self.ga.company, dnb_data={'response': 2})
         self.assertIsNotNone(self.si_content.dnb_company_data)
         self.assertEqual(self.si_content.dnb_company_data['response'], 2)

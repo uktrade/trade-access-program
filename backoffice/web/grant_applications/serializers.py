@@ -12,7 +12,7 @@ class DnbGetCompanyResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DnbGetCompanyResponse
-        fields = ['id', 'data', 'company_registration_number', 'company_address']
+        fields = ['id', 'dnb_data', 'registration_number', 'company_address']
 
 
 class CompanySerializer(serializers.ModelSerializer):
@@ -23,8 +23,8 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = [
-            'id', 'duns_number', 'name', 'last_dnb_get_company_response', 'previous_applications',
-            'applications_in_review'
+            'id', 'duns_number', 'registration_number', 'name', 'last_dnb_get_company_response',
+            'previous_applications', 'applications_in_review'
         ]
         extra_kwargs = {
             'duns_number': {

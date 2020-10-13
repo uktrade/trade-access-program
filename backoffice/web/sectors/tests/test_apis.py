@@ -12,7 +12,7 @@ class SectorsApiTests(BaseAPITestCase):
         self.sector = SectorFactory()
 
     def test_get_sector(self, *mocks):
-        path = reverse('sectors-detail', args=(self.sector.id,))
+        path = reverse('sectors:sectors-detail', args=(self.sector.id,))
         response = self.client.get(path)
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assert_response_data_contains(
@@ -24,12 +24,12 @@ class SectorsApiTests(BaseAPITestCase):
         )
 
     def test_list_sectors(self, *mocks):
-        path = reverse('sectors-list')
+        path = reverse('sectors:sectors-list')
         response = self.client.get(path=path)
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assert_response_data_contains(response, data_contains=[{'id': self.sector.id_str}])
 
     def test_cannot_create_sector(self, *mocks):
-        path = reverse('sectors-list')
+        path = reverse('sectors:sectors-list')
         response = self.client.post(path)
         self.assertEqual(response.status_code, HTTP_405_METHOD_NOT_ALLOWED)

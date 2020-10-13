@@ -140,7 +140,10 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
             return form_class(**form_kwargs)
 
         form = super().get_form(form_class)
+
+        # If no form button was clicked (in a POST/PUT request) then something has gone wrong
         form.add_error(None, forms.ValidationError('Form button name required.'))
+
         return form
 
     def form_valid(self, form):
@@ -150,9 +153,6 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         elif self.button_name in self.filter_button_names:
             # If button name is "*_filter_button" then we apply filters and redisplay the form
             return self.render_to_response(self.get_context_data(form=form))
-
-        # If no form button was clicked (in a POST/PUT request) then something has gone wrong
-        raise forms.ValidationError('Form button name required.')
 
     def post(self, request, *args, **kwargs):
         self.button_name = self._get_button_name()
@@ -203,7 +203,7 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
                     'key': _('Company'),
                     'value': '\n'.join([
                         self.backoffice_grant_application['company']['name'],
-                        dnb['company_registration_number'],
+                        self.backoffice_grant_application['company']['registration_number'],
                         dnb['company_address'],
                     ]),
                     'action': {

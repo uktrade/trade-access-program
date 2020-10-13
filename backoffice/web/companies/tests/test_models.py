@@ -13,15 +13,15 @@ class TestCompanyModel(BaseTestCase):
 
 class TestDnbGetCompanyResponseModel(BaseTestCase):
 
-    def test_company_registration_number(self, *mocks):
+    def test_registration_number(self, *mocks):
         instance = DnbGetCompanyResponseFactory()
         self.assertEqual(
-            instance.company_registration_number,
-            instance.data['registration_numbers'][0]['registration_number']
+            instance.registration_number,
+            instance.dnb_data['registration_numbers'][0]['registration_number']
         )
 
-        instance.data['registration_numbers'] = None
-        self.assertIsNone(instance.company_registration_number)
+        instance.dnb_data['registration_numbers'] = None
+        self.assertIsNone(instance.registration_number)
 
     def test_company_address(self, *mocks):
         instance = DnbGetCompanyResponseFactory()
@@ -30,10 +30,10 @@ class TestDnbGetCompanyResponseModel(BaseTestCase):
             'Belgrave House, 76 Buckingham Palace Road, LONDON, SW1W 9TQ, UK',
         )
 
-        instance.data['address_line_1'] = ''
-        instance.data['address_line_2'] = ''
-        instance.data['address_town'] = ''
-        instance.data['address_county'] = ''
-        instance.data['address_postcode'] = ''
-        instance.data['address_country'] = ''
+        instance.dnb_data['address_line_1'] = ''
+        instance.dnb_data['address_line_2'] = ''
+        instance.dnb_data['address_town'] = ''
+        instance.dnb_data['address_county'] = ''
+        instance.dnb_data['address_postcode'] = ''
+        instance.dnb_data['address_country'] = ''
         self.assertIsNone(instance.company_address)
