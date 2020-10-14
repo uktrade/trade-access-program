@@ -16,10 +16,6 @@ class CharacterCountTextArea(forms.Textarea):
     template_name = 'widgets/character_count_text_area.html'
 
 
-class AutocompleteSelect(forms.Select):
-    template_name = 'widgets/autocomplete_select.html'
-
-
 class WrappedTextInput(forms.TextInput):
     template_name = 'widgets/wrapped_text_input.html'
 

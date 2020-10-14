@@ -110,10 +110,6 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
             initial['event'] = self.backoffice_grant_application['event']['id']
         return initial
 
-    def get_context_data(self, **kwargs):
-        kwargs['feature_flags'] = {'filters': False, 'autocomplete': True}
-        return super().get_context_data(**kwargs)
-
     def _get_button_name(self):
         has_button_name = set(self.request.POST) & set(self.button_names)
         if has_button_name:

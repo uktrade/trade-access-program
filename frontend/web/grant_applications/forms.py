@@ -233,7 +233,7 @@ class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
     event = forms.ChoiceField(
         required=False,
         label=_('What event are you intending to exhibit at'),
-        widget=widgets.AutocompleteSelect(
+        widget=forms.Select(
             attrs={'class': 'govuk-select govuk-!-width-two-thirds'}
         ),
     )

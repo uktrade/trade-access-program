@@ -6,7 +6,7 @@ from rest_framework.reverse import reverse
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_201_CREATED
 
 from web.companies.models import DnbGetCompanyResponse
-from web.companies.services import CompaniesHouseClient, DnbServiceClient
+from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException, CompaniesHouseApiException
 from web.tests.external_api_responses import FAKE_DNB_SEARCH_COMPANIES
 from web.tests.factories.companies import CompanyFactory
@@ -20,7 +20,6 @@ class CompaniesApiTests(BaseAPITestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.dnb_service_client = DnbServiceClient()
-        cls.ch_client = CompaniesHouseClient()
 
     def test_get_company(self, *mocks):
         self.company = CompanyFactory(name='fake-name', duns_number=1)
