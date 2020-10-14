@@ -8,27 +8,25 @@
   {% csrf_token %}
 
   {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
-  {% if feature_flags.filters %}
-    <!-- Filter fields -->
-    <div class="govuk-grid-row">
-      <div class="govuk-grid-column-one-third">
-        {% include "core/govt_uk_form_field.html" with field=form.filter_by_start_date %}
-      </div>
-      <div class="govuk-grid-column-one-third">
-        {% include "core/govt_uk_form_field.html" with field=form.filter_by_country %}
-      </div>
-      <div class="govuk-grid-column-one-third">
-        {% include "core/govt_uk_form_field.html" with field=form.filter_by_sector %}
-      </div>
+  <!-- Filter fields -->
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-one-third">
+      {% include "core/govt_uk_form_field.html" with field=form.filter_by_start_date %}
     </div>
+    <div class="govuk-grid-column-one-third">
+      {% include "core/govt_uk_form_field.html" with field=form.filter_by_country %}
+    </div>
+    <div class="govuk-grid-column-one-third">
+      {% include "core/govt_uk_form_field.html" with field=form.filter_by_sector %}
+    </div>
+  </div>
 
-    <div class="govuk-grid-row govuk-!-margin-bottom-2">
-      <div class="govuk-grid-column-full">
-        {% include "core/govt_uk_form_button.html" with button_class="govuk-button govuk-!-margin-right-1" button_name="apply_filters_button" button_text="Apply filters" %}
-        {% include "core/govt_uk_form_button.html" with button_class="govuk-button govuk-button--secondary" button_name="clear_filters_button" button_text="Clear filters" %}
-      </div>
+  <div class="govuk-grid-row govuk-!-margin-bottom-2">
+    <div class="govuk-grid-column-full">
+      {% include "core/govt_uk_form_button.html" with button_class="govuk-button govuk-!-margin-right-1" button_name="apply_filters_button" button_text="Apply filters" %}
+      {% include "core/govt_uk_form_button.html" with button_class="govuk-button govuk-button--secondary" button_name="clear_filters_button" button_text="Clear filters" %}
     </div>
-  {% endif %}
+  </div>
 
   <!-- Event select field -->
   {% include "core/govt_uk_form_field.html" with field=form.event %}
@@ -37,18 +35,3 @@
   </form>
 
 {% endblock %}
-
-{% if feature_flags.autocomplete %}
-  {% block scripts %}
-  <script type="text/javascript">
-    var selectedElement = document.querySelector('#{{ form.event.auto_id }}')
-    accessibleAutocomplete.enhanceSelectElement({
-      autoselect: true,
-      defaultValue: "",
-      displayMenu: 'overlay',
-      selectElement: selectedElement,
-      showAllValues: true
-    })
-  </script>
-  {% endblock %}
-{% endif %}

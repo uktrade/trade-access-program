@@ -416,19 +416,18 @@ class TestAboutTheEventView(BaseTestCase):
         response = self.client.get(self.url)
         soup = BeautifulSoup(response.content, 'html.parser')
         self.assertEqual(response.status_code, 200)
-        if response.context_data['feature_flags']['filters']:
-            # Filter by start date
-            self.assertEqual(
-                soup.find(id='id_filter_by_start_date').find('option', selected=True).text, 'All'
-            )
-            # Filter by country
-            self.assertEqual(
-                soup.find(id='id_filter_by_country').find('option', selected=True).text, 'All'
-            )
-            # Filter by sector
-            self.assertEqual(
-                soup.find(id='id_filter_by_sector').find('option', selected=True).text, 'All'
-            )
+        # Filter by start date
+        self.assertEqual(
+            soup.find(id='id_filter_by_start_date').find('option', selected=True).text, 'All'
+        )
+        # Filter by country
+        self.assertEqual(
+            soup.find(id='id_filter_by_country').find('option', selected=True).text, 'All'
+        )
+        # Filter by sector
+        self.assertEqual(
+            soup.find(id='id_filter_by_sector').find('option', selected=True).text, 'All'
+        )
 
     def test_event_initial_is_backoffice_event_when_filters_set_to_all(self, *mocks):
         response = self.client.get(self.url)
