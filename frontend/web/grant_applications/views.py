@@ -136,10 +136,8 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
             return form_class(**form_kwargs)
 
         form = super().get_form(form_class)
-
         # If no form button was clicked (in a POST/PUT request) then something has gone wrong
         form.add_error(None, forms.ValidationError('Form button name required.'))
-
         return form
 
     def form_valid(self, form):
@@ -152,7 +150,7 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
 
     def post(self, request, *args, **kwargs):
         self.button_name = self._get_button_name()
-        return super(AboutTheEventView, self).post(request, *args, **kwargs)
+        return super().post(request, *args, **kwargs)
 
 
 class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,

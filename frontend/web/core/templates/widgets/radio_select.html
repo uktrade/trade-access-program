@@ -18,9 +18,7 @@
           {{ item_data.label }}
         </label>
         {% if item_data.hint %}
-          <div id="{{ item_data.attrs.id }}-item-hint" class="govuk-hint govuk-radios__hint">
-            {{ item_data.hint }}
-          </div>
+          <div id="{{ item_data.attrs.id }}-item-hint" class="govuk-hint govuk-radios__hint">{{ item_data.hint|linebreaksbr }}</div>
         {% endif %}
       </div>
 

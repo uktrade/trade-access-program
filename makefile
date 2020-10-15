@@ -21,7 +21,7 @@ run-background-services:  ## Start all backing helper services in the background
 	docker-compose up -d backoffice_db frontend_db
 
 run-%-debug:  ## Run a service in debug mode, eg. `make run-frontend-debug`. Available options: frontend, backoffice
-	docker-compose run --use-aliases --service-ports $*
+	$(MAKE) -C $* run-$*-debug
 
 ##@ Main
 build:  ## Build the project
