@@ -2,7 +2,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 
 from web.grant_applications.views import (
-    SearchCompanyView, SelectCompanyView, AboutYouView, AboutTheEventView,
+    SearchCompanyView, SelectCompanyView, AboutYouView, SelectAnEventView,
     PreviousApplicationsView, EventIntentionView, BusinessInformationView, ExportExperienceView,
     StateAidView, ApplicationReviewView, ConfirmationView, EligibilityReviewView, EventFinanceView,
     EligibilityConfirmationView, BusinessDetailsView
@@ -16,7 +16,7 @@ urlpatterns = [
     path('<pk>/select-company/', SelectCompanyView.as_view(), name='select-company'),
     path('<pk>/business-details/', BusinessDetailsView.as_view(), name='business-details'),
     path('<pk>/about-you/', AboutYouView.as_view(), name='about-you'),
-    path('<pk>/about-the-event/', AboutTheEventView.as_view(), name='about-the-event'),
+    path('<pk>/select-an-event/', SelectAnEventView.as_view(), name='select-an-event'),
     path('<pk>/event-finance/', EventFinanceView.as_view(), name='event-finance'),
     path(
         '<pk>/previous-applications/',

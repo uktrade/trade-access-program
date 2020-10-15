@@ -49,15 +49,6 @@ class TradeEventsApiTests(BaseAPITestCase):
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], event.id_str)
 
-    def test_list_trade_events_with_start_date_filter(self, *mocks):
-        event = EventFactory(start_date=date(year=2020, month=10, day=5))
-        EventFactory(start_date=date(year=2020, month=10, day=4))
-        path = reverse('trade-events:trade-events-list')
-        response = self.client.get(path=path, data={'start_date': '2020-10-05'})
-        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], event.id_str)
-
     def test_list_trade_events_with_country_filter(self, *mocks):
         event = EventFactory(country='Country 1')
         EventFactory(country='Country 2')
@@ -75,6 +66,55 @@ class TradeEventsApiTests(BaseAPITestCase):
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], event.id_str)
+
+    def test_list_trade_events_with_start_date_exact_filter(self, *mocks):
+        event = EventFactory(start_date=date(year=2020, month=10, day=5))
+        EventFactory(start_date=date(year=2020, month=10, day=4))
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'start_date': '2020-10-05'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], event.id_str)
+
+    def test_list_trade_events_with_start_date_after_filter(self, *mocks):
+        EventFactory(start_date=date(year=2020, month=10, day=1))
+        EventFactory(start_date=date(year=2020, month=10, day=2))
+        EventFactory(start_date=date(year=2020, month=10, day=3))
+        EventFactory(start_date=date(year=2020, month=10, day=4))
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'start_date_range_after': '2020-10-02'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(len(response.data), 3)
+
+    def test_list_trade_events_with_start_date_before_filter(self, *mocks):
+        EventFactory(start_date=date(year=2020, month=10, day=1))
+        EventFactory(start_date=date(year=2020, month=10, day=2))
+        EventFactory(start_date=date(year=2020, month=10, day=3))
+        EventFactory(start_date=date(year=2020, month=10, day=4))
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'start_date_range_before': '2020-10-02'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(len(response.data), 2)
+
+    def test_list_trade_events_with_end_date_after_filter(self, *mocks):
+        EventFactory(end_date=date(year=2020, month=10, day=1))
+        EventFactory(end_date=date(year=2020, month=10, day=2))
+        EventFactory(end_date=date(year=2020, month=10, day=3))
+        EventFactory(end_date=date(year=2020, month=10, day=4))
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'end_date_range_after': '2020-10-02'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(len(response.data), 3)
+
+    def test_list_trade_events_with_end_date_before_filter(self, *mocks):
+        EventFactory(end_date=date(year=2020, month=10, day=1))
+        EventFactory(end_date=date(year=2020, month=10, day=2))
+        EventFactory(end_date=date(year=2020, month=10, day=3))
+        EventFactory(end_date=date(year=2020, month=10, day=4))
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'end_date_range_before': '2020-10-02'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(len(response.data), 2)
 
     def test_cannot_create_trade_event(self, *mocks):
         path = reverse('trade-events:trade-events-list')

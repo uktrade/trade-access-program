@@ -1,9 +1,11 @@
+import calendar
 import logging
 from collections import defaultdict
 from urllib.parse import urljoin, urlparse
 
 import requests
 from django.conf import settings
+from django.utils.dateparse import parse_date
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
@@ -119,7 +121,7 @@ class BackofficeService:
         response = self.session.get(url, params=params)
         return response.json()
 
-    def list_trade_events(self, params):
+    def list_trade_events(self, **params):
         response = self.session.get(self.trade_events_url, params=params)
         return response.json()
 
@@ -159,6 +161,24 @@ def get_trade_event_filter_choices(attribute):
     return backoffice_choices
 
 
+def get_trade_event_filter_by_month_choices():
+    choices = set()
+
+    for trade_event in BackofficeService().list_trade_events():
+        start_date = parse_date(trade_event['start_date'])
+        _, last_day = calendar.monthrange(start_date.year, start_date.month)
+        first_day_of_month = start_date.replace(day=1)
+        last_day_of_month = start_date.replace(day=last_day)
+        month_year_str = start_date.strftime('%B %Y')
+        choices.add((f'{first_day_of_month}:{last_day_of_month}', month_year_str))
+
+    choices = list(choices)
+    choices.sort(key=lambda x: x[0])
+    choices.insert(0, ('', 'All'))
+
+    return choices
+
+
 def get_sector_select_choices():
     backoffice_choices = get_backoffice_choices(
         'sectors', choice_id_key='id', choice_name_key='full_name'
@@ -173,7 +193,7 @@ def get_trade_event_select_options(**params):
     select_options = defaultdict(list)
 
     try:
-        trade_events = BackofficeService().list_trade_events(params=_params)
+        trade_events = BackofficeService().list_trade_events(**_params)
     except BackofficeServiceException:
         select_options = {'choices': [], 'hints': []}
     else:

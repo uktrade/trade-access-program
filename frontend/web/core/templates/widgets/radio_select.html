@@ -6,23 +6,19 @@
 
   <div class="{{ widget.attrs.class|default:'govuk-radios' }}">
     {% for _, item, _ in widget.optgroups %}
-      {% for item_data in item %}
-
       <div class="govuk-radios__item">
-        {% ifequal item_data.value|cut:"'" widget.value.0 %}
-          <input class="govuk-radios__input" id="{{ item_data.attrs.id }}" name="{{ widget.name }}" type="radio" value="{{ item_data.value }}" checked>
+        {% ifequal item.0.value|cut:"'" widget.value.0 %}
+          <input class="govuk-radios__input" id="{{ item.0.attrs.id }}" name="{{ widget.name }}" type="radio" value="{{ item.0.value }}" checked>
         {% else %}
-          <input class="govuk-radios__input" id="{{ item_data.attrs.id }}" name="{{ widget.name }}" type="radio" value="{{ item_data.value }}">
+          <input class="govuk-radios__input" id="{{ item.0.attrs.id }}" name="{{ widget.name }}" type="radio" value="{{ item.0.value }}">
         {% endifequal %}
-        <label class="govuk-label govuk-radios__label" for="{{ item_data.attrs.id }}">
-          {{ item_data.label }}
+        <label class="govuk-label govuk-radios__label" for="{{ item.0.attrs.id }}">
+          {{ item.0.label }}
         </label>
-        {% if item_data.hint %}
-          <div id="{{ item_data.attrs.id }}-item-hint" class="govuk-hint govuk-radios__hint">{{ item_data.hint|linebreaksbr }}</div>
+        {% if item.0.hint %}
+          <div id="{{ item.0.attrs.id }}-item-hint" class="govuk-hint govuk-radios__hint">{{ item.0.hint|linebreaksbr }}</div>
         {% endif %}
       </div>
-
-      {% endfor %}
     {% endfor %}
   </div>
 </fieldset>
