@@ -1,9 +1,11 @@
+import calendar
 import logging
 from collections import defaultdict
 from urllib.parse import urljoin, urlparse
 
 import requests
 from django.conf import settings
+from django.utils.dateparse import parse_date
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
@@ -119,7 +121,7 @@ class BackofficeService:
         response = self.session.get(url, params=params)
         return response.json()
 
-    def list_trade_events(self, params):
+    def list_trade_events(self, **params):
         response = self.session.get(self.trade_events_url, params=params)
         return response.json()
 
@@ -159,22 +161,22 @@ def get_trade_event_filter_choices(attribute):
     return backoffice_choices
 
 
-def get_trade_event_select_choices(start_date=None, country=None, sector=None):
-    params = {}
-    if start_date:
-        params['start_date'] = start_date
-    if country:
-        params['country'] = country
-    if sector:
-        params['sector'] = sector
+def get_trade_event_filter_by_month_choices():
+    choices = set()
 
-    backoffice_choices = get_backoffice_choices(
-        'trade_events', choice_id_key='id', choice_name_key='display_name',
-        request_kwargs={'params': params}
-    )
-    backoffice_choices.insert(0, ('', 'Select...'))
-    backoffice_choices.append(('0', 'Choice not listed'))
-    return backoffice_choices
+    for trade_event in BackofficeService().list_trade_events():
+        start_date = parse_date(trade_event['start_date'])
+        _, last_day = calendar.monthrange(start_date.year, start_date.month)
+        first_day_of_month = start_date.replace(day=1)
+        last_day_of_month = start_date.replace(day=last_day)
+        month_year_str = start_date.strftime('%B %Y')
+        choices.add((f'{first_day_of_month}:{last_day_of_month}', month_year_str))
+
+    choices = list(choices)
+    choices.sort(key=lambda x: x[0])
+    choices.insert(0, ('', 'All'))
+
+    return choices
 
 
 def get_sector_select_choices():
@@ -186,19 +188,38 @@ def get_sector_select_choices():
     return backoffice_choices
 
 
+def get_trade_event_select_options(**params):
+    _params = {k: v for k, v in params.items() if v}
+    select_options = defaultdict(list)
+
+    try:
+        trade_events = BackofficeService().list_trade_events(**_params)
+    except BackofficeServiceException:
+        select_options = {'choices': [], 'hints': []}
+    else:
+        for te in trade_events:
+            select_options['choices'].append((te['id'], te['name']))
+            select_options['hints'].append('\n'.join([
+                te['tcp'], te['sector'], te['sub_sector'], te['country'],
+                f"{te['start_date']} to {te['end_date']}"
+            ]))
+
+    return select_options
+
+
 def get_company_select_options(search_term):
-    backoffice_options = defaultdict(list)
+    select_options = defaultdict(list)
     try:
         response = BackofficeService().search_companies(search_term=search_term)
     except BackofficeServiceException:
-        backoffice_options = {'choices': [], 'hints': []}
+        select_options = {'choices': [], 'hints': []}
     else:
         for c in response:
-            backoffice_options['choices'].append(
+            select_options['choices'].append(
                 (c['dnb_data']['duns_number'], c['dnb_data']['primary_name'])
             )
-            backoffice_options['hints'].append(c['registration_number'])
-    return backoffice_options
+            select_options['hints'].append(c['registration_number'])
+    return select_options
 
 
 def _serialize_field(value):

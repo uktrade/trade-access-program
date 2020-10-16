@@ -7,7 +7,7 @@ from django.views.generic import CreateView, UpdateView, TemplateView
 
 from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin, BackContextMixin
 from web.grant_applications.forms import (
-    SearchCompanyForm, SelectCompanyForm, AboutYouForm, AboutTheEventForm, PreviousApplicationsForm,
+    SearchCompanyForm, SelectCompanyForm, AboutYouForm, SelectAnEventForm, PreviousApplicationsForm,
     EventIntentionForm, BusinessInformationForm, ExportExperienceForm, StateAidForm,
     ApplicationReviewForm, EligibilityReviewForm, EventFinanceForm, EligibilityConfirmationForm,
     BusinessDetailsForm
@@ -75,7 +75,7 @@ class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObj
     model = GrantApplicationLink
     form_class = PreviousApplicationsForm
     template_name = 'grant_applications/previous_applications.html'
-    success_url_name = 'grant_applications:about-the-event'
+    success_url_name = 'grant_applications:select-an-event'
     page = {
         'heading': _('Previous TAP grants'),
         'caption': _('Check your eligibility')
@@ -87,11 +87,11 @@ class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObj
         return reverse('grant-applications:select-company', args=(self.object.pk,))
 
 
-class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
+class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
-    form_class = AboutTheEventForm
-    template_name = 'grant_applications/about_the_event.html'
+    form_class = SelectAnEventForm
+    template_name = 'grant_applications/select_an_event.html'
     back_url_name = 'grant-applications:previous-applications'
     success_url_name = 'grant_applications:event-finance'
     page = {
@@ -99,10 +99,8 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         'caption': _('Check your eligibility')
     }
     form_button_name = 'form_button'
-    clear_filters_button_name = 'clear_filters_button'
-    apply_filters_button_name = 'apply_filters_button'
-    filter_button_names = [clear_filters_button_name, apply_filters_button_name]
-    button_names = filter_button_names + [form_button_name]
+    filters_button_name = 'filters_button'
+    button_names = [filters_button_name, form_button_name]
 
     def get_initial(self):
         initial = super().get_initial()
@@ -126,33 +124,28 @@ class AboutTheEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
 
         if self.button_name == self.form_button_name:
             return form_class(**form_kwargs)
-        elif self.button_name == self.apply_filters_button_name:
-            form_kwargs['initial'] = {}  # remove initial event data when filters are applied
+        elif self.button_name == self.filters_button_name:
+            form_kwargs['initial'].pop('event', None)  # remove any initial event data
             form_kwargs['data'] = form_kwargs['data'].copy()
-            form_kwargs['data'].pop('event', None)  # remove selected event data
-            return form_class(**form_kwargs)
-        elif self.button_name == self.clear_filters_button_name:
-            form_kwargs['data'] = {}
+            form_kwargs['data'].pop('event', None)  # remove any selected event data
             return form_class(**form_kwargs)
 
         form = super().get_form(form_class)
-
         # If no form button was clicked (in a POST/PUT request) then something has gone wrong
         form.add_error(None, forms.ValidationError('Form button name required.'))
-
         return form
 
     def form_valid(self, form):
         if self.button_name == self.form_button_name:
             # If button name is "form_button" then we submit the form and redirect
             return super().form_valid(form)
-        elif self.button_name in self.filter_button_names:
+        elif self.button_name == self.filters_button_name:
             # If button name is "*_filter_button" then we apply filters and redisplay the form
             return self.render_to_response(self.get_context_data(form=form))
 
     def post(self, request, *args, **kwargs):
         self.button_name = self._get_button_name()
-        return super(AboutTheEventView, self).post(request, *args, **kwargs)
+        return super().post(request, *args, **kwargs)
 
 
 class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
@@ -160,7 +153,7 @@ class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMix
     model = GrantApplicationLink
     form_class = EventFinanceForm
     template_name = 'grant_applications/event_finance.html'
-    back_url_name = 'grant-applications:about-the-event'
+    back_url_name = 'grant-applications:select-an-event'
     success_url_name = 'grant_applications:eligibility-review'
     page = {
         'heading': _('Event finance'),
@@ -233,7 +226,7 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
                         f"{self.backoffice_grant_application['event']['end_date']}"
                     ]),
                     'action': {
-                        'url': reverse('grant-applications:about-the-event', args=(self.object.pk,))
+                        'url': reverse('grant-applications:select-an-event', args=(self.object.pk,))
                     }
                 }
             ]
@@ -288,7 +281,6 @@ class AboutYouView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin, 
     model = GrantApplicationLink
     form_class = AboutYouForm
     template_name = 'grant_applications/about_you.html'
-    back_url_name = 'grant-applications:about-the-event'
     success_url_name = 'grant_applications:business-information'
     page = {
         'heading': _('About you'),
@@ -380,7 +372,7 @@ class ApplicationReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
     grant_application_flow = [
         SelectCompanyView,
         AboutYouView,
-        AboutTheEventView,
+        SelectAnEventView,
         PreviousApplicationsView,
         EventIntentionView,
         BusinessInformationView,

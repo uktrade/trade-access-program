@@ -106,16 +106,22 @@ FAKE_EVENT = {
     'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg',
     'name': 'Event 1',
     'sector': 'Sector 1',
+    'sub_sector': 'Sub Sector 1',
+    'city': 'City 1',
     'country': 'Country 1',
     'start_date': '2020-12-12',
     'end_date': '2020-12-14',
     'display_name': 'Event 1 | Sector 1 | Country 1 | 2020-12-12',
+    'tcp': 'TCP 1',
+    'tcp_website': 'TCP Website 1',
 }
 
 FAKE_SECTOR = {
     'id': 'e98cee83-9f4e-4ad2-8d10-7f25867b91b5',
     'sector_code': 'SL0001',
+    'name': 'Sector 1',
     'cluster_name': 'Sector 1 Cluster',
     'full_name': 'Sector 1 Full Name',
-    'name': 'Sector 1'
+    'sub_sector_name': 'Sector 1 Sub Sector Name',
+    'sub_sub_sector_name': 'Sector 1 Sub Sub Sector Name'
 }

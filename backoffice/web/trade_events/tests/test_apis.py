@@ -30,11 +30,21 @@ class TradeEventsApiTests(BaseAPITestCase):
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assert_response_data_contains(response, data_contains=[{'id': event.id_str}])
 
-    def test_list_trade_events_with_start_date_filter(self, *mocks):
-        event = EventFactory(start_date=date(year=2020, month=10, day=5))
-        EventFactory(start_date=date(year=2020, month=10, day=4))
+    def test_list_trade_events_with_name_search_term(self, *mocks):
+        event_1 = EventFactory(name='AB')
+        event_2 = EventFactory(name='ABCD')
         path = reverse('trade-events:trade-events-list')
-        response = self.client.get(path=path, data={'start_date': '2020-10-05'})
+        response = self.client.get(path=path, data={'search': 'AB'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]['id'], event_1.id_str)
+        self.assertEqual(response.data[1]['id'], event_2.id_str)
+
+    def test_list_trade_events_with_name_filter(self, *mocks):
+        event = EventFactory(name='AB')
+        EventFactory(name='ABCD')
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'name': 'AB'})
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], event.id_str)
@@ -56,6 +66,55 @@ class TradeEventsApiTests(BaseAPITestCase):
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], event.id_str)
+
+    def test_list_trade_events_with_start_date_exact_filter(self, *mocks):
+        event = EventFactory(start_date=date(year=2020, month=10, day=5))
+        EventFactory(start_date=date(year=2020, month=10, day=4))
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'start_date': '2020-10-05'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], event.id_str)
+
+    def test_list_trade_events_with_start_date_after_filter(self, *mocks):
+        EventFactory(start_date=date(year=2020, month=10, day=1))
+        EventFactory(start_date=date(year=2020, month=10, day=2))
+        EventFactory(start_date=date(year=2020, month=10, day=3))
+        EventFactory(start_date=date(year=2020, month=10, day=4))
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'start_date_range_after': '2020-10-02'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(len(response.data), 3)
+
+    def test_list_trade_events_with_start_date_before_filter(self, *mocks):
+        EventFactory(start_date=date(year=2020, month=10, day=1))
+        EventFactory(start_date=date(year=2020, month=10, day=2))
+        EventFactory(start_date=date(year=2020, month=10, day=3))
+        EventFactory(start_date=date(year=2020, month=10, day=4))
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'start_date_range_before': '2020-10-02'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(len(response.data), 2)
+
+    def test_list_trade_events_with_end_date_after_filter(self, *mocks):
+        EventFactory(end_date=date(year=2020, month=10, day=1))
+        EventFactory(end_date=date(year=2020, month=10, day=2))
+        EventFactory(end_date=date(year=2020, month=10, day=3))
+        EventFactory(end_date=date(year=2020, month=10, day=4))
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'end_date_range_after': '2020-10-02'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(len(response.data), 3)
+
+    def test_list_trade_events_with_end_date_before_filter(self, *mocks):
+        EventFactory(end_date=date(year=2020, month=10, day=1))
+        EventFactory(end_date=date(year=2020, month=10, day=2))
+        EventFactory(end_date=date(year=2020, month=10, day=3))
+        EventFactory(end_date=date(year=2020, month=10, day=4))
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'end_date_range_before': '2020-10-02'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(len(response.data), 2)
 
     def test_cannot_create_trade_event(self, *mocks):
         path = reverse('trade-events:trade-events-list')

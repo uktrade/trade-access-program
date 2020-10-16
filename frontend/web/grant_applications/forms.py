@@ -14,7 +14,8 @@ from web.grant_applications.form_mixins import (
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException, get_company_select_options,
-    get_sector_select_choices, get_trade_event_select_choices, get_trade_event_filter_choices
+    get_sector_select_choices, get_trade_event_select_options, get_trade_event_filter_choices,
+    get_trade_event_filter_by_month_choices
 )
 
 
@@ -185,32 +186,42 @@ class EligibilityConfirmationForm(UpdateBackofficeGrantApplicationMixin, forms.M
         fields = []
 
 
-class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+class SelectAnEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
     grant_application_fields = ['event']
 
     class Meta:
         model = GrantApplicationLink
-        fields = ['filter_by_start_date', 'filter_by_country', 'filter_by_sector', 'event']
+        fields = [
+            'filter_by_name', 'filter_by_month', 'filter_by_country', 'filter_by_sector',
+            'event'
+        ]
 
     def __init__(self, *args, **kwargs):
-        filter_by_start_date_choices = get_trade_event_filter_choices(attribute='start_date')
-        filter_by_country_choices = get_trade_event_filter_choices(attribute='country')
-        filter_by_sector_choices = get_trade_event_filter_choices(attribute='sector')
-
-        trade_event_choices = get_trade_event_select_choices(
-            start_date=kwargs.get('data', {}).get('filter_by_start_date'),
+        filter_by_month = kwargs.get('data', {}).get('filter_by_month', ':').split(':')
+        trade_event_options = get_trade_event_select_options(
+            search=kwargs.get('data', {}).get('filter_by_name'),
+            start_date_range_after=filter_by_month[0],
+            end_date_range_before=filter_by_month[1],
             country=kwargs.get('data', {}).get('filter_by_country'),
             sector=kwargs.get('data', {}).get('filter_by_sector')
         )
 
         super().__init__(*args, **kwargs)
 
-        self.fields['filter_by_start_date'].choices = filter_by_start_date_choices
-        self.fields['filter_by_country'].choices = filter_by_country_choices
-        self.fields['filter_by_sector'].choices = filter_by_sector_choices
-        self.fields['event'].choices = trade_event_choices
+        self.fields['filter_by_month'].choices = get_trade_event_filter_by_month_choices()
+        self.fields['filter_by_country'].choices = get_trade_event_filter_choices('country')
+        self.fields['filter_by_sector'].choices = get_trade_event_filter_choices('sector')
+        self.fields['event'].choices = trade_event_options['choices']
+        self.fields['event'].widget.attrs['hints'] = trade_event_options['hints']
 
-    filter_by_start_date = forms.ChoiceField(
+    filter_by_name = forms.CharField(
+        required=False,
+        label=_('Filter by name'),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input govuk-grid-column-full'}
+        )
+    )
+    filter_by_month = forms.ChoiceField(
         required=False,
         label=_('Filter by date'),
         widget=forms.Select(
@@ -233,9 +244,7 @@ class AboutTheEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
     event = forms.ChoiceField(
         required=False,
         label=_('What event are you intending to exhibit at'),
-        widget=forms.Select(
-            attrs={'class': 'govuk-select govuk-!-width-two-thirds'}
-        ),
+        widget=widgets.RadioSelect(),
     )
 
     def clean(self):

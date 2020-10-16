@@ -1,0 +1,39 @@
+{% extends 'grant_applications/generic_form_page.html' %}
+{% load static %}
+
+{% block form %}
+<form class="form" method="POST" novalidate>
+  {% csrf_token %}
+
+  {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
+  <div class="govuk-grid-row">
+    <!-- Filters -->
+    <div class="govuk-grid-column-one-third govuk-tag--grey">
+      <p class="govuk-body"></p>
+      {% include "core/govt_uk_form_field.html" with field=form.filter_by_name %}
+      {% include "core/govt_uk_form_field.html" with field=form.filter_by_sector %}
+      {% include "core/govt_uk_form_field.html" with field=form.filter_by_country %}
+      {% include "core/govt_uk_form_field.html" with field=form.filter_by_month %}
+      {% include "core/govt_uk_form_button.html" with button_class="govuk-button govuk-button--blue" button_name="filters_button" button_text="Search again" %}
+      <p class="govuk-body">We found <strong>{{ form.event.field.choices|length }}</strong> matching events.</p>
+    </div>
+    <div class="govuk-grid-column-two-thirds">
+      <!-- Event select -->
+      {% if not form.event.field.choices %}
+        <p class="govuk-body" id="id_no_matching_events_1">We’ve found no matching events for your search.</p>
+        <p class="govuk-body" id="id_no_matching_events_2">Please try widening your search criteria or checking the spelling of the event name.</p>
+        <p class="govuk-body" id="id_no_matching_events_3">If you still can’t find the event you’re looking for please check the calendar of supported overseas events on great.gov.uk as changes to events do sometimes occur.</p>
+      {% else %}
+        {% include "core/govt_uk_form_field.html" with field=form.event %}
+        {% include "core/govt_uk_form_button.html" with button_text=page.form_button_text %}
+      {% endif %}
+    </div>
+  </div>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+</script>
+{% endblock %}

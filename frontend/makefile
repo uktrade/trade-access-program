@@ -12,6 +12,9 @@ clean:  ## Remove python cache files from project
 up:  ## Run all services in docker-compose.yml
 	docker-compose up
 
+run-frontend-debug:  ## Run frontend in debug mode
+	docker-compose run --use-aliases --service-ports frontend
+
 build:  ## Build all services in docker-compose.yml
 	docker-compose build
 
