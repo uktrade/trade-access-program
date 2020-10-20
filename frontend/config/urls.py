@@ -29,6 +29,10 @@ urlpatterns = [
         "assets/<path:asset_path>",
         RedirectView.as_view(url='/static/govuk-frontend/govuk/assets/%(asset_path)s'),
     ),
+    path(
+        "hmcts-assets/<path:asset_path>",
+        RedirectView.as_view(url='/static/@hmcts/frontend/assets/%(asset_path)s'),
+    ),
 
     path('admin/', admin.site.urls),
 

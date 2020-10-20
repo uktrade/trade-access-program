@@ -188,21 +188,18 @@ def get_sector_select_choices():
     return backoffice_choices
 
 
-def get_trade_event_select_options(**params):
-    _params = {k: v for k, v in params.items() if v}
+def generate_trade_event_select_options(trade_events):
+    if not trade_events or not trade_events['results']:
+        return None
+
     select_options = defaultdict(list)
 
-    try:
-        trade_events = BackofficeService().list_trade_events(**_params)
-    except BackofficeServiceException:
-        select_options = {'choices': [], 'hints': []}
-    else:
-        for te in trade_events:
-            select_options['choices'].append((te['id'], te['name']))
-            select_options['hints'].append('\n'.join([
-                te['tcp'], te['sector'], te['sub_sector'], te['country'],
-                f"{te['start_date']} to {te['end_date']}"
-            ]))
+    for te in trade_events['results']:
+        select_options['choices'].append((te['id'], te['name']))
+        select_options['hints'].append('\n'.join([
+            te['tcp'], te['sector'], te['sub_sector'], te['country'],
+            f"{te['start_date']} to {te['end_date']}"
+        ]))
 
     return select_options
 

@@ -30,6 +30,16 @@ class TradeEventsApiTests(BaseAPITestCase):
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assert_response_data_contains(response, data_contains=[{'id': event.id_str}])
 
+    def test_list_trade_events_paginated(self, *mocks):
+        EventFactory()
+        event_2 = EventFactory()
+        path = reverse('trade-events:trade-events-list')
+        response = self.client.get(path=path, data={'page': 2, 'page_size': 1})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assertEqual(response.data['count'], 2)  # total event count
+        self.assertEqual(len(response.data['results']), 1)
+        self.assert_data_contains(response.data['results'][0], {'id': event_2.id_str})
+
     def test_list_trade_events_with_name_search_term(self, *mocks):
         event_1 = EventFactory(name='AB')
         event_2 = EventFactory(name='ABCD')

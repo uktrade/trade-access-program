@@ -5,7 +5,10 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, UpdateView, TemplateView
 
-from web.core.view_mixins import PageContextMixin, SuccessUrlObjectPkMixin, BackContextMixin
+from web.core.view_mixins import (
+    PageContextMixin, SuccessUrlObjectPkMixin, BackContextMixin,
+    PaginationMixin
+)
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, AboutYouForm, SelectAnEventForm, PreviousApplicationsForm,
     EventIntentionForm, BusinessInformationForm, ExportExperienceForm, StateAidForm,
@@ -14,7 +17,8 @@ from web.grant_applications.forms import (
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
-    generate_grant_application_summary, BackofficeServiceException
+    generate_grant_application_summary, BackofficeServiceException,
+    generate_trade_event_select_options, BackofficeService
 )
 from web.grant_applications.view_mixins import (
     BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin
@@ -88,7 +92,8 @@ class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObj
 
 
 class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
+                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                        PaginationMixin, UpdateView):
     model = GrantApplicationLink
     form_class = SelectAnEventForm
     template_name = 'grant_applications/select_an_event.html'
@@ -101,6 +106,7 @@ class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     form_button_name = 'form_button'
     filters_button_name = 'filters_button'
     button_names = [filters_button_name, form_button_name]
+    events_page_size = 10
 
     def get_initial(self):
         initial = super().get_initial()
@@ -112,6 +118,11 @@ class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         has_button_name = set(self.request.POST) & set(self.button_names)
         if has_button_name:
             return has_button_name.pop()
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['trade_events_options'] = generate_trade_event_select_options(self.trade_events)
+        return kwargs
 
     def get_form(self, form_class=None):
         if self.request.method == 'GET':
@@ -143,9 +154,55 @@ class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
             # If button name is "*_filter_button" then we apply filters and redisplay the form
             return self.render_to_response(self.get_context_data(form=form))
 
+    def get_pagination_total_pages(self):
+        if self.trade_events:
+            return self.trade_events['total_pages']
+
+    def get_current_page(self):
+        if self.request.method == 'GET':
+            return super().get_current_page()
+        return 1
+
+    def get_trade_events(self):
+        params = {}
+
+        if self.request.method == 'POST':
+            params.update({
+                'search': self.request.POST.get('filter_by_name'),
+                'country': self.request.POST.get('filter_by_country'),
+                'sector': self.request.POST.get('filter_by_sector')
+            })
+            filter_by_month = self.request.POST.get('filter_by_month')
+            if filter_by_month:
+                params['start_date_range_after'] = filter_by_month.split(':')[0]
+                params['end_date_range_before'] = filter_by_month.split(':')[1]
+
+        try:
+            trade_events = BackofficeService().list_trade_events(
+                page=self.get_current_page(),
+                page_size=self.events_page_size,
+                **{k: v for k, v in params.items() if v}
+            )
+        except BackofficeServiceException:
+            trade_events = None
+
+        return trade_events
+
+    def get_context_data(self, **kwargs):
+        if self.trade_events:
+            kwargs['number_of_events'] = self.trade_events['count']
+            kwargs['results_to'] = self.get_current_page() * self.events_page_size
+            kwargs['results_from'] = kwargs['results_to'] - self.events_page_size + 1
+        return super().get_context_data(**kwargs)
+
     def post(self, request, *args, **kwargs):
         self.button_name = self._get_button_name()
+        self.trade_events = self.get_trade_events()
         return super().post(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        self.trade_events = self.get_trade_events()
+        return super().get(request, *args, **kwargs)
 
 
 class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
