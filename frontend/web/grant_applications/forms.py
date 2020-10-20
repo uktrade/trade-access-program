@@ -233,17 +233,9 @@ class SelectAnEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
         )
     )
     event = forms.ChoiceField(
-        required=False,
         label=_('What event are you intending to exhibit at'),
         widget=widgets.RadioSelect(),
     )
-
-    def clean(self):
-        cleaned_data = super().clean()
-        event = cleaned_data.get('event')
-
-        if 'form_button' in self.data and not event:
-            self.add_error('event', forms.ValidationError(FORM_MSGS['required']))
 
 
 class EventFinanceForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, forms.ModelForm):
