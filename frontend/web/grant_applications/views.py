@@ -92,8 +92,7 @@ class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObj
 
 
 class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                        PaginationMixin, UpdateView):
+                        BackofficeMixin, ConfirmationRedirectMixin, PaginationMixin, UpdateView):
     model = GrantApplicationLink
     form_class = SelectAnEventForm
     template_name = 'grant_applications/select_an_event.html'
@@ -103,56 +102,18 @@ class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         'heading': _('Select an event'),
         'caption': _('Check your eligibility')
     }
-    form_button_name = 'form_button'
-    filters_button_name = 'filters_button'
-    button_names = [filters_button_name, form_button_name]
     events_page_size = 10
-
-    def get_initial(self):
-        initial = super().get_initial()
-        if self.backoffice_grant_application['event']:
-            initial['event'] = self.backoffice_grant_application['event']['id']
-        return initial
-
-    def _get_button_name(self):
-        has_button_name = set(self.request.POST) & set(self.button_names)
-        if has_button_name:
-            return has_button_name.pop()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['trade_events_options'] = generate_trade_event_select_options(self.trade_events)
+        kwargs['initial'].update({
+            'filter_by_name': self.request.GET.get('filter_by_name'),
+            'filter_by_country': self.request.GET.get('filter_by_country', ''),
+            'filter_by_sector': self.request.GET.get('filter_by_sector', ''),
+            'filter_by_month': self.request.GET.get('filter_by_month', ''),
+        })
         return kwargs
-
-    def get_form(self, form_class=None):
-        if self.request.method == 'GET':
-            return super().get_form(form_class)
-
-        if form_class is None:
-            form_class = self.get_form_class()
-
-        form_kwargs = self.get_form_kwargs()
-
-        if self.button_name == self.form_button_name:
-            return form_class(**form_kwargs)
-        elif self.button_name == self.filters_button_name:
-            form_kwargs['initial'].pop('event', None)  # remove any initial event data
-            form_kwargs['data'] = form_kwargs['data'].copy()
-            form_kwargs['data'].pop('event', None)  # remove any selected event data
-            return form_class(**form_kwargs)
-
-        form = super().get_form(form_class)
-        # If no form button was clicked (in a POST/PUT request) then something has gone wrong
-        form.add_error(None, forms.ValidationError('Form button name required.'))
-        return form
-
-    def form_valid(self, form):
-        if self.button_name == self.form_button_name:
-            # If button name is "form_button" then we submit the form and redirect
-            return super().form_valid(form)
-        elif self.button_name == self.filters_button_name:
-            # If button name is "*_filter_button" then we apply filters and redisplay the form
-            return self.render_to_response(self.get_context_data(form=form))
 
     def get_pagination_total_pages(self):
         if self.trade_events:
@@ -163,19 +124,21 @@ class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
             return super().get_current_page()
         return 1
 
-    def get_trade_events(self):
-        params = {}
+    def get_extra_href_params(self):
+        params = self.request.GET.copy()
+        params.pop('page', None)
+        return params.dict()
 
-        if self.request.method == 'POST':
-            params.update({
-                'search': self.request.POST.get('filter_by_name'),
-                'country': self.request.POST.get('filter_by_country'),
-                'sector': self.request.POST.get('filter_by_sector')
-            })
-            filter_by_month = self.request.POST.get('filter_by_month')
-            if filter_by_month:
-                params['start_date_range_after'] = filter_by_month.split(':')[0]
-                params['end_date_range_before'] = filter_by_month.split(':')[1]
+    def get_trade_events(self):
+        params = {
+            'search': self.request.GET.get('filter_by_name'),
+            'country': self.request.GET.get('filter_by_country'),
+            'sector': self.request.GET.get('filter_by_sector')
+        }
+        filter_by_month = self.request.GET.get('filter_by_month')
+        if filter_by_month:
+            params['start_date_range_after'] = filter_by_month.split(':')[0]
+            params['end_date_range_before'] = filter_by_month.split(':')[1]
 
         try:
             trade_events = BackofficeService().list_trade_events(
@@ -195,14 +158,13 @@ class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
             kwargs['results_from'] = kwargs['results_to'] - self.events_page_size + 1
         return super().get_context_data(**kwargs)
 
-    def post(self, request, *args, **kwargs):
-        self.button_name = self._get_button_name()
-        self.trade_events = self.get_trade_events()
-        return super().post(request, *args, **kwargs)
-
     def get(self, request, *args, **kwargs):
         self.trade_events = self.get_trade_events()
         return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.trade_events = self.get_trade_events()
+        return super().post(request, *args, **kwargs)
 
 
 class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,

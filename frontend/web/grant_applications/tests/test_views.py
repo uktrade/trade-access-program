@@ -412,12 +412,6 @@ class TestSelectAnEventView(BaseTestCase):
         self.gal = GrantApplicationLinkFactory()
         self.url = reverse('grant-applications:select-an-event', args=(self.gal.pk,))
 
-    def assertFiltersResponseOk(self, response):
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('form', response.context_data)
-        self.assertDictEqual(response.context_data['form'].errors, {})
-        self.assertTrue(response.context_data['form'].is_valid())
-
     def test_get(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
@@ -452,17 +446,13 @@ class TestSelectAnEventView(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         mocks[0].assert_any_call(page=2, page_size=self.page_size)
 
-    def test_get_request_event_initial_is_backoffice_event_if_exists(self, *mocks):
+    def test_get_request_event_initial_is_not_backoffice_event_if_exists(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
 
         soup = BeautifulSoup(response.content, 'html.parser')
         selected_event = soup.find(attrs={'class': 'govuk-radios__input'}, checked=True)
-        self.assertInHTML(selected_event.attrs['value'], FAKE_EVENT['id'])
-        self.assertIn(
-            FAKE_EVENT['name'],
-            soup.find('label', attrs={'for': selected_event.attrs['id']}).text
-        )
+        self.assertIsNone(selected_event)
 
     @patch.object(BackofficeService, 'get_grant_application')
     def test_initial_when_no_event_is_set(self, *mocks):
@@ -481,10 +471,7 @@ class TestSelectAnEventView(BaseTestCase):
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'event': FAKE_EVENT['id'],
-                'form_button': ''
-            })
+            data=urlencode({'event': FAKE_EVENT['id']})
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
@@ -496,10 +483,7 @@ class TestSelectAnEventView(BaseTestCase):
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'event': FAKE_EVENT['id'],
-                'form_button': ''
-            })
+            data=urlencode({'event': FAKE_EVENT['id']})
         )
         self.assertEqual(response.status_code, 302)
         mocks[1].assert_called_once_with(
@@ -508,43 +492,21 @@ class TestSelectAnEventView(BaseTestCase):
         )
 
     def test_filter_by_name(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'filters_button': '',
-                'filter_by_name': 'AB',
-            })
-        )
-        self.assertFiltersResponseOk(response)
+        response = self.client.get(self.url, data={'filter_by_name': 'AB'})
+        self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')
         self.assertEqual(soup.find(id='id_filter_by_name').attrs['value'], 'AB')
         # Use name filter as a search_term to the backoffice api
         mocks[0].assert_any_call(page=1, page_size=self.page_size, search='AB')
 
-    def test_filter_by_name_post_initial_data(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'filters_button': '',
-                'filter_by_name': 'AB',
-            })
-        )
-        self.assertFiltersResponseOk(response)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertEqual(soup.find(id='id_filter_by_name').attrs['value'], 'AB')
-
     def test_filter_by_month(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'filters_button': '',
-                'filter_by_month': '2020-12-01:2020-12-31',
-            })
+        response = self.client.get(self.url, data={'filter_by_month': '2020-12-01:2020-12-31'})
+        self.assertEqual(response.status_code, 200)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        self.assertEqual(
+            soup.find(id='id_filter_by_month').find('option', selected=True).text,
+            'December 2020'
         )
-        self.assertFiltersResponseOk(response)
         mocks[0].assert_any_call(
             page=1,
             page_size=self.page_size,
@@ -552,115 +514,38 @@ class TestSelectAnEventView(BaseTestCase):
             end_date_range_before='2020-12-31'
         )
 
-    def test_filter_by_month_post_initial_data(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'filters_button': '',
-                'filter_by_month': '2020-12-01:2020-12-31',
-            })
-        )
-        self.assertFiltersResponseOk(response)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertEqual(
-            soup.find(id='id_filter_by_month').find('option', selected=True).text,
-            'December 2020'
-        )
-
     def test_filter_by_country(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'filters_button': '',
-                'filter_by_country': 'Country 1',
-            })
-        )
-        self.assertFiltersResponseOk(response)
-        mocks[0].assert_any_call(page=1, page_size=self.page_size, country='Country 1')
-
-    def test_filter_by_country_post_initial_data(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'filters_button': '',
-                'filter_by_country': FAKE_EVENT['country'],
-            })
-        )
-        self.assertFiltersResponseOk(response)
+        response = self.client.get(self.url, data={'filter_by_country': 'Country 1'})
+        self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')
         self.assertEqual(
             soup.find(id='id_filter_by_country').find('option', selected=True).text,
             FAKE_EVENT['country']
         )
+        mocks[0].assert_any_call(page=1, page_size=self.page_size, country='Country 1')
 
     def test_filter_by_sector(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'filters_button': '',
-                'filter_by_sector': 'Sector 1',
-            })
-        )
-        self.assertFiltersResponseOk(response)
-        mocks[0].assert_any_call(page=1, page_size=self.page_size, sector='Sector 1')
-
-    def test_filter_by_sector_post_initial_data(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'filters_button': '',
-                'filter_by_sector': FAKE_EVENT['sector'],
-            })
-        )
-        self.assertFiltersResponseOk(response)
+        response = self.client.get(self.url, data={'filter_by_sector': 'Sector 1'})
+        self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')
         self.assertEqual(
             soup.find(id='id_filter_by_sector').find('option', selected=True).text,
             FAKE_EVENT['sector']
         )
+        mocks[0].assert_any_call(page=1, page_size=self.page_size, sector='Sector 1')
 
     def test_no_matching_events_text_is_shown(self, *mocks):
         mocks[0].side_effect = None
         mocks[0].return_value = []
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'filters_button': '',
-                'filter_by_name': 'Bla Bla Bla',
-            })
-        )
-        self.assertFiltersResponseOk(response)
+        response = self.client.get(self.url, data={'filter_by_name': 'Bla Bla Bla'})
+        self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')
         html_elements = soup.find_all(id=re.compile(r'^id_no_matching_events_\d'))
         self.assertEqual(len(html_elements), 3)
 
-    def test_form_error_on_post_when_no_button_name_provided(self, *mocks):
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
-        self.assertFormError(response, 'form', None, 'Form button name required.')
-
     def test_event_required_on_form_button_submit(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'form_button': ''})
-        )
+        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
         self.assertFormError(response, 'form', 'event', self.form_msgs['required'])
-
-    def test_event_not_required_on_apply_filter_button_submit(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'filters_button': ''})
-        )
-        self.assertFiltersResponseOk(response)
-        self.assertTemplateUsed(response, SelectAnEventView.template_name)
-        self.assertFalse(response.context_data['form'].errors)
 
 
 @patch.object(

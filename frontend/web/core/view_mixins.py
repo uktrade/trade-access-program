@@ -1,4 +1,5 @@
 from django.urls import reverse
+from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
 
@@ -43,6 +44,9 @@ class PaginationMixin:
     """
     ellipsis = '...'
 
+    def get_extra_href_params(self):
+        return ''
+
     def get_current_page(self):
         try:
             return int(self.request.GET.get('page', 1))
@@ -52,7 +56,7 @@ class PaginationMixin:
     def get_pagination_total_pages(self):
         raise NotImplementedError('.get_pagination_total_pages() must be overridden.')
 
-    def get_basic_pagination_pages(self, current_page, total_pages):
+    def get_basic_pagination_pages(self, current_page, total_pages, extra_href_params):
         pages = []
         for i in range(1, total_pages + 1):
             if i == current_page:
@@ -61,29 +65,30 @@ class PaginationMixin:
                     'text': current_page
                 })
             else:
-                pages.append({'link': True, 'page': i})
+                pages.append({'href': f'?page={i}&{extra_href_params}', 'page': i})
         return pages
 
-    def get_dotted_pagination_pages(self, current_page, total_pages, previous_page, next_page):
+    def get_dotted_pagination_pages(self, current_page, total_pages, previous_page, next_page,
+                                    extra_href_params):
         pages = [
-            {'link': True, 'page': 1},
-            {'link': True, 'page': previous_page},
+            {'href': f'?page=1&{extra_href_params}', 'page': 1},
+            {'href': f'?page={previous_page}&{extra_href_params}', 'page': previous_page},
             {
                 'class': 'hmcts-pagination__item hmcts-pagination__item--active',
                 'text': current_page
             },
-            {'link': True, 'page': next_page},
+            {'href': f'?page={next_page}&{extra_href_params}', 'page': next_page},
         ]
 
         if current_page == 1:
             pages.pop(1)
             pages.pop(0)
-            pages.append({'link': True, 'page': 3})
-            pages.append({'link': True, 'page': 4})
+            pages.append({'href': f'?page=3&{extra_href_params}', 'page': 3})
+            pages.append({'href': f'?page=4&{extra_href_params}', 'page': 4})
 
         if current_page == 2:
             pages.pop(1)
-            pages.append({'link': True, 'page': 4})
+            pages.append({'href': f'?page=4&{extra_href_params}', 'page': 4})
 
         if current_page == total_pages:
             pages.pop(-1)
@@ -119,22 +124,30 @@ class PaginationMixin:
         """
         total_pages = self.get_pagination_total_pages()
         current_page = self.get_current_page()
+        extra_href_params = urlencode(self.get_extra_href_params())
 
         if total_pages and total_pages > 1:
             pagination = {
-                'previous': max(current_page - 1, 1),
-                'next': min(current_page + 1, total_pages)
+                'previous': {
+                    'page': max(current_page - 1, 1),
+                    'href': f'?page={max(current_page - 1, 1)}&{extra_href_params}'
+                },
+                'next': {
+                    'page': min(current_page + 1, total_pages),
+                    'href': f'?page={min(current_page + 1, total_pages)}&{extra_href_params}'
+                }
             }
             if 1 < total_pages <= 6:
                 pagination['pages'] = self.get_basic_pagination_pages(
-                    current_page, total_pages
+                    current_page, total_pages, extra_href_params
                 )
             elif total_pages >= 7:
                 pagination['pages'] = self.get_dotted_pagination_pages(
                     current_page,
                     total_pages,
-                    pagination['previous'],
-                    pagination['next']
+                    pagination['previous']['page'],
+                    pagination['next']['page'],
+                    extra_href_params
                 )
             return pagination
 

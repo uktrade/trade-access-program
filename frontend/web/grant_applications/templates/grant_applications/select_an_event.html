@@ -2,14 +2,11 @@
 {% load static %}
 
 {% block form %}
+<div class="govuk-grid-row">
 
-<form class="form" method="POST" novalidate>
-  {% csrf_token %}
-
-  {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
-  <div class="govuk-grid-row">
-    <!-- Filters -->
-    <div class="govuk-grid-column-one-third">
+  <!-- Filters -->
+  <div class="govuk-grid-column-one-third">
+    <form class="form" id="id_filters_form" action="{% url 'grant-applications:select-an-event' pk=grantapplicationlink.pk %}" method="GET" novalidate>
       <div class="govuk-grid-column-full govuk-tag--grey">
         <p class="govuk-body"></p>
         {% include "core/govt_uk_form_field.html" with field=form.filter_by_name %}
@@ -19,9 +16,15 @@
         {% include "core/govt_uk_form_button.html" with button_class="govuk-button govuk-button--blue" button_name="filters_button" button_text="Search again" %}
         <p class="govuk-body">We found <strong>{{ number_of_events }}</strong> matching events.</p>
       </div>
-    </div>
-    <div class="govuk-grid-column-two-thirds">
-      <!-- Event select -->
+    </form>
+  </div>
+
+  <!-- Event select field -->
+  <div class="govuk-grid-column-two-thirds">
+    <form class="form" method="POST" novalidate>
+      {% csrf_token %}
+      {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
+
       {% if not form.event.field.choices %}
         <p class="govuk-body" id="id_no_matching_events_1">We’ve found no matching events for your search.</p>
         <p class="govuk-body" id="id_no_matching_events_2">Please try widening your search criteria or checking the spelling of the event name.</p>
@@ -31,10 +34,10 @@
         {% include "widgets/pagination.html" with pagination=pagination results_from=results_from results_to=results_to total_results=number_of_events %}
         {% include "core/govt_uk_form_button.html" with button_text=page.form_button_text %}
       {% endif %}
-    </div>
+      </form>
   </div>
-</form>
 
+</div>
 {% endblock %}
 
 {% block scripts %}
