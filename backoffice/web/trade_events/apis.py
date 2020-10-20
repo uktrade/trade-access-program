@@ -26,3 +26,4 @@ class TradeEventsViewSet(ReadOnlyModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = TradeEventsFilterSet
     search_fields = ['name']
+    page_size_query_param = 'page_size'

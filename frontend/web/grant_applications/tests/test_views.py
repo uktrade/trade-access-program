@@ -20,7 +20,7 @@ from web.tests.factories.grant_application_link import GrantApplicationLinkFacto
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_COMPANY,
     FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT, FAKE_SECTOR,
-    FAKE_SEARCH_COMPANIES
+    FAKE_SEARCH_COMPANIES, FAKE_PAGINATED_LIST_EVENTS
 )
 from web.tests.helpers.testcases import BaseTestCase, LogCaptureMixin
 
@@ -401,8 +401,12 @@ class TestPreviousApplicationsView(BaseTestCase):
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
 @patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(BackofficeService, 'list_trade_events', return_value=[FAKE_EVENT])
+@patch.object(
+    BackofficeService, 'list_trade_events',
+    side_effect=[FAKE_PAGINATED_LIST_EVENTS, [FAKE_EVENT], [FAKE_EVENT], [FAKE_EVENT]]
+)
 class TestSelectAnEventView(BaseTestCase):
+    page_size = SelectAnEventView.events_page_size
 
     def setUp(self):
         self.gal = GrantApplicationLinkFactory()
@@ -437,6 +441,16 @@ class TestSelectAnEventView(BaseTestCase):
         self.assertEqual(
             soup.find(id='id_filter_by_sector').find('option', selected=True).text, 'All'
         )
+
+    def test_get_defaults_to_event_page_1(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        mocks[0].assert_any_call(page=1, page_size=self.page_size)
+
+    def test_get_with_event_page(self, *mocks):
+        response = self.client.get(self.url, data={'page': 2})
+        self.assertEqual(response.status_code, 200)
+        mocks[0].assert_any_call(page=2, page_size=self.page_size)
 
     def test_get_request_event_initial_is_backoffice_event_if_exists(self, *mocks):
         response = self.client.get(self.url)
@@ -506,7 +520,7 @@ class TestSelectAnEventView(BaseTestCase):
         soup = BeautifulSoup(response.content, 'html.parser')
         self.assertEqual(soup.find(id='id_filter_by_name').attrs['value'], 'AB')
         # Use name filter as a search_term to the backoffice api
-        mocks[0].assert_any_call(search='AB')
+        mocks[0].assert_any_call(page=1, page_size=self.page_size, search='AB')
 
     def test_filter_by_name_post_initial_data(self, *mocks):
         response = self.client.post(
@@ -532,6 +546,8 @@ class TestSelectAnEventView(BaseTestCase):
         )
         self.assertFiltersResponseOk(response)
         mocks[0].assert_any_call(
+            page=1,
+            page_size=self.page_size,
             start_date_range_after='2020-12-01',
             end_date_range_before='2020-12-31'
         )
@@ -562,7 +578,7 @@ class TestSelectAnEventView(BaseTestCase):
             })
         )
         self.assertFiltersResponseOk(response)
-        mocks[0].assert_any_call(country='Country 1')
+        mocks[0].assert_any_call(page=1, page_size=self.page_size, country='Country 1')
 
     def test_filter_by_country_post_initial_data(self, *mocks):
         response = self.client.post(
@@ -590,7 +606,7 @@ class TestSelectAnEventView(BaseTestCase):
             })
         )
         self.assertFiltersResponseOk(response)
-        mocks[0].assert_any_call(sector='Sector 1')
+        mocks[0].assert_any_call(page=1, page_size=self.page_size, sector='Sector 1')
 
     def test_filter_by_sector_post_initial_data(self, *mocks):
         response = self.client.post(
@@ -609,6 +625,7 @@ class TestSelectAnEventView(BaseTestCase):
         )
 
     def test_no_matching_events_text_is_shown(self, *mocks):
+        mocks[0].side_effect = None
         mocks[0].return_value = []
         response = self.client.post(
             self.url,

@@ -116,6 +116,14 @@ FAKE_EVENT = {
     'tcp_website': 'TCP Website 1',
 }
 
+FAKE_PAGINATED_LIST_EVENTS = {
+  'count': 5,
+  'next': 'https://host/api/trade-events/?page=4&page_size=1',
+  'previous': 'https://host/api/trade-events/?page=2&page_size=1',
+  'results': [FAKE_EVENT],
+  'total_pages': 5
+}
+
 FAKE_SECTOR = {
     'id': 'e98cee83-9f4e-4ad2-8d10-7f25867b91b5',
     'sector_code': 'SL0001',

@@ -1,0 +1,31 @@
+{% if pagination %}
+
+<nav class="hmcts-pagination govuk-!-margin-bottom-3" id="pagination-label">
+  <p class="govuk-visually-hidden" aria-labelledby="pagination-label">Pagination navigation</p>
+  <ul class="hmcts-pagination__list">
+
+    <!-- Previous -->
+    <li class="hmcts-pagination__item  hmcts-pagination__item--prev">
+      <a class="hmcts-pagination__link" href="?page={{ pagination.previous }}">Previous<span class="govuk-visually-hidden"> set of pages</span></a>
+    </li>
+
+    {% for page in pagination.pages %}
+      <li class="{{ page.class|default:'hmcts-pagination__item' }}">
+        {% if page.link %}
+          <a class="hmcts-pagination__link" href="?page={{ page.page }}">{{ page.link_text|default:page.page }}</a>
+        {% endif %}
+        {{ page.text }}
+      </li>
+    {% endfor %}
+
+    <!-- Next -->
+    <li class="hmcts-pagination__item  hmcts-pagination__item--next">
+      <a class="hmcts-pagination__link" href="?page={{ pagination.next }}">Next<span class="govuk-visually-hidden"> set of pages</span></a>
+    </li>
+
+    <center class="govuk-body" id="id_pagination_results">Showing <b>{{ results_from }}</b> to <b>{{ results_to }}</b> of <b>{{ total_results }}</b> results</center>
+
+  </ul>
+</nav>
+
+{% endif %}

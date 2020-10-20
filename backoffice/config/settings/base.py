@@ -191,6 +191,8 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PARSER_CLASSES': ['rest_framework.parsers.JSONParser'],
+    'DEFAULT_PAGINATION_CLASS': 'web.core.views.PageNumberPagination',
+    'PAGE_SIZE': 10
 }
 
 DNB_SERVICE_URL = env('DNB_SERVICE_URL', default=None)

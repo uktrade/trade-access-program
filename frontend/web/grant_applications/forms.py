@@ -14,7 +14,7 @@ from web.grant_applications.form_mixins import (
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException, get_company_select_options,
-    get_sector_select_choices, get_trade_event_select_options, get_trade_event_filter_choices,
+    get_sector_select_choices, get_trade_event_filter_choices,
     get_trade_event_filter_by_month_choices
 )
 
@@ -196,23 +196,14 @@ class SelectAnEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
             'event'
         ]
 
-    def __init__(self, *args, **kwargs):
-        filter_by_month = kwargs.get('data', {}).get('filter_by_month', ':').split(':')
-        trade_event_options = get_trade_event_select_options(
-            search=kwargs.get('data', {}).get('filter_by_name'),
-            start_date_range_after=filter_by_month[0],
-            end_date_range_before=filter_by_month[1],
-            country=kwargs.get('data', {}).get('filter_by_country'),
-            sector=kwargs.get('data', {}).get('filter_by_sector')
-        )
-
+    def __init__(self, trade_events_options=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         self.fields['filter_by_month'].choices = get_trade_event_filter_by_month_choices()
         self.fields['filter_by_country'].choices = get_trade_event_filter_choices('country')
         self.fields['filter_by_sector'].choices = get_trade_event_filter_choices('sector')
-        self.fields['event'].choices = trade_event_options['choices']
-        self.fields['event'].widget.attrs['hints'] = trade_event_options['hints']
+        if trade_events_options:
+            self.fields['event'].choices = trade_events_options['choices']
+            self.fields['event'].widget.attrs['hints'] = trade_events_options['hints']
 
     filter_by_name = forms.CharField(
         required=False,
