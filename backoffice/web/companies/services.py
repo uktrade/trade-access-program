@@ -45,13 +45,6 @@ class DnbServiceClient:
             logger.error(str(e), exc_info=e)
             raise DnbServiceClientException
 
-    @staticmethod
-    def _filter_gb(results):
-        return [
-            r for r in results
-            if (r.get('registered_address_country') or r.get('address_country')) == 'GB'
-        ]
-
     def get_company(self, **params):
         results = self.search_companies(**params)
         if results and len(results) == 1:
@@ -63,8 +56,8 @@ class DnbServiceClient:
         return None
 
     def search_companies(self, **params):
-        response = self.session.post(self.company_url, json=params)
-        return self._filter_gb(results=response.json()['results'])
+        response = self.session.post(self.company_url, json={'address_country': 'GB', **params})
+        return response.json()['results']
 
 
 def refresh_dnb_company_response_data(company):

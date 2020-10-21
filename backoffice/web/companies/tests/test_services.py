@@ -17,14 +17,13 @@ class DnbServiceTests(BaseAPITestCase):
         cls.dnb_service_client = DnbServiceClient()
         cls.search_response = {
             'results': [
-                {'primary_name': 'name-1', 'duns_number': 1, 'registered_address_country': 'GB'},
-                {'primary_name': 'name-2', 'duns_number': 2, 'registered_address_country': 'GB'},
-                {'primary_name': 'name-3', 'duns_number': 3, 'registered_address_country': 'PL'}
+                {'primary_name': 'name-1', 'duns_number': 1, 'address_country': 'GB'},
+                {'primary_name': 'name-2', 'duns_number': 2, 'address_country': 'GB'}
             ]
         }
         cls.get_response = {
             'results': [
-                {'primary_name': 'name-1', 'duns_number': 1, 'registered_address_country': 'GB'}
+                {'primary_name': 'name-1', 'duns_number': 1, 'address_country': 'GB'}
             ]
         }
 
@@ -32,7 +31,7 @@ class DnbServiceTests(BaseAPITestCase):
     def test_get_company(self):
         response_body = json.dumps({
             'results': [
-                {'primary_name': 'name-1', 'duns_number': 1, 'registered_address_country': 'GB'}
+                {'primary_name': 'name-1', 'duns_number': 1, 'address_country': 'GB'}
             ]
         })
         httpretty.register_uri(
@@ -44,23 +43,6 @@ class DnbServiceTests(BaseAPITestCase):
         )
         dnb_company = self.dnb_service_client.get_company(duns_number=1)
         self.assertEqual(dnb_company['primary_name'], 'name-1')
-
-    @httpretty.activate
-    def test_get_non_gb_company_returns_none(self):
-        response_body = json.dumps({
-            'results': [
-                {'primary_name': 'name-3', 'duns_number': 3, 'registered_address_country': 'PL'}
-            ]
-        })
-        httpretty.register_uri(
-            httpretty.POST,
-            self.dnb_service_client.company_url,
-            status=200,
-            body=response_body,
-            match_querystring=False
-        )
-        dnb_company = self.dnb_service_client.get_company(duns_number=3)
-        self.assertIsNone(dnb_company)
 
     @httpretty.activate
     def test_search_companies(self):
@@ -75,7 +57,7 @@ class DnbServiceTests(BaseAPITestCase):
         self.assertEqual(len(dnb_companies), 2)
 
     @httpretty.activate
-    def test_search_returns_UK_companies_only(self):
+    def test_search_requests_GB_companies_only(self):
         httpretty.register_uri(
             httpretty.POST,
             self.dnb_service_client.company_url,
@@ -83,9 +65,11 @@ class DnbServiceTests(BaseAPITestCase):
             body=json.dumps(self.search_response),
             match_querystring=False
         )
-        dnb_companies = self.dnb_service_client.search_companies(search_term='name')
-        for company in dnb_companies:
-            self.assertEqual(company['registered_address_country'], 'GB')
+        self.dnb_service_client.search_companies(search_term='name')
+        request = httpretty.last_request()
+        self.assertIn('address_country', request.parsed_body)
+        self.assertEqual(request.parsed_body['address_country'], 'GB')
+        self.assertEqual(request.parsed_body['search_term'], 'name')
 
     @httpretty.activate
     def test_retry_on_500(self):

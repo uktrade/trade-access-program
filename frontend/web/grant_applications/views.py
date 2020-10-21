@@ -18,7 +18,7 @@ from web.grant_applications.forms import (
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     generate_grant_application_summary, BackofficeServiceException,
-    generate_trade_event_select_options, BackofficeService
+    generate_trade_event_select_options, BackofficeService, get_company_select_options
 )
 from web.grant_applications.view_mixins import (
     BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin
@@ -50,6 +50,11 @@ class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     @staticmethod
     def get_back_url():
         return reverse('grant-applications:search-company')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['company_options'] = get_company_select_options(self.object.search_term)
+        return kwargs
 
     def get_initial(self):
         initial = super().get_initial()

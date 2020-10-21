@@ -13,9 +13,8 @@ from web.grant_applications.form_mixins import (
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
-    BackofficeService, BackofficeServiceException, get_company_select_options,
-    get_sector_select_choices, get_trade_event_filter_choices,
-    get_trade_event_filter_by_month_choices
+    BackofficeService, BackofficeServiceException, get_sector_select_choices,
+    get_trade_event_filter_choices, get_trade_event_filter_by_month_choices
 )
 
 
@@ -54,12 +53,11 @@ class SearchCompanyForm(forms.ModelForm):
 
 class SelectCompanyForm(forms.ModelForm):
 
-    def __init__(self, *args, **kwargs):
-        search_term = getattr(kwargs.get('instance'), 'search_term', None)
-        company_options = get_company_select_options(search_term)
+    def __init__(self, company_options=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['duns_number'].choices = company_options['choices']
-        self.fields['duns_number'].widget.attrs['hints'] = company_options['hints']
+        if company_options:
+            self.fields['duns_number'].choices = company_options['choices']
+            self.fields['duns_number'].widget.attrs['hints'] = company_options['hints']
 
     class Meta:
         model = GrantApplicationLink
