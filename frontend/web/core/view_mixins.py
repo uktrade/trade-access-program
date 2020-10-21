@@ -19,7 +19,7 @@ class BackContextMixin:
         if hasattr(self, 'get_back_url'):
             self.back_url = self.get_back_url()
         elif hasattr(self, 'back_url_name') and self.object:
-            self.back_url = reverse(self.back_url_name, kwargs={'pk': self.object.pk})
+            self.back_url = reverse(self.back_url_name, args=(self.object.pk,))
         elif hasattr(self, 'back_url_name'):
             self.back_url = reverse(self.back_url_name)
 
@@ -35,7 +35,7 @@ class BackContextMixin:
 class SuccessUrlObjectPkMixin:
 
     def get_success_url(self):
-        return reverse(self.success_url_name, kwargs={'pk': self.object.pk})
+        return reverse(self.success_url_name, args=(self.object.pk,))
 
 
 class PaginationMixin:

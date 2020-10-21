@@ -43,6 +43,7 @@ class BackofficeService:
         self.grant_applications_url = urljoin(self.base_url, 'grant-applications/')
         self.companies_url = urljoin(self.base_url, 'companies/')
         self.trade_events_url = urljoin(self.base_url, 'trade-events/')
+        self.trade_event_aggregates_url = urljoin(self.base_url, 'trade-events/aggregates/')
         self.sectors_url = urljoin(self.base_url, 'sectors/')
 
         self.session = requests.Session()
@@ -129,9 +130,13 @@ class BackofficeService:
         response = self.session.get(self.sectors_url)
         return response.json()
 
+    def get_trade_event_aggregates(self, **params):
+        response = self.session.get(self.trade_event_aggregates_url, params=params)
+        return response.json()
+
     def request_factory(self, object_type, **request_kwargs):
         if object_type == 'trade_events':
-            return self.list_trade_events(params=request_kwargs.get('params', {}))
+            return self.list_trade_events(**request_kwargs.get('params', {}))
         elif object_type == 'sectors':
             return self.list_sectors()
         raise ValueError(f'Unknown object type {object_type}')

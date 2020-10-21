@@ -133,3 +133,12 @@ FAKE_SECTOR = {
     'sub_sector_name': 'Sector 1 Sub Sector Name',
     'sub_sub_sector_name': 'Sector 1 Sub Sub Sector Name'
 }
+
+
+FAKE_TRADE_EVENT_AGGREGATES = {
+    'total_trade_events': '4',
+    'trade_event_months': [
+        'December 2020',
+        'February 2021'
+    ],
+}

@@ -130,3 +130,34 @@ class TradeEventsApiTests(BaseAPITestCase):
         path = reverse('trade-events:trade-events-list')
         response = self.client.post(path)
         self.assertEqual(response.status_code, HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class TradeEventsAggregatesApiTests(BaseAPITestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.events = EventFactory.create_batch(
+            size=2, start_date='2020-12-10', end_date='2020-12-13'
+        )
+        cls.events.append(
+            EventFactory(start_date='2020-10-01', end_date='2020-10-03')
+        )
+        cls.events.append(
+            EventFactory(start_date='2021-02-28', end_date='2020-03-02')
+        )
+        cls.path = reverse('trade-events:aggregate')
+
+    def test_get_trade_event_aggregate_data(self, *mocks):
+        response = self.client.get(self.path, data={'start_date_from': '2020-12-01'})
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assert_response_data_contains(
+            response,
+            data_contains={
+                'total_trade_events': 3,
+                'trade_event_months': [
+                    'December 2020',
+                    'February 2021'
+                ]
+            }
+        )

@@ -184,13 +184,59 @@ class EligibilityConfirmationForm(UpdateBackofficeGrantApplicationMixin, forms.M
         fields = []
 
 
+class FindAnEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = ['filter_by_name', 'filter_by_sector', 'filter_by_country', 'filter_by_month']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['filter_by_month'].choices = get_trade_event_filter_by_month_choices()
+        self.fields['filter_by_country'].choices = get_trade_event_filter_choices('country')
+        self.fields['filter_by_sector'].choices = get_trade_event_filter_choices('sector')
+
+    filter_by_name = forms.CharField(
+        required=False,
+        label=_('Event name'),
+        help_text=_('You can leave this blank if you prefer'),
+        widget=forms.TextInput(
+            attrs={
+                'class': 'govuk-input govuk-grid-column-full',
+                'placeholder': 'Search...',
+            }
+        )
+    )
+    filter_by_sector = forms.ChoiceField(
+        required=False,
+        label=_('Sector'),
+        widget=forms.Select(
+            attrs={'class': 'govuk-select govuk-grid-column-full'}
+        )
+    )
+    filter_by_country = forms.ChoiceField(
+        required=False,
+        label=_('Location'),
+        widget=forms.Select(
+            attrs={'class': 'govuk-select govuk-grid-column-full'}
+        )
+    )
+    filter_by_month = forms.ChoiceField(
+        required=False,
+        label=_('Start date'),
+        widget=forms.Select(
+            attrs={'class': 'govuk-select'}
+        )
+    )
+
+
 class SelectAnEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
     grant_application_fields = ['event']
 
     class Meta:
         model = GrantApplicationLink
         fields = [
-            'filter_by_name', 'filter_by_month', 'filter_by_country', 'filter_by_sector',
+            'filter_by_name', 'filter_by_sector', 'filter_by_country', 'filter_by_month',
             'event'
         ]
 
@@ -205,27 +251,28 @@ class SelectAnEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
 
     filter_by_name = forms.CharField(
         required=False,
-        label=_('Filter by name'),
+        label=_('Event name'),
         widget=forms.TextInput(
             attrs={'class': 'govuk-input govuk-grid-column-full'}
         )
     )
-    filter_by_month = forms.ChoiceField(
+    filter_by_sector = forms.ChoiceField(
         required=False,
-        label=_('Filter by date'),
+        label=_('Sector'),
         widget=forms.Select(
             attrs={'class': 'govuk-select govuk-grid-column-full'}
         )
     )
     filter_by_country = forms.ChoiceField(
         required=False,
-        label=_('Filter by location'),
+        label=_('Location'),
         widget=forms.Select(
             attrs={'class': 'govuk-select govuk-grid-column-full'}
         )
     )
-    filter_by_sector = forms.ChoiceField(
+    filter_by_month = forms.ChoiceField(
         required=False,
+        label=_('Start date'),
         widget=forms.Select(
             attrs={'class': 'govuk-select govuk-grid-column-full'}
         )
