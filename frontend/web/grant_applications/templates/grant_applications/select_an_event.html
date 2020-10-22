@@ -32,7 +32,7 @@
       {% else %}
         {% include "core/govt_uk_form_field.html" with field=form.event %}
         {% include "widgets/pagination.html" with pagination=pagination results_from=results_from results_to=results_to total_results=number_of_events %}
-        {% include "core/govt_uk_form_button.html" with button_text=page.form_button_text %}
+        {% include "core/govt_uk_form_button.html" %}
       {% endif %}
       </form>
   </div>

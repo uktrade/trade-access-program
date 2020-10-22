@@ -12,6 +12,10 @@ class RadioSelect(forms.widgets.RadioSelect):
         return option
 
 
+class TextWithDetailInput(forms.TextInput):
+    template_name = 'widgets/text_with_detail_input.html'
+
+
 class CharacterCountTextArea(forms.Textarea):
     template_name = 'widgets/character_count_text_area.html'
 

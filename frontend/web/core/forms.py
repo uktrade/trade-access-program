@@ -4,6 +4,7 @@ FORM_MSGS = {
     'required': 'This field is required.',
     'not-required': 'This field is not required.',
     'resubmit': 'An unexpected error occurred. Please resubmit the form.',
+    'invalid-choice': 'Select a valid choice. {} is not one of the available choices.'
 }
 
 

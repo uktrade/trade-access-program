@@ -11,7 +11,7 @@ from web.grant_applications.services import (
 )
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_SEARCH_COMPANIES, FAKE_COMPANY,
-    FAKE_SECTOR, FAKE_EVENT
+    FAKE_SECTOR, FAKE_EVENT, FAKE_TRADE_EVENT_AGGREGATES
 )
 from web.tests.helpers.testcases import BaseTestCase, LogCaptureMixin
 
@@ -46,6 +46,10 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
         # Fake backoffice list sectors response object
         cls.lsr = [FAKE_SECTOR]
         cls.lsr_response_body = json.dumps(cls.lsr)
+
+        # Fake backoffice trade event aggregates object
+        cls.tea = FAKE_TRADE_EVENT_AGGREGATES
+        cls.tea_response_body = json.dumps(cls.tea)
 
     @httpretty.activate
     def test_create_company(self):
@@ -269,6 +273,17 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
         )
         lsr = self.service.list_sectors()
         self.assertEqual(lsr, self.lsr)
+
+    @httpretty.activate
+    def test_get_trade_event_aggregates(self):
+        httpretty.register_uri(
+            httpretty.GET,
+            self.service.trade_event_aggregates_url,
+            status=200,
+            body=json.dumps(self.tea)
+        )
+        aggregates = self.service.get_trade_event_aggregates()
+        self.assertDictEqual(aggregates, FAKE_TRADE_EVENT_AGGREGATES)
 
     @httpretty.activate
     def test_retry_on_500(self):

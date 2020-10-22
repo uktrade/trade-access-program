@@ -1,9 +1,11 @@
 import re
 from unittest import skip
 from unittest.mock import patch
+from urllib.parse import urlparse, parse_qs
 
 from bs4 import BeautifulSoup
 from django.urls import reverse, resolve
+from django.utils import timezone
 from django.utils.datetime_safe import date
 from django.utils.http import urlencode
 
@@ -14,13 +16,13 @@ from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, AboutYouView, SelectAnEventView,
     PreviousApplicationsView, EventIntentionView, BusinessInformationView, ExportExperienceView,
     StateAidView, ApplicationReviewView, EligibilityReviewView, EventFinanceView,
-    EligibilityConfirmationView, BusinessDetailsView
+    EligibilityConfirmationView, BusinessDetailsView, FindAnEventView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_COMPANY,
     FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT, FAKE_SECTOR,
-    FAKE_SEARCH_COMPANIES, FAKE_PAGINATED_LIST_EVENTS
+    FAKE_SEARCH_COMPANIES, FAKE_PAGINATED_LIST_EVENTS, FAKE_TRADE_EVENT_AGGREGATES
 )
 from web.tests.helpers.testcases import BaseTestCase, LogCaptureMixin
 
@@ -397,6 +399,123 @@ class TestPreviousApplicationsView(BaseTestCase):
     def test_boolean_field_must_be_present(self, *mocks):
         response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
         self.assertFormError(response, 'form', 'has_previously_applied', self.form_msgs['required'])
+
+
+@patch.object(
+    BackofficeService, 'get_trade_event_aggregates', return_value=FAKE_TRADE_EVENT_AGGREGATES
+)
+@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
+@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
+@patch.object(
+    BackofficeService, 'list_trade_events', side_effect=[
+        [FAKE_EVENT], [FAKE_EVENT], [FAKE_EVENT], FAKE_PAGINATED_LIST_EVENTS, [FAKE_EVENT],
+        [FAKE_EVENT], [FAKE_EVENT]
+    ]
+)
+class TestFindAnEventView(BaseTestCase):
+
+    def setUp(self):
+        self.gal = GrantApplicationLinkFactory()
+        self.url = reverse('grant-applications:find-an-event', args=(self.gal.pk,))
+
+    def test_get(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, FindAnEventView.template_name)
+
+    def test_initial_filters_are_set_to_all(self, *mocks):
+        response = self.client.get(self.url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        self.assertEqual(response.status_code, 200)
+        # Filter by name
+        self.assertNotIn('value', soup.find(id='id_filter_by_name').attrs)
+        # Filter by start date
+        self.assertEqual(
+            soup.find(id='id_filter_by_month').find('option', selected=True).text, 'All'
+        )
+        # Filter by country
+        self.assertEqual(
+            soup.find(id='id_filter_by_country').find('option', selected=True).text, 'All'
+        )
+        # Filter by sector
+        self.assertEqual(
+            soup.find(id='id_filter_by_sector').find('option', selected=True).text, 'All'
+        )
+
+    def test_error_on_bad_query_param(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode({'filter_by_month': 'bad-value'})
+        )
+        self.assertFormError(
+            response, 'form', 'filter_by_month',
+            self.form_msgs['invalid-choice'].format('bad-value')
+        )
+
+    def test_query_params_sent_on_redirect(self, *mocks):
+        params = {
+            'filter_by_name': 'Name 1',
+            'filter_by_month': '2020-12-01:2020-12-31',
+            'filter_by_country': 'Country 1',
+            'filter_by_sector': 'Sector 1'
+        }
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            data=urlencode(params)
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response=response,
+            expected_url=reverse(
+                'grant_applications:select-an-event', args=(self.gal.pk,)
+            ) + f'?{urlencode(params)}'
+        )
+        parsed_url = urlparse(response.url)
+        for k, v in parse_qs(parsed_url.query).items():
+            self.assertEqual(params.get(k), v[0])
+
+    def test_redirect_query_params_populate_redirect_form(self, *mocks):
+        response = self.client.post(
+            self.url,
+            content_type='application/x-www-form-urlencoded',
+            follow=True,
+            data=urlencode({
+                'filter_by_name': 'Name 1',
+                'filter_by_month': '2020-12-01:2020-12-31',
+                'filter_by_country': 'Country 1',
+                'filter_by_sector': 'Sector 1'
+            })
+        )
+        self.assertEqual(response.status_code, 200)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        # Filter by name
+        self.assertEqual(soup.find(id='id_filter_by_name').attrs['value'], 'Name 1')
+        # Filter by start date
+        self.assertEqual(
+            soup.find(id='id_filter_by_month').find('option', selected=True).text, 'December 2020'
+        )
+        # Filter by country
+        self.assertEqual(
+            soup.find(id='id_filter_by_country').find('option', selected=True).text, 'Country 1'
+        )
+        # Filter by sector
+        self.assertEqual(
+            soup.find(id='id_filter_by_sector').find('option', selected=True).text, 'Sector 1'
+        )
+
+    def test_get_future_aggregate_trade_events_only(self, *mocks):
+        response = self.client.get(self.url)
+        mocks[3].assert_called_once_with(start_date_from=timezone.now().date())
+        self.assertEqual(
+            response.context_data['total_trade_events'],
+            FAKE_TRADE_EVENT_AGGREGATES['total_trade_events']
+        )
+        self.assertEqual(
+            response.context_data['trade_event_total_months'],
+            len(FAKE_TRADE_EVENT_AGGREGATES['trade_event_months'])
+        )
 
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)

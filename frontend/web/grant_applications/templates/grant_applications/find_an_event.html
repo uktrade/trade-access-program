@@ -1,0 +1,16 @@
+{% extends 'grant_applications/generic_form_page.html' %}
+{% load static %}
+
+{% block headings %}
+  <span class="govuk-caption-l">{{ page.caption|default:"Tradeshow access program" }}</span>
+  <h2 class="govuk-heading-l">{{ page.heading|default:"Tradeshow access program" }}</h2>
+{% endblock %}
+
+{% block form %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <p class="govuk-body">There are <strong>{{ total_trade_events }}</strong> supported overseas trade shows and exhibitions taking place in the next <strong>{{ trade_event_total_months }}</strong> months. Search by event name or narrow down your results by selecting a sector, location and/or date.</p>
+    {% include "core/govt_uk_form.html" with button_text='Search' %}
+  </div>
+</div>
+{% endblock %}
