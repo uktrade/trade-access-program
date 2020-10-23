@@ -31,7 +31,7 @@ from web.grant_applications.view_mixins import (
 class SearchCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin, CreateView):
     form_class = SearchCompanyForm
     template_name = 'grant_applications/search_company.html'
-    back_url_name = 'grant-applications:index'
+    back_url_name = 'grant-applications:before-you-start'
     success_url_name = 'grant-applications:select-company'
     page = {
         'heading': _('Search for your company'),

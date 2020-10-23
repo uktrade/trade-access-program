@@ -48,7 +48,7 @@ class TestSearchCompanyView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         back_html = BeautifulSoup(response.content, 'html.parser').find(id='id_back_link')
-        self.assertEqual(back_html.attrs['href'], reverse("grant-applications:index"))
+        self.assertEqual(back_html.attrs['href'], reverse("grant-applications:before-you-start"))
 
     def test_search_term_required(self, *mocks):
         response = self.client.post(self.url)

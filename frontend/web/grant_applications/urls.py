@@ -12,6 +12,11 @@ app_name = 'grant_applications'
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='grant_applications/index.html'), name='index'),
+    path(
+        'before-you-start',
+        TemplateView.as_view(template_name='grant_applications/before-you-start.html'),
+        name='before-you-start'
+    ),
     path('search-company/', SearchCompanyView.as_view(), name='search-company'),
     path('<pk>/select-company/', SelectCompanyView.as_view(), name='select-company'),
     path('<pk>/business-details/', BusinessDetailsView.as_view(), name='business-details'),
