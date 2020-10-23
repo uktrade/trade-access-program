@@ -3,7 +3,7 @@
 {% block content %}
     <div class="govuk-grid-row">
 
-      <div class="govuk-grid-column-two-thirds">
+      <div class="govuk-grid-column-three-quarters">
         <h2 class="govuk-heading-l">Apply for a Tradeshow Access Programme (TAP) grant</h2>
 
         <p class="govuk-body">
@@ -14,12 +14,30 @@
           These are available for <a href="https://www.gov.uk/guidance/tradeshow-access-programme#eligibility" class="govuk-link" target="_blank">eligible businesses taking part in the programme</a> and can help towards the direct costs of attending TAP supported events to promote your business.
         </p>
 
+        <h3 class="govuk-heading-m">Grant eligibility</h3>
         <p class="govuk-body">
-          To begin, check your eligibility for the grant. If you are eligibile you can then complete and submit the rest of the grant application.
+          To be eligible for a grant you must be either:
         </p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>a small or medium-sized enterprise (SME) with less than 250 employees, and an annual turnover not exceeding €50 million or an annual balance sheet total not exceeding €43 million</li>
+          <li>a business or organisation with less than 250 employees and an annual turnover of between £83,000 and £5 million</li>
+          <li>a UK university, UK government-funded centre of higher or further learning or UK government-funded research organisation</li>
+        </ul>
+
+        <p class="govuk-body">
+          In addition, you must:
+        </p>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>be based in the UK (excluding Isle of Man or the Channel Islands unless UK registered)</li>
+          <li>be within the State Aid limit of €200,000 over any rolling 3 year period</li>
+          <li>not receive any other contributions towards eligible costs which the grant you are applying for will offset in relation to participation at the TAP supported event</li>
+          <li>not be fully committed to attend the event prior to seeking the grant</li>
+        </ul>
+
+        <p class="govuk-body">The application takes around 45 to 60 minutes.</p>
 
         <a href="{% url 'grant-applications:search-company'%}" role="button" draggable="false" class="govuk-button govuk-!-margin-top-2 govuk-!-margin-bottom-8 govuk-button--start" data-module="govuk-button">
-          Check your eligibility
+          Apply now
           <svg class="govuk-button__start-icon" xmlns="http://www.w3.org/2000/svg" width="17.5" height="19" viewBox="0 0 33 40" aria-hidden="true" focusable="false">
             <path fill="currentColor" d="M0 0h13l20 20-20 20H0l20-20z" />
           </svg>
