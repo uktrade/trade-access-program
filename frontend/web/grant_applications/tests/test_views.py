@@ -65,9 +65,11 @@ class TestSearchCompanyView(BaseTestCase):
             search_term='company-1'
         )
 
-    def test_form_error_on_backoffice_exception(self, *mocks):
-        mocks[4].side_effect = [BackofficeServiceException]
-        response = self.client.post(self.url, data={'search_term': 'company-1'})
+    def test_form_error_on_update_ga_backoffice_exception(self, *mocks):
+        mocks[4].side_effect = BackofficeServiceException
+        response = self.client.post(
+            self.url, data={'search_term': 'company-1'}
+        )
         self.assertEqual(response.status_code, 200)
         mocks[4].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
@@ -80,7 +82,9 @@ class TestSearchCompanyView(BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
-            expected_url=reverse('grant-applications:select-company', kwargs={'pk': self.gal.pk})
+            expected_url=reverse(
+                'grant-applications:select-company', kwargs={'pk': self.gal.pk}
+            ) + '?search_term=company-1'
         )
 
     def test_search_company_post_form_redirect_template(self, *mocks):
@@ -101,15 +105,38 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         self.gal = GrantApplicationLinkFactory()
         self.url = reverse('grant-applications:select-company', args=(self.gal.pk,))
 
-    def test_get_template(self, *mocks):
+    def test_get_with_no_search_term_redirects_to_search_company_page(self, *mocks):
         response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:search-company', args=(self.gal.pk,))
+        )
+
+    def test_get_with_empty_search_term_redirects_to_search_company_page(self, *mocks):
+        response = self.client.get(self.url, data={'search_term': ''})
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:search-company', args=(self.gal.pk,))
+        )
+
+    def test_get_response_content(self, *mocks):
+        response = self.client.get(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, SelectCompanyView.template_name)
-        mocks[0].assert_called_once_with(search_term=FAKE_GRANT_APPLICATION['search_term'])
         self.assertIn(FAKE_GRANT_APPLICATION['company']['name'], response.content.decode())
 
+    def test_get_with_primary_name_style_search_term(self, *mocks):
+        self.client.get(self.url, data={'search_term': 'company-1'})
+        mocks[0].assert_called_once_with(primary_name='company-1')
+
+    def test_get_with_registration_number_style_search_term(self, *mocks):
+        self.client.get(self.url, data={'search_term': '01234567'})
+        mocks[0].assert_called_once_with(registration_numbers=['01234567'])
+
     def test_details_not_listed(self, *mocks):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
         link_html = BeautifulSoup(response.content, 'html.parser').find(id='id_details_not_listed')
         self.assertEqual(
@@ -120,13 +147,13 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
     @skip("TODO: confirm with design what to display when no company found.")
     def test_get_template_when_no_company_found(self, *mocks):
         mocks[0].return_value = []
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
         self.assertIn('TODO', response.content.decode())
 
-    def test_get_template_on_backoffice_service_exception(self, *mocks):
-        mocks[0].side_effect = [BackofficeServiceException]
-        response = self.client.get(self.url)
+    def test_get_on_search_companies_backoffice_service_exception(self, *mocks):
+        mocks[0].side_effect = BackofficeServiceException
+        response = self.client.get(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
         self.assertNotIn(FAKE_GRANT_APPLICATION['company']['name'], response.content.decode())
 
@@ -191,7 +218,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         )
 
     def test_post_list_companies_causes_backoffice_service_exception(self, *mocks):
-        mocks[2].side_effect = [BackofficeServiceException]
+        mocks[2].side_effect = BackofficeServiceException
         response = self.client.post(
             self.url,
             data={'duns_number': FAKE_GRANT_APPLICATION['company']['duns_number']},
@@ -208,6 +235,9 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
             self.url, data={'duns_number': FAKE_GRANT_APPLICATION['company']['duns_number']}
         )
         self.assertEqual(response.status_code, 302)
+        m_search_companies.assert_called_with(
+            duns_number=FAKE_GRANT_APPLICATION['company']['duns_number']
+        )
         m_update_grant_application.assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
             company=FAKE_COMPANY['id'],
@@ -460,10 +490,18 @@ class TestSelectAnEventView(BaseTestCase):
     def test_get_request_event_initial_is_not_backoffice_event_if_exists(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-
         soup = BeautifulSoup(response.content, 'html.parser')
         selected_event = soup.find(attrs={'class': 'govuk-radios__input'}, checked=True)
         self.assertIsNone(selected_event)
+
+    def test_get_on_list_events_backoffice_exception(self, *mocks):
+        mocks[0].side_effect = BackofficeServiceException
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        html_elements = soup.find_all(id=re.compile(r'^id_no_matching_events_\d'))
+        self.assertEqual(len(html_elements), 3)
 
     @patch.object(BackofficeService, 'get_grant_application')
     def test_initial_when_no_event_is_set(self, *mocks):
@@ -1102,7 +1140,7 @@ class TestApplicationReviewView(BaseTestCase):
         )
 
     def test_sent_for_review_not_set_on_backoffice_error(self, *mocks):
-        mocks[3].side_effect = [BackofficeServiceException]
+        mocks[3].side_effect = BackofficeServiceException
         self.client.get(self.url)
         response = self.client.post(self.url, follow=True)
         self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])

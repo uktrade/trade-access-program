@@ -122,12 +122,12 @@ class SearchCompaniesApiTests(BaseAPITestCase):
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['dnb_data']['primary_name'], 'Company 1')
 
-    def test_either_search_term_or_duns_number_required(self, *mocks):
+    def test_any_one_or_more_params_required(self, *mocks):
         response = self.client.get(reverse('companies:search'))
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST, msg=response.data)
         self.assertEqual(
             response.data['non_field_errors'][0],
-            'One of search_term or duns_number required.'
+            'One of: search_term, primary_name, registration_numbers, duns_number is required.'
         )
 
     def test_503_on_dnb_service_exception(self, *mocks):

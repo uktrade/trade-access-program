@@ -1,5 +1,6 @@
 import calendar
 import logging
+import re
 from collections import defaultdict
 from urllib.parse import urljoin, urlparse
 
@@ -134,12 +135,18 @@ class BackofficeService:
         response = self.session.get(self.trade_event_aggregates_url, params=params)
         return response.json()
 
-    def request_factory(self, object_type, **request_kwargs):
-        if object_type == 'trade_events':
-            return self.list_trade_events(**request_kwargs.get('params', {}))
-        elif object_type == 'sectors':
-            return self.list_sectors()
-        raise ValueError(f'Unknown object type {object_type}')
+    def request_factory(self, object_type, raise_exception=True, **request_params):
+        try:
+            if object_type == 'list_trade_events':
+                return self.list_trade_events(**request_params)
+            elif object_type == 'list_sectors':
+                return self.list_sectors()
+            elif object_type == 'search_companies':
+                return self.search_companies(**request_params)
+            raise ValueError(f'Unknown object type {object_type}')
+        except (BackofficeServiceException, ValueError):
+            if raise_exception:
+                raise
 
 
 def get_backoffice_choices(object_type, choice_id_key, choice_name_key, request_kwargs=None):
@@ -158,7 +165,7 @@ def get_backoffice_choices(object_type, choice_id_key, choice_name_key, request_
 
 def get_trade_event_filter_choices(attribute):
     backoffice_choices = get_backoffice_choices(
-        'trade_events', choice_id_key=attribute, choice_name_key=attribute
+        'list_trade_events', choice_id_key=attribute, choice_name_key=attribute
     )
     backoffice_choices = list(set(backoffice_choices))  # remove duplicates
     backoffice_choices.sort(key=lambda x: x[0])  # sort chronologically
@@ -167,9 +174,13 @@ def get_trade_event_filter_choices(attribute):
 
 
 def get_trade_event_filter_by_month_choices():
+    trade_events = BackofficeService().request_factory('list_trade_events', raise_exception=False)
+    if not trade_events:
+        return []
+
     choices = set()
 
-    for trade_event in BackofficeService().list_trade_events():
+    for trade_event in trade_events:
         start_date = parse_date(trade_event['start_date'])
         _, last_day = calendar.monthrange(start_date.year, start_date.month)
         first_day_of_month = start_date.replace(day=1)
@@ -186,7 +197,7 @@ def get_trade_event_filter_by_month_choices():
 
 def get_sector_select_choices():
     backoffice_choices = get_backoffice_choices(
-        'sectors', choice_id_key='id', choice_name_key='full_name'
+        'list_sectors', choice_id_key='id', choice_name_key='full_name'
     )
     backoffice_choices.insert(0, ('', 'Select...'))
     backoffice_choices.append(('0', 'Choice not listed'))
@@ -195,7 +206,7 @@ def get_sector_select_choices():
 
 def generate_trade_event_select_options(trade_events):
     if not trade_events or not trade_events['results']:
-        return None
+        return {'choices': [], 'hints': []}
 
     select_options = defaultdict(list)
 
@@ -209,19 +220,35 @@ def generate_trade_event_select_options(trade_events):
     return select_options
 
 
-def get_company_select_options(search_term):
+def generate_company_select_options(companies):
+    if not companies:
+        return {'choices': [], 'hints': []}
+
     select_options = defaultdict(list)
-    try:
-        response = BackofficeService().search_companies(search_term=search_term)
-    except BackofficeServiceException:
-        select_options = {'choices': [], 'hints': []}
-    else:
-        for c in response:
-            select_options['choices'].append(
-                (c['dnb_data']['duns_number'], c['dnb_data']['primary_name'])
-            )
-            select_options['hints'].append(c['registration_number'])
+
+    for c in companies:
+        select_options['choices'].append(
+            (c['dnb_data']['duns_number'], c['dnb_data']['primary_name'])
+        )
+        select_options['hints'].append(c['registration_number'])
+
     return select_options
+
+
+def _looks_like_registration_number(search_term):
+    return bool(re.match('(SC|NI|[0-9]{2})[0-9]{6}', search_term))
+
+
+def get_companies_from_search_term(search_term):
+    if not search_term:
+        return None
+
+    if _looks_like_registration_number(search_term):
+        params = {'registration_numbers': [search_term]}
+    else:
+        params = {'primary_name': search_term}
+
+    return BackofficeService().request_factory('search_companies', raise_exception=False, **params)
 
 
 def _serialize_field(value):
@@ -232,7 +259,7 @@ def _serialize_field(value):
     return value
 
 
-def generate_grant_application_summary(form_class, grant_application, url=None):
+def generate_grant_application_summary(grant_application, form_class, form_kwargs, url=None):
     form_data = BackofficeService().get_grant_application(
         str(grant_application.backoffice_grant_application_id),
         flatten_map={
@@ -242,7 +269,7 @@ def generate_grant_application_summary(form_class, grant_application, url=None):
             'company': 'company.name',
         }
     )
-    data_form = form_class(data=form_data)
+    data_form = form_class(data=form_data, **form_kwargs)
 
     summary = []
 

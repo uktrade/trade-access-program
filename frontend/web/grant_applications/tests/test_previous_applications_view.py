@@ -34,7 +34,7 @@ class TestPreviousApplicationsView(BaseTestCase):
         self.assertEqual(back_html.attrs['href'], reverse("grant-applications:before-you-start"))
 
     def test_get_on_get_ga_backoffice_exception(self, *mocks):
-        mocks[1].side_effect = [BackofficeServiceException]
+        mocks[1].side_effect = BackofficeServiceException
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, PreviousApplicationsView.template_name)
@@ -77,7 +77,7 @@ class TestPreviousApplicationsView(BaseTestCase):
         self.assertFormError(response, 'form', 'previous_applications', self.form_msgs['required'])
 
     def test_form_error_on_update_ga_backoffice_exception(self, *mocks):
-        mocks[0].side_effect = [BackofficeServiceException]
+        mocks[0].side_effect = BackofficeServiceException
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',
@@ -93,7 +93,7 @@ class TestPreviousApplicationsView(BaseTestCase):
         self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])
 
     def test_post_success_if_get_ga_backoffice_exception(self, *mocks):
-        mocks[1].side_effect = [BackofficeServiceException]
+        mocks[1].side_effect = BackofficeServiceException
         response = self.client.post(
             self.url,
             content_type='application/x-www-form-urlencoded',

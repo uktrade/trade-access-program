@@ -38,7 +38,7 @@ class TestBeforeYouStartView(BaseTestCase):
         mocks[0].assert_called_once_with()
 
     def test_form_error_on_create_ga_backoffice_exception(self, *mocks):
-        mocks[0].side_effect = [BackofficeServiceException]
+        mocks[0].side_effect = BackofficeServiceException
         response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
         self.assertEqual(response.status_code, 200)
         mocks[0].assert_called_once_with()

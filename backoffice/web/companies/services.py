@@ -76,7 +76,6 @@ class CompaniesHouseClient:
         self.company_url = settings.COMPANIES_HOUSE_COMPANIES_URL
 
         self.session = requests.Session()
-        # self.session.params.update(access_token=settings.COMPANIES_HOUSE_API_KEY)
         self.session.auth = (settings.COMPANIES_HOUSE_API_KEY, "")
 
         # Attach retry adapter

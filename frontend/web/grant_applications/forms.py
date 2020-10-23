@@ -12,7 +12,8 @@ from web.grant_applications.form_mixins import FormatLabelMixin
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException, get_sector_select_choices,
-    get_trade_event_filter_choices, get_trade_event_filter_by_month_choices
+    get_trade_event_filter_choices, get_trade_event_filter_by_month_choices,
+    generate_company_select_options, generate_trade_event_select_options
 )
 
 
@@ -58,11 +59,12 @@ class SearchCompanyForm(forms.ModelForm):
 
 class SelectCompanyForm(forms.ModelForm):
 
-    def __init__(self, company_options=None, *args, **kwargs):
+    def __init__(self, companies, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if company_options:
-            self.fields['duns_number'].choices = company_options['choices']
-            self.fields['duns_number'].widget.attrs['hints'] = company_options['hints']
+        self.companies = companies
+        company_options = generate_company_select_options(companies)
+        self.fields['duns_number'].choices = company_options['choices']
+        self.fields['duns_number'].widget.attrs['hints'] = company_options['hints']
 
     class Meta:
         model = GrantApplicationLink
@@ -76,17 +78,15 @@ class SelectCompanyForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         if cleaned_data:
-            service = BackofficeService()
+            searched_company = next(
+                c for c in self.companies
+                if c['dnb_data']['duns_number'] == self.cleaned_data['duns_number']
+            )
             try:
-                searched_company = service.search_companies(
-                    duns_number=self.cleaned_data['duns_number']
-                )
-                if not searched_company:
-                    raise forms.ValidationError(FORM_MSGS['resubmit'])
-                company = service.get_or_create_company(
+                company = BackofficeService().get_or_create_company(
                     duns_number=self.cleaned_data['duns_number'],
-                    registration_number=searched_company[0]['registration_number'],
-                    name=dict(self.fields['duns_number'].choices)[self.cleaned_data['duns_number']]
+                    registration_number=searched_company['registration_number'],
+                    name=searched_company['dnb_data']['primary_name']
                 )
                 cleaned_data['company'] = company['id']
             except BackofficeServiceException:
@@ -183,14 +183,14 @@ class SelectAnEventForm(forms.ModelForm):
             'event'
         ]
 
-    def __init__(self, trade_events_options=None, *args, **kwargs):
+    def __init__(self, trade_events, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['filter_by_month'].choices = get_trade_event_filter_by_month_choices()
         self.fields['filter_by_country'].choices = get_trade_event_filter_choices('country')
         self.fields['filter_by_sector'].choices = get_trade_event_filter_choices('sector')
-        if trade_events_options:
-            self.fields['event'].choices = trade_events_options['choices']
-            self.fields['event'].widget.attrs['hints'] = trade_events_options['hints']
+        trade_events_options = generate_trade_event_select_options(trade_events)
+        self.fields['event'].choices = trade_events_options['choices']
+        self.fields['event'].widget.attrs['hints'] = trade_events_options['hints']
 
     filter_by_name = forms.CharField(
         required=False,
