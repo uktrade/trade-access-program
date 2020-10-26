@@ -65,8 +65,8 @@ class TestSearchCompanyView(BaseTestCase):
             search_term='company-1'
         )
 
-    def test_form_error_on_backoffice_exception(self, *mocks):
-        mocks[4].side_effect = [BackofficeServiceException]
+    def test_form_error_on_update_ga_backoffice_exception(self, *mocks):
+        mocks[4].side_effect = BackofficeServiceException
         response = self.client.post(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
         mocks[4].assert_called_once_with(
@@ -80,7 +80,9 @@ class TestSearchCompanyView(BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
-            expected_url=reverse('grant-applications:select-company', kwargs={'pk': self.gal.pk})
+            expected_url=reverse(
+                'grant-applications:select-company', kwargs={'pk': self.gal.pk}
+            ) + '?search_term=company-1'
         )
 
     def test_search_company_post_form_redirect_template(self, *mocks):
@@ -101,15 +103,38 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         self.gal = GrantApplicationLinkFactory()
         self.url = reverse('grant-applications:select-company', args=(self.gal.pk,))
 
-    def test_get_template(self, *mocks):
+    def test_get_with_no_search_term_redirects_to_search_company_page(self, *mocks):
         response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:search-company', args=(self.gal.pk,))
+        )
+
+    def test_get_with_empty_search_term_redirects_to_search_company_page(self, *mocks):
+        response = self.client.get(self.url, data={'search_term': ''})
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:search-company', args=(self.gal.pk,))
+        )
+
+    def test_get_response_content(self, *mocks):
+        response = self.client.get(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, SelectCompanyView.template_name)
-        mocks[0].assert_called_once_with(search_term=FAKE_GRANT_APPLICATION['search_term'])
         self.assertIn(FAKE_GRANT_APPLICATION['company']['name'], response.content.decode())
 
+    def test_get_with_primary_name_style_search_term(self, *mocks):
+        self.client.get(self.url, data={'search_term': 'company-1'})
+        mocks[0].assert_called_once_with(primary_name='company-1')
+
+    def test_get_with_registration_number_style_search_term(self, *mocks):
+        self.client.get(self.url, data={'search_term': '01234567'})
+        mocks[0].assert_called_once_with(registration_numbers=['01234567'])
+
     def test_details_not_listed(self, *mocks):
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
         link_html = BeautifulSoup(response.content, 'html.parser').find(id='id_details_not_listed')
         self.assertEqual(
@@ -120,13 +145,13 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
     @skip("TODO: confirm with design what to display when no company found.")
     def test_get_template_when_no_company_found(self, *mocks):
         mocks[0].return_value = []
-        response = self.client.get(self.url)
+        response = self.client.get(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
         self.assertIn('TODO', response.content.decode())
 
-    def test_get_template_on_backoffice_service_exception(self, *mocks):
-        mocks[0].side_effect = [BackofficeServiceException]
-        response = self.client.get(self.url)
+    def test_get_on_search_companies_backoffice_service_exception(self, *mocks):
+        mocks[0].side_effect = BackofficeServiceException
+        response = self.client.get(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
         self.assertNotIn(FAKE_GRANT_APPLICATION['company']['name'], response.content.decode())
 
@@ -191,7 +216,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         )
 
     def test_post_list_companies_causes_backoffice_service_exception(self, *mocks):
-        mocks[2].side_effect = [BackofficeServiceException]
+        mocks[2].side_effect = BackofficeServiceException
         response = self.client.post(
             self.url,
             data={'duns_number': FAKE_GRANT_APPLICATION['company']['duns_number']},
@@ -208,6 +233,9 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
             self.url, data={'duns_number': FAKE_GRANT_APPLICATION['company']['duns_number']}
         )
         self.assertEqual(response.status_code, 302)
+        m_search_companies.assert_called_with(
+            duns_number=FAKE_GRANT_APPLICATION['company']['duns_number']
+        )
         m_update_grant_application.assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
             company=FAKE_COMPANY['id'],
@@ -236,12 +264,11 @@ class TestBusinessDetailsView(BaseTestCase):
     def test_post(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'is_based_in_uk': True,
                 'number_of_employees': BusinessDetailsForm.NumberOfEmployees.HAS_FEWER_THAN_10,
                 'is_turnover_greater_than': True
-            })
+            }
         )
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(
@@ -256,13 +283,12 @@ class TestBusinessDetailsView(BaseTestCase):
     def test_post_cannot_set_company_field(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'is_based_in_uk': True,
                 'number_of_employees': BusinessDetailsForm.NumberOfEmployees.HAS_FEWER_THAN_10,
                 'is_turnover_greater_than': True,
                 'company': FAKE_COMPANY['id']
-            })
+            }
         )
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(
@@ -285,7 +311,7 @@ class TestBusinessDetailsView(BaseTestCase):
         )
 
     def test_required_fields(self, *mocks):
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        response = self.client.post(self.url)
         self.assertFormError(response, 'form', 'is_based_in_uk', self.form_msgs['required'])
         self.assertFormError(response, 'form', 'number_of_employees', self.form_msgs['required'])
         self.assertFormError(
@@ -335,11 +361,7 @@ class TestFindAnEventView(BaseTestCase):
         )
 
     def test_error_on_bad_query_param(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'filter_by_month': 'bad-value'})
-        )
+        response = self.client.post(self.url, data={'filter_by_month': 'bad-value'})
         self.assertFormError(
             response, 'form', 'filter_by_month',
             self.form_msgs['invalid-choice'].format('bad-value')
@@ -352,11 +374,7 @@ class TestFindAnEventView(BaseTestCase):
             'filter_by_country': 'Country 1',
             'filter_by_sector': 'Sector 1'
         }
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode(params)
-        )
+        response = self.client.post(self.url, data=params)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response=response,
@@ -371,14 +389,13 @@ class TestFindAnEventView(BaseTestCase):
     def test_redirect_query_params_populate_redirect_form(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
             follow=True,
-            data=urlencode({
+            data={
                 'filter_by_name': 'Name 1',
                 'filter_by_month': '2020-12-01:2020-12-31',
                 'filter_by_country': 'Country 1',
                 'filter_by_sector': 'Sector 1'
-            })
+            }
         )
         self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -460,10 +477,18 @@ class TestSelectAnEventView(BaseTestCase):
     def test_get_request_event_initial_is_not_backoffice_event_if_exists(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-
         soup = BeautifulSoup(response.content, 'html.parser')
         selected_event = soup.find(attrs={'class': 'govuk-radios__input'}, checked=True)
         self.assertIsNone(selected_event)
+
+    def test_get_on_list_events_backoffice_exception(self, *mocks):
+        mocks[0].side_effect = BackofficeServiceException
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        html_elements = soup.find_all(id=re.compile(r'^id_no_matching_events_\d'))
+        self.assertEqual(len(html_elements), 3)
 
     @patch.object(BackofficeService, 'get_grant_application')
     def test_initial_when_no_event_is_set(self, *mocks):
@@ -479,11 +504,7 @@ class TestSelectAnEventView(BaseTestCase):
             self.assertNotIn('checked', event_radio.attrs)
 
     def test_post_redirects(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'event': FAKE_EVENT['id']})
-        )
+        response = self.client.post(self.url, data={'event': FAKE_EVENT['id']})
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response=response,
@@ -491,11 +512,7 @@ class TestSelectAnEventView(BaseTestCase):
         )
 
     def test_event_is_saved_on_form_continue_button(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'event': FAKE_EVENT['id']})
-        )
+        response = self.client.post(self.url, data={'event': FAKE_EVENT['id']})
         self.assertEqual(response.status_code, 302)
         mocks[1].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
@@ -555,7 +572,7 @@ class TestSelectAnEventView(BaseTestCase):
         self.assertEqual(len(html_elements), 3)
 
     def test_event_required_on_form_button_submit(self, *mocks):
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        response = self.client.post(self.url)
         self.assertFormError(response, 'form', 'event', self.form_msgs['required'])
 
 
@@ -587,12 +604,11 @@ class TestEventFinanceView(BaseTestCase):
     def test_post_redirects(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'is_already_committed_to_event': True,
                 'is_intending_on_other_financial_support': True,
                 'has_received_de_minimis_aid': False,
-            })
+            }
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
@@ -603,12 +619,11 @@ class TestEventFinanceView(BaseTestCase):
     def test_post_data_is_saved(self, *mocks):
         self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'is_already_committed_to_event': True,
                 'is_intending_on_other_financial_support': False,
                 'has_received_de_minimis_aid': False,
-            })
+            }
         )
         mocks[0].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
@@ -618,7 +633,7 @@ class TestEventFinanceView(BaseTestCase):
         )
 
     def test_boolean_fields_must_be_present(self, *mocks):
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        response = self.client.post(self.url)
         self.assertFormError(
             response, 'form', 'is_already_committed_to_event', self.form_msgs['required']
         )
@@ -663,7 +678,7 @@ class TestEligibilityReviewView(BaseTestCase):
 
     @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
     def test_post(self, *mocks):
-        self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        self.client.post(self.url)
         mocks[1].assert_not_called()
 
     @patch.object(
@@ -671,7 +686,7 @@ class TestEligibilityReviewView(BaseTestCase):
         side_effect=[FAKE_GRANT_APPLICATION, FAKE_GRANT_APPLICATION]
     )
     def test_post_redirects(self, *mocks):
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
@@ -698,11 +713,11 @@ class TestEligibilityConfirmationView(BaseTestCase):
         self.assertIn('table', response.context_data)
 
     def test_post(self, *mocks):
-        self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        self.client.post(self.url)
         mocks[0].assert_not_called()
 
     def test_post_redirects(self, *mocks):
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
@@ -728,13 +743,12 @@ class TestAboutYouView(BaseTestCase):
     def test_post_redirects(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'applicant_full_name': 'A Name',
                 'applicant_email': 'test@test.com',
                 'applicant_mobile_number': '+447777777777',
                 'applicant_position_within_business': 'director'
-            })
+            }
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
@@ -743,7 +757,7 @@ class TestAboutYouView(BaseTestCase):
         )
 
     def test_required_fields(self, *mocks):
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, 200)
         msg = 'This field is required.'
         self.assertFormError(response, 'form', 'applicant_full_name', msg)
@@ -754,13 +768,12 @@ class TestAboutYouView(BaseTestCase):
     def test_post_data_is_saved(self, *mocks):
         self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'applicant_full_name': 'A Name',
                 'applicant_email': 'test@test.com',
                 'applicant_mobile_number': '07777777777',
                 'applicant_position_within_business': 'director'
-            })
+            }
         )
         mocks[0].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
@@ -771,11 +784,7 @@ class TestAboutYouView(BaseTestCase):
         )
 
     def test_mobile_must_be_gb_number_international(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'applicant_mobile_number': '+457777777777'})
-        )
+        response = self.client.post(self.url, data={'applicant_mobile_number': '+457777777777'})
         self.assertFormError(
             response, 'form', 'applicant_mobile_number',
             "Enter a valid phone number (e.g. 0121 234 5678) or a number with an international "
@@ -783,11 +792,7 @@ class TestAboutYouView(BaseTestCase):
         )
 
     def test_mobile_must_be_gb_number_national(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'applicant_mobile_number': '2025550154'})
-        )
+        response = self.client.post(self.url, data={'applicant_mobile_number': '2025550154'})
         self.assertFormError(
             response, 'form', 'applicant_mobile_number',
             "Enter a valid phone number (e.g. 0121 234 5678) or a number with an international "
@@ -820,12 +825,11 @@ class TestBusinessInformationView(BaseTestCase):
     def test_post(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'goods_and_services_description': 'A description',
                 'other_business_names': 'A name',
                 'sector': FAKE_SECTOR['id'],
-            })
+            }
         )
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(
@@ -838,11 +842,10 @@ class TestBusinessInformationView(BaseTestCase):
     def test_other_business_names_not_required(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'goods_and_services_description': 'A description',
                 'sector': FAKE_SECTOR['id'],
-            })
+            }
         )
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(
@@ -900,11 +903,10 @@ class TestEventIntentionView(BaseTestCase):
     def test_post(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'is_first_exhibit_at_event': False,
                 'number_of_times_exhibited_at_event': 1,
-            })
+            }
         )
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(
@@ -916,10 +918,9 @@ class TestEventIntentionView(BaseTestCase):
     def test_true_is_first_exhibit_at_event_makes_number_of_times_exhibited_optional(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'is_first_exhibit_at_event': True,
-            })
+            }
         )
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(
@@ -929,11 +930,7 @@ class TestEventIntentionView(BaseTestCase):
         )
 
     def test_false_is_first_exhibit_at_event_makes_number_of_times_exhibited_required(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'is_first_exhibit_at_event': False})
-        )
+        response = self.client.post(self.url, data={'is_first_exhibit_at_event': False})
         self.assertFormError(
             response, 'form', 'number_of_times_exhibited_at_event', self.form_msgs['required']
         )
@@ -956,12 +953,11 @@ class TestExportExperienceView(BaseTestCase):
     def test_post(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'has_exported_before': True,
                 'is_planning_to_grow_exports': True,
                 'is_seeking_export_opportunities': False,
-            })
+            }
         )
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(
@@ -988,8 +984,7 @@ class TestStateAidView(BaseTestCase):
     def test_post(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'has_received_de_minimis_aid': True,
                 'de_minimis_aid_public_authority': 'An authority',
                 'de_minimis_aid_date_awarded': date(2020, 6, 20),
@@ -997,7 +992,7 @@ class TestStateAidView(BaseTestCase):
                 'de_minimis_aid_description': 'A description',
                 'de_minimis_aid_recipient': 'A recipient',
                 'de_minimis_aid_date_received': date(2020, 6, 25),
-            })
+            }
         )
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(
@@ -1012,11 +1007,7 @@ class TestStateAidView(BaseTestCase):
         )
 
     def test_post_no_aid(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'has_received_de_minimis_aid': False})
-        )
+        response = self.client.post(self.url, data={'has_received_de_minimis_aid': False})
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
@@ -1030,11 +1021,7 @@ class TestStateAidView(BaseTestCase):
         )
 
     def test_required_fields_when_aid_is_selected(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'has_received_de_minimis_aid': True})
-        )
+        response = self.client.post(self.url, data={'has_received_de_minimis_aid': True})
         self.assertEqual(response.status_code, 200)
         msg = self.form_msgs['required']
         self.assertFormError(response, 'form', 'de_minimis_aid_public_authority', msg)
@@ -1047,11 +1034,10 @@ class TestStateAidView(BaseTestCase):
     def test_aid_amount_is_integer(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
+            data={
                 'has_received_de_minimis_aid': True,
                 'de_minimis_aid_amount': 'bad-value',
-            })
+            }
         )
         self.assertFormError(response, 'form', 'de_minimis_aid_amount', 'Enter a whole number.')
 
@@ -1082,7 +1068,7 @@ class TestApplicationReviewView(BaseTestCase):
 
     def test_post_redirects(self, *mocks):
         self.client.get(self.url)
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, 302)
         redirect = resolve(response.url)
         self.assertEqual(redirect.kwargs['pk'], str(self.gal.id))
@@ -1092,7 +1078,7 @@ class TestApplicationReviewView(BaseTestCase):
 
     def test_sent_for_review(self, *mocks):
         self.client.get(self.url)
-        self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        self.client.post(self.url)
         self.gal.refresh_from_db()
         self.assertTrue(self.gal.sent_for_review)
         self.assertIn('application_summary', self.client.session)
@@ -1102,7 +1088,7 @@ class TestApplicationReviewView(BaseTestCase):
         )
 
     def test_sent_for_review_not_set_on_backoffice_error(self, *mocks):
-        mocks[3].side_effect = [BackofficeServiceException]
+        mocks[3].side_effect = BackofficeServiceException
         self.client.get(self.url)
         response = self.client.post(self.url, follow=True)
         self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])

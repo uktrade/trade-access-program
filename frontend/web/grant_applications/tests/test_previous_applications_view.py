@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 from bs4 import BeautifulSoup
 from django.urls import reverse
-from django.utils.http import urlencode
 
 from web.grant_applications.services import BackofficeService, BackofficeServiceException
 from web.grant_applications.views import PreviousApplicationsView
@@ -34,7 +33,7 @@ class TestPreviousApplicationsView(BaseTestCase):
         self.assertEqual(back_html.attrs['href'], reverse("grant-applications:before-you-start"))
 
     def test_get_on_get_ga_backoffice_exception(self, *mocks):
-        mocks[1].side_effect = [BackofficeServiceException]
+        mocks[1].side_effect = BackofficeServiceException
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, PreviousApplicationsView.template_name)
@@ -42,10 +41,7 @@ class TestPreviousApplicationsView(BaseTestCase):
     def test_post_updates_backoffice_grant_application(self, *mocks):
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'previous_applications': FAKE_GRANT_APPLICATION['previous_applications']
-            })
+            data={'previous_applications': FAKE_GRANT_APPLICATION['previous_applications']}
         )
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(
@@ -65,25 +61,18 @@ class TestPreviousApplicationsView(BaseTestCase):
         )
 
     def test_previous_applications_required(self, *mocks):
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        response = self.client.post(self.url)
         self.assertFormError(response, 'form', 'previous_applications', self.form_msgs['required'])
 
     def test_previous_applications_cannot_be_blank(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data={'previous_applications': ''}
-        )
+        response = self.client.post(self.url, data={'previous_applications': ''})
         self.assertFormError(response, 'form', 'previous_applications', self.form_msgs['required'])
 
     def test_form_error_on_update_ga_backoffice_exception(self, *mocks):
-        mocks[0].side_effect = [BackofficeServiceException]
+        mocks[0].side_effect = BackofficeServiceException
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'previous_applications': FAKE_GRANT_APPLICATION['previous_applications']
-            })
+            data={'previous_applications': FAKE_GRANT_APPLICATION['previous_applications']}
         )
         self.assertEqual(response.status_code, 200)
         mocks[0].assert_called_once_with(
@@ -93,13 +82,10 @@ class TestPreviousApplicationsView(BaseTestCase):
         self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])
 
     def test_post_success_if_get_ga_backoffice_exception(self, *mocks):
-        mocks[1].side_effect = [BackofficeServiceException]
+        mocks[1].side_effect = BackofficeServiceException
         response = self.client.post(
             self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'previous_applications': FAKE_GRANT_APPLICATION['previous_applications']
-            })
+            data={'previous_applications': FAKE_GRANT_APPLICATION['previous_applications']}
         )
         self.assertEqual(response.status_code, 302)
         mocks[0].assert_called_once_with(

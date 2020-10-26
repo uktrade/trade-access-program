@@ -28,7 +28,7 @@ class TestBeforeYouStartView(BaseTestCase):
         self.assertEqual(back_html.attrs['href'], reverse('grant-applications:index'))
 
     def test_post_creates_backoffice_grant_application(self, *mocks):
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertTrue(
             GrantApplicationLink.objects.filter(
@@ -38,8 +38,8 @@ class TestBeforeYouStartView(BaseTestCase):
         mocks[0].assert_called_once_with()
 
     def test_form_error_on_create_ga_backoffice_exception(self, *mocks):
-        mocks[0].side_effect = [BackofficeServiceException]
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
+        mocks[0].side_effect = BackofficeServiceException
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, 200)
         mocks[0].assert_called_once_with()
         self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])

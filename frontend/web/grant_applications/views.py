@@ -8,8 +8,7 @@ from django.views.generic import CreateView, UpdateView, TemplateView
 
 from web.core.forms import FORM_MSGS
 from web.core.view_mixins import (
-    PageContextMixin, SuccessUrlObjectPkMixin, BackContextMixin,
-    PaginationMixin
+    PageContextMixin, SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin
 )
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, AboutYouForm, SelectAnEventForm, PreviousApplicationsForm,
@@ -18,8 +17,8 @@ from web.grant_applications.forms import (
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
-    generate_grant_application_summary, BackofficeServiceException,
-    generate_trade_event_select_options, BackofficeService, get_company_select_options
+    generate_grant_application_summary, BackofficeServiceException, BackofficeService,
+    get_companies_from_search_term
 )
 from web.grant_applications.view_mixins import (
     BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin
@@ -74,6 +73,10 @@ class SearchCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         'heading': _('Search for your company')
     }
 
+    def get_success_url(self, search_term=None):
+        query = f"?search_term={search_term or self.request.POST['search_term']}"
+        return super().get_success_url() + query
+
 
 class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
                         BackofficeMixin, ConfirmationRedirectMixin, UpdateView):
@@ -90,8 +93,10 @@ class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['company_options'] = get_company_select_options(
-            self.backoffice_grant_application['search_term']
+        kwargs['companies'] = self.companies or BackofficeService().request_factory(
+            'search_companies',
+            raise_exception=False,
+            duns_number=self.request.POST.get('duns_number')
         )
         return kwargs
 
@@ -110,6 +115,19 @@ class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
             'is_turnover_greater_than': None,
         }
         return super().form_valid(form, extra_grant_application_data=extra_grant_application_data)
+
+    def get(self, request, *args, **kwargs):
+        search_term = request.GET.get('search_term')
+        if not search_term:
+            return HttpResponseRedirect(
+                reverse('grant-applications:search-company', args=(self.get_object().pk,))
+            )
+        self.companies = get_companies_from_search_term(search_term)
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.companies = None
+        return super().post(request, *args, **kwargs)
 
 
 class BusinessDetailsView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
@@ -175,7 +193,7 @@ class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['trade_events_options'] = generate_trade_event_select_options(self.trade_events)
+        kwargs['trade_events'] = self.trade_events
         kwargs['initial'].update({
             'filter_by_name': self.request.GET.get('filter_by_name'),
             'filter_by_country': self.request.GET.get('filter_by_country', ''),
@@ -291,8 +309,9 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
 
     def previous_apps_summary_list(self):
         summary = generate_grant_application_summary(
-            form_class=PreviousApplicationsView.form_class,
             grant_application=self.object,
+            form_class=PreviousApplicationsView.form_class,
+            form_kwargs={},
             url=reverse('grant-applications:previous-applications', args=(self.object.pk,))
         )
         return {
@@ -321,8 +340,9 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
 
     def event_finance_summary_list(self):
         summary = generate_grant_application_summary(
-            form_class=EventFinanceView.form_class,
             grant_application=self.object,
+            form_class=EventFinanceView.form_class,
+            form_kwargs={},
             url=reverse('grant-applications:event-finance', args=(self.object.pk,))
         )
         return {
@@ -455,31 +475,37 @@ class ApplicationReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
         'heading': _('Review your application')
     }
     grant_application_flow = [
-        SelectCompanyView,
-        AboutYouView,
-        SelectAnEventView,
-        PreviousApplicationsView,
-        EventIntentionView,
-        BusinessInformationView,
-        ExportExperienceView,
-        StateAidView,
+        {'view_class': SelectCompanyView, 'form_kwargs': {'companies': None}},  # TODO
+        {'view_class': AboutYouView, 'form_kwargs': {}},
+        # {'view_class': FindAnEventView, 'form_kwargs': {}},  # TODO
+        {'view_class': SelectAnEventView, 'form_kwargs': {'trade_events': None}},
+        {'view_class': PreviousApplicationsView, 'form_kwargs': {}},
+        {'view_class': EventIntentionView, 'form_kwargs': {}},
+        {'view_class': BusinessInformationView, 'form_kwargs': {}},
+        {'view_class': ExportExperienceView, 'form_kwargs': {}},
+        {'view_class': StateAidView, 'form_kwargs': {}},
     ]
 
     def generate_application_summary(self):
         application_summary = []
 
-        url = SearchCompanyView(object=self.object).get_success_url()
+        url = SearchCompanyView(object=self.object).get_success_url(
+            search_term=self.backoffice_grant_application['search_term']
+        )
 
-        for view_class in self.grant_application_flow:
+        for view in self.grant_application_flow:
             summary = generate_grant_application_summary(
-                form_class=view_class.form_class, grant_application=self.object, url=url
+                grant_application=self.object,
+                form_class=view['view_class'].form_class,
+                form_kwargs=view['form_kwargs'],
+                url=url
             )
             if summary:
                 application_summary.append({
-                    'heading': str(view_class.page.get('heading', '')),
+                    'heading': str(view['view_class'].page.get('heading', '')),
                     'summary': summary
                 })
-            url = view_class(object=self.object).get_success_url()
+            url = view['view_class'](object=self.object).get_success_url()
 
         return application_summary
 

@@ -7,7 +7,7 @@ import httpretty
 
 from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException,
-    get_backoffice_choices
+    get_backoffice_choices, get_companies_from_search_term, generate_company_select_options
 )
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_SEARCH_COMPANIES, FAKE_COMPANY,
@@ -351,3 +351,30 @@ class TestServices(BaseTestCase):
             object_type='fake', choice_id_key='fake', choice_name_key='fake'
         )
         self.assertListEqual(choices, [])
+
+    @patch.object(BackofficeService, 'search_companies', side_effect=BackofficeServiceException)
+    def test_get_companies_with_blank_search_term(self, search_companies_mock):
+        self.assertIsNone(get_companies_from_search_term(''))
+        search_companies_mock.assert_not_called()
+
+    @patch.object(BackofficeService, 'search_companies', side_effect=BackofficeServiceException)
+    def test_get_companies_from_search_term_registration_number(self, search_companies_mock):
+        self.assertIsNone(get_companies_from_search_term(search_term='01234567'))
+        search_companies_mock.assert_called_once_with(registration_numbers=['01234567'])
+
+    @patch.object(BackofficeService, 'search_companies', return_value=FAKE_SEARCH_COMPANIES)
+    def test_get_companies_from_search_term_primary_name(self, search_companies_mock):
+        companies = get_companies_from_search_term(search_term='fake')
+        search_companies_mock.assert_called_once_with(primary_name='fake')
+        self.assertEqual(companies, FAKE_SEARCH_COMPANIES)
+
+    def test_generate_company_select_options(self):
+        fake = FAKE_SEARCH_COMPANIES[0]
+        options = generate_company_select_options(FAKE_SEARCH_COMPANIES)
+        self.assertDictEqual(
+            options,
+            {
+                'choices': [(fake['dnb_data']['duns_number'], fake['dnb_data']['primary_name'])],
+                'hints': [fake['registration_number']]
+            }
+        )
