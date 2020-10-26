@@ -108,3 +108,7 @@ class TestPaginationMixin(BaseTestCase):
         mixin.request = MagicMock()
         mixin.request.GET = {'page': 'bad-value'}
         self.assertEqual(mixin.get_current_page(), 1)
+
+    def test_get_pagination_total_pages_requires_ovverride(self):
+        mixin = PaginationMixin()
+        self.assertRaises(NotImplementedError, mixin.get_pagination_total_pages)
