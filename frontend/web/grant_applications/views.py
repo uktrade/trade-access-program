@@ -118,13 +118,12 @@ class SelectCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
 
     def get(self, request, *args, **kwargs):
         search_term = request.GET.get('search_term')
-        self.companies = get_companies_from_search_term(search_term)
-        response = super().get(request, *args, **kwargs)
         if not search_term:
             return HttpResponseRedirect(
-                reverse('grant-applications:search-company', args=(self.object.pk,))
+                reverse('grant-applications:search-company', args=(self.get_object().pk,))
             )
-        return response
+        self.companies = get_companies_from_search_term(search_term)
+        return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         self.companies = None
