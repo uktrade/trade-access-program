@@ -10,34 +10,34 @@ from django.utils.datetime_safe import date
 from django.utils.http import urlencode
 
 from web.grant_applications.forms import BusinessDetailsForm
-from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import BackofficeServiceException, BackofficeService
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, AboutYouView, SelectAnEventView,
-    PreviousApplicationsView, EventIntentionView, BusinessInformationView, ExportExperienceView,
+    EventIntentionView, BusinessInformationView, ExportExperienceView,
     StateAidView, ApplicationReviewView, EligibilityReviewView, EventFinanceView,
     EligibilityConfirmationView, BusinessDetailsView, FindAnEventView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
-    FAKE_GRANT_APPLICATION, FAKE_COMPANY,
-    FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT, FAKE_SECTOR,
-    FAKE_SEARCH_COMPANIES, FAKE_PAGINATED_LIST_EVENTS, FAKE_TRADE_EVENT_AGGREGATES
+    FAKE_GRANT_APPLICATION, FAKE_COMPANY, FAKE_GRANT_MANAGEMENT_PROCESS,
+    FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT, FAKE_SECTOR, FAKE_SEARCH_COMPANIES,
+    FAKE_PAGINATED_LIST_EVENTS, FAKE_TRADE_EVENT_AGGREGATES
 )
 from web.tests.helpers.testcases import BaseTestCase, LogCaptureMixin
 
 
+@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
 @patch.object(BackofficeService, 'create_company', return_value=FAKE_COMPANY)
 @patch.object(BackofficeService, 'list_companies', return_value=[FAKE_COMPANY])
 @patch.object(BackofficeService, 'search_companies', return_value=FAKE_SEARCH_COMPANIES)
-@patch.object(BackofficeService, 'create_grant_application', return_value=FAKE_GRANT_APPLICATION)
 class TestSearchCompanyView(BaseTestCase):
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.url = reverse('grant-applications:search-company')
+        cls.gal = GrantApplicationLinkFactory()
+        cls.url = reverse('grant-applications:search-company', args=(cls.gal.pk,))
 
     def test_search_company_get_template(self, *mocks):
         response = self.client.get(self.url)
@@ -48,7 +48,10 @@ class TestSearchCompanyView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         back_html = BeautifulSoup(response.content, 'html.parser').find(id='id_back_link')
-        self.assertEqual(back_html.attrs['href'], reverse("grant-applications:before-you-start"))
+        self.assertEqual(
+            back_html.attrs['href'],
+            reverse('grant-applications:previous-applications', args=(self.gal.pk,))
+        )
 
     def test_search_term_required(self, *mocks):
         response = self.client.post(self.url)
@@ -57,32 +60,27 @@ class TestSearchCompanyView(BaseTestCase):
     def test_search_company_saves_search_term(self, *mocks):
         response = self.client.post(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(GrantApplicationLink.objects.filter(search_term='company-1').exists())
-
-    def test_post_creates_backoffice_grant_application(self, *mocks):
-        response = self.client.post(self.url, data={'search_term': 'company-1'})
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue(
-            GrantApplicationLink.objects.filter(
-                backoffice_grant_application_id=FAKE_GRANT_APPLICATION['id']
-            ).exists()
+        mocks[4].assert_called_once_with(
+            grant_application_id=str(self.gal.backoffice_grant_application_id),
+            search_term='company-1'
         )
-        mocks[0].assert_called_once_with(search_term='company-1')
 
     def test_form_error_on_backoffice_exception(self, *mocks):
-        mocks[0].side_effect = [BackofficeServiceException]
+        mocks[4].side_effect = [BackofficeServiceException]
         response = self.client.post(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
-        mocks[0].assert_called_once_with(search_term='company-1')
+        mocks[4].assert_called_once_with(
+            grant_application_id=str(self.gal.backoffice_grant_application_id),
+            search_term='company-1'
+        )
         self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])
 
     def test_search_company_post_form_redirect_path(self, *mocks):
         response = self.client.post(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 302)
-        gal = GrantApplicationLink.objects.get(search_term='company-1')
         self.assertRedirects(
             response,
-            expected_url=reverse('grant-applications:select-company', kwargs={'pk': gal.pk})
+            expected_url=reverse('grant-applications:select-company', kwargs={'pk': self.gal.pk})
         )
 
     def test_search_company_post_form_redirect_template(self, *mocks):
@@ -107,7 +105,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, SelectCompanyView.template_name)
-        mocks[0].assert_called_once_with(search_term=self.gal.search_term)
+        mocks[0].assert_called_once_with(search_term=FAKE_GRANT_APPLICATION['search_term'])
         self.assertIn(FAKE_GRANT_APPLICATION['company']['name'], response.content.decode())
 
     def test_details_not_listed(self, *mocks):
@@ -143,7 +141,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response=response,
-            expected_url=reverse('grant-applications:previous-applications', args=(self.gal.pk,))
+            expected_url=reverse('grant-applications:business-details', args=(self.gal.pk,))
         )
 
     def test_post_form_redirect_template(self, *mocks):
@@ -153,7 +151,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
             follow=True
         )
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, PreviousApplicationsView.template_name)
+        self.assertTemplateUsed(response, BusinessDetailsView.template_name)
 
     def test_post_creates_backoffice_company(self, m_search_companies, m_update_grant_application,
                                              m_list_companies, m_get_grant_application,
@@ -213,7 +211,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         m_update_grant_application.assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
             company=FAKE_COMPANY['id'],
-            # Set manual company details to None in case they have previously been set
+            # # Set manual company details to None in case they have previously been set
             is_based_in_uk=None,
             number_of_employees=None,
             is_turnover_greater_than=None
@@ -293,112 +291,6 @@ class TestBusinessDetailsView(BaseTestCase):
         self.assertFormError(
             response, 'form', 'is_turnover_greater_than', self.form_msgs['required']
         )
-
-
-@patch.object(BackofficeService, 'search_companies', return_value=FAKE_SEARCH_COMPANIES)
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestPreviousApplicationsView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:previous-applications', kwargs={'pk': self.gal.pk})
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, PreviousApplicationsView.template_name)
-
-    def test_default_back_url_when_no_referer_set(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        back_html = BeautifulSoup(response.content, 'html.parser').find(id='id_back_link')
-        self.assertEqual(
-            back_html.attrs['href'],
-            reverse('grant-applications:select-company', args=(self.gal.pk,))
-        )
-
-    def test_back_url_is_select_company(self, *mocks):
-        response = self.client.get(
-            self.url,
-            HTTP_REFERER=reverse('grant-applications:select-company', args=(self.gal.pk,))
-        )
-        self.assertEqual(response.status_code, 200)
-        back_html = BeautifulSoup(response.content, 'html.parser').find(id='id_back_link')
-        self.assertEqual(
-            back_html.attrs['href'],
-            reverse('grant-applications:select-company', args=(self.gal.pk,))
-        )
-
-    def test_back_url_is_business_details(self, *mocks):
-        response = self.client.get(
-            self.url,
-            HTTP_REFERER=reverse('grant-applications:business-details', args=(self.gal.pk,))
-        )
-        self.assertEqual(response.status_code, 200)
-        back_html = BeautifulSoup(response.content, 'html.parser').find(id='id_back_link')
-        self.assertEqual(
-            back_html.attrs['href'],
-            reverse('grant-applications:business-details', args=(self.gal.pk,))
-        )
-
-    def test_post(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'has_previously_applied': False,
-                'previous_applications': FAKE_GRANT_APPLICATION['previous_applications']
-            })
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            has_previously_applied=False,
-            previous_applications=FAKE_GRANT_APPLICATION['previous_applications']
-        )
-
-    def test_true_for_has_previously_applied_makes_previous_applications_None(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'has_previously_applied': True})
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            has_previously_applied=True,
-            previous_applications=None
-        )
-
-    def test_null_out_previous_applications_when_has_previously_applied_true(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({
-                'has_previously_applied': True,
-                'previous_applications': 2
-            })
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            has_previously_applied=True,
-            previous_applications=None
-        )
-
-    def test_false_for_has_previously_applied_makes_previous_applications_required(self, *mocks):
-        response = self.client.post(
-            self.url,
-            content_type='application/x-www-form-urlencoded',
-            data=urlencode({'has_previously_applied': False})
-        )
-        self.assertFormError(response, 'form', 'previous_applications', self.form_msgs['required'])
-        mocks[0].assert_not_called()
-
-    def test_boolean_field_must_be_present(self, *mocks):
-        response = self.client.post(self.url, content_type='application/x-www-form-urlencoded')
-        self.assertFormError(response, 'form', 'has_previously_applied', self.form_msgs['required'])
 
 
 @patch.object(

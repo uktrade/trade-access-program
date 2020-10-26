@@ -63,7 +63,6 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                 'is_already_committed_to_event': ga.is_already_committed_to_event,
                 'is_intending_on_other_financial_support':
                     ga.is_intending_on_other_financial_support,
-                'has_previously_applied': ga.has_previously_applied,
                 'previous_applications': ga.previous_applications,
                 'is_first_exhibit_at_event': ga.is_first_exhibit_at_event,
                 'number_of_times_exhibited_at_event': ga.number_of_times_exhibited_at_event,
@@ -154,7 +153,6 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                 'event': None,
                 'is_already_committed_to_event': None,
                 'is_intending_on_other_financial_support': None,
-                'has_previously_applied': None,
                 'previous_applications': None,
                 'is_first_exhibit_at_event': None,
                 'number_of_times_exhibited_at_event': None,

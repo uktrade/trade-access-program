@@ -8,14 +8,34 @@ from phonenumber_field.formfields import PhoneNumberField
 from web.core import widgets
 from web.core.forms import MaxAllowedCharField, FORM_MSGS
 from web.core.utils import str_to_bool
-from web.grant_applications.form_mixins import (
-    UpdateBackofficeGrantApplicationMixin, FormatLabelMixin
-)
+from web.grant_applications.form_mixins import FormatLabelMixin
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException, get_sector_select_choices,
     get_trade_event_filter_choices, get_trade_event_filter_by_month_choices
 )
+
+
+class EmptyGrantApplicationLinkForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = []
+
+
+class PreviousApplicationsForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = ['previous_applications']
+
+    previous_applications = forms.TypedChoiceField(
+        empty_value=None,
+        coerce=int,
+        choices=[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, '6 or more')],
+        widget=widgets.RadioSelect(),
+        label=_('How many grants have you received from TAP since April 1st 2009?'),
+    )
 
 
 class SearchCompanyForm(forms.ModelForm):
@@ -34,21 +54,6 @@ class SearchCompanyForm(forms.ModelForm):
             }
         )
     )
-
-    def clean(self):
-        cleaned_data = super().clean()
-        if cleaned_data:
-            try:
-                self.backoffice_grant_application = BackofficeService().create_grant_application(
-                    search_term=cleaned_data['search_term']
-                )
-            except BackofficeServiceException:
-                self.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))
-        return cleaned_data
-
-    def save(self, *args, **kwargs):
-        self.instance.backoffice_grant_application_id = self.backoffice_grant_application['id']
-        return super().save(*args, **kwargs)
 
 
 class SelectCompanyForm(forms.ModelForm):
@@ -73,31 +78,23 @@ class SelectCompanyForm(forms.ModelForm):
         if cleaned_data:
             service = BackofficeService()
             try:
-                company = service.search_companies(duns_number=self.cleaned_data['duns_number'])
-                if not company:
+                searched_company = service.search_companies(
+                    duns_number=self.cleaned_data['duns_number']
+                )
+                if not searched_company:
                     raise forms.ValidationError(FORM_MSGS['resubmit'])
-                self.company = service.get_or_create_company(
+                company = service.get_or_create_company(
                     duns_number=self.cleaned_data['duns_number'],
-                    registration_number=company[0]['registration_number'],
+                    registration_number=searched_company[0]['registration_number'],
                     name=dict(self.fields['duns_number'].choices)[self.cleaned_data['duns_number']]
                 )
+                cleaned_data['company'] = company['id']
             except BackofficeServiceException:
                 raise forms.ValidationError(FORM_MSGS['resubmit'])
         return cleaned_data
 
-    def save(self, *args, **kwargs):
-        BackofficeService().update_grant_application(
-            grant_application_id=str(self.instance.backoffice_grant_application_id),
-            company=self.company['id'],
-            # Set manual company details to None in case they have previously been set
-            is_based_in_uk=None,
-            number_of_employees=None,
-            is_turnover_greater_than=None
-        )
-        return super().save(*args, **kwargs)
 
-
-class BusinessDetailsForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+class BusinessDetailsForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
@@ -130,61 +127,8 @@ class BusinessDetailsForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm
         )
     )
 
-    def save(self, *args, **kwargs):
-        # Set company to None in case it has been set previously
-        kwargs['grant_application_data'] = {'company': None}
-        return super().save(*args, **kwargs)
 
-
-class PreviousApplicationsForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
-
-    class Meta:
-        model = GrantApplicationLink
-        fields = ['has_previously_applied', 'previous_applications']
-
-    has_previously_applied = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_('Is this the first time you have applied for a TAP grant?')
-    )
-
-    previous_applications = forms.TypedChoiceField(
-        required=False,
-        empty_value=None,
-        coerce=int,
-        choices=[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, '6 or more')],
-        widget=widgets.RadioSelect(),
-        label=_('How many TAP grants have you received since 1 April 2009?'),
-    )
-
-    def clean(self):
-        cleaned_data = super().clean()
-        has_previously_applied = cleaned_data.get('has_previously_applied')
-        previous_applications = cleaned_data.get('previous_applications')
-        if not has_previously_applied and previous_applications is None:
-            self.add_error(
-                'previous_applications', forms.ValidationError(FORM_MSGS['required'])
-            )
-        if has_previously_applied and previous_applications is not None:
-            cleaned_data['previous_applications'] = None
-        return cleaned_data
-
-
-class EligibilityReviewForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
-
-    class Meta:
-        model = GrantApplicationLink
-        fields = []
-
-
-class EligibilityConfirmationForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
-    class Meta:
-        model = GrantApplicationLink
-        fields = []
-
-
-class FindAnEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+class FindAnEventForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
@@ -230,8 +174,7 @@ class FindAnEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
     )
 
 
-class SelectAnEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
-    grant_application_fields = ['event']
+class SelectAnEventForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
@@ -283,7 +226,8 @@ class SelectAnEventForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
     )
 
 
-class EventFinanceForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, forms.ModelForm):
+class EventFinanceForm(FormatLabelMixin, forms.ModelForm):
+
     class Meta:
         model = GrantApplicationLink
         fields = [
@@ -337,7 +281,7 @@ class EventFinanceForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, 
         self.format_label('is_already_committed_to_event', event_name=self.data['event'])
 
 
-class AboutYouForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+class AboutYouForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
@@ -385,7 +329,7 @@ class AboutYouForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
         return cleaned_data
 
 
-class BusinessInformationForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+class BusinessInformationForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
@@ -432,7 +376,7 @@ class BusinessInformationForm(UpdateBackofficeGrantApplicationMixin, forms.Model
     )
 
 
-class EventIntentionForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin, forms.ModelForm):
+class EventIntentionForm(FormatLabelMixin, forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
@@ -473,7 +417,7 @@ class EventIntentionForm(UpdateBackofficeGrantApplicationMixin, FormatLabelMixin
         return cleaned_data
 
 
-class ExportExperienceForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+class ExportExperienceForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
@@ -504,7 +448,7 @@ class ExportExperienceForm(UpdateBackofficeGrantApplicationMixin, forms.ModelFor
     )
 
 
-class StateAidForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
+class StateAidForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
@@ -595,10 +539,3 @@ class StateAidForm(UpdateBackofficeGrantApplicationMixin, forms.ModelForm):
             )
 
         return cleaned_data
-
-
-class ApplicationReviewForm(forms.ModelForm):
-
-    class Meta:
-        model = GrantApplicationLink
-        fields = []
