@@ -52,14 +52,123 @@ class PreviousApplicationsView(BackContextMixin, PageContextMixin, SuccessUrlObj
     form_class = PreviousApplicationsForm
     template_name = 'grant_applications/previous_applications.html'
     back_url_name = 'grant-applications:before-you-start'
-    # TODO: End user journey here for now
-    success_url_name = 'grant_applications:previous-applications'
+    success_url_name = 'grant_applications:find-an-event'
     page = {
         'heading': _('Previous TAP grants')
     }
 
     def get_back_url(self):
         return reverse(self.back_url_name)
+
+
+class FindAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
+                      BackofficeMixin, ConfirmationRedirectMixin, UpdateView):
+    model = GrantApplicationLink
+    form_class = FindAnEventForm
+    template_name = 'grant_applications/find_an_event.html'
+    back_url_name = 'grant-applications:previous-applications'
+    success_url_name = 'grant_applications:select-an-event'
+    page = {
+        'heading': _('Find an event')
+    }
+
+    def get_success_url(self, **params):
+        if hasattr(self, 'request'):
+            params = {
+                'filter_by_name': self.request.POST['filter_by_name'],
+                'filter_by_sector': self.request.POST['filter_by_sector'],
+                'filter_by_country': self.request.POST['filter_by_country'],
+                'filter_by_month': self.request.POST['filter_by_month'],
+            }
+        return super().get_success_url() + f'?{urlencode(params)}'
+
+    def get_context_data(self, **kwargs):
+        kwargs = super().get_context_data(**kwargs)
+        trade_event_aggregates = self.backoffice_service.get_trade_event_aggregates(
+            start_date_from=timezone.now().date()
+        )
+        kwargs.update({
+            'total_trade_events': trade_event_aggregates['total_trade_events'],
+            'trade_event_total_months': len(trade_event_aggregates['trade_event_months']),
+        })
+        return kwargs
+
+
+class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
+                        BackofficeMixin, ConfirmationRedirectMixin, PaginationMixin, UpdateView):
+    model = GrantApplicationLink
+    form_class = SelectAnEventForm
+    template_name = 'grant_applications/select_an_event.html'
+    back_url_name = 'grant-applications:find-an-event'
+    # TODO: End user journey here for now
+    success_url_name = 'grant_applications:select-an-event'
+    page = {
+        'heading': _('Select an event')
+    }
+    events_page_size = 10
+    grant_application_fields = ['event']
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['trade_events'] = self.trade_events
+        kwargs['initial'].update({
+            'filter_by_name': self.request.GET.get('filter_by_name'),
+            'filter_by_country': self.request.GET.get('filter_by_country'),
+            'filter_by_sector': self.request.GET.get('filter_by_sector'),
+            'filter_by_month': self.request.GET.get('filter_by_month'),
+        })
+        return kwargs
+
+    def get_pagination_total_pages(self):
+        if self.trade_events:
+            return self.trade_events['total_pages']
+
+    def get_current_page(self):
+        if self.request.method == 'GET':
+            return super().get_current_page()
+        return 1
+
+    def get_extra_href_params(self):
+        params = self.request.GET.copy()
+        params.pop('page', None)
+        return params.dict()
+
+    def get_trade_events(self):
+        params = {
+            'search': self.request.GET.get('filter_by_name'),
+            'country': self.request.GET.get('filter_by_country'),
+            'sector': self.request.GET.get('filter_by_sector')
+        }
+        filter_by_month = self.request.GET.get('filter_by_month')
+        if filter_by_month:
+            params['start_date_range_after'] = filter_by_month.split(':')[0]
+            params['end_date_range_before'] = filter_by_month.split(':')[1]
+
+        try:
+            trade_events = BackofficeService().list_trade_events(
+                page=self.get_current_page(),
+                page_size=self.events_page_size,
+                **{k: v for k, v in params.items() if v}
+            )
+        except BackofficeServiceException:
+            trade_events = None
+
+        return trade_events
+
+    def get_context_data(self, **kwargs):
+        if self.trade_events:
+            kwargs['number_of_events'] = self.trade_events['count']
+            kwargs['results_to'] = self.get_current_page() * self.events_page_size
+            kwargs['results_from'] = kwargs['results_to'] - self.events_page_size + 1
+        return super().get_context_data(**kwargs)
+
+    def get(self, request, *args, **kwargs):
+        self.trade_events = self.get_trade_events()
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.trade_events = self.get_trade_events()
+        return super().post(request, *args, **kwargs)
 
 
 class SearchCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
@@ -73,8 +182,10 @@ class SearchCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         'heading': _('Search for your company')
     }
 
-    def get_success_url(self, search_term=None):
-        query = f"?search_term={search_term or self.request.POST['search_term']}"
+    def get_success_url(self):
+        query = ''
+        if hasattr(self, 'request'):
+            query = f"?search_term={self.request.POST['search_term']}"
         return super().get_success_url() + query
 
 
@@ -146,112 +257,6 @@ class BusinessDetailsView(BackContextMixin, PageContextMixin, SuccessUrlObjectPk
     def form_valid(self, form):
         # Set company to None in case it has been set previously
         return super().form_valid(form, extra_grant_application_data={'company': None})
-
-
-class FindAnEventView(BackContextMixin, PageContextMixin, BackofficeMixin,
-                      ConfirmationRedirectMixin, UpdateView):
-    model = GrantApplicationLink
-    form_class = FindAnEventForm
-    template_name = 'grant_applications/find_an_event.html'
-    back_url_name = 'grant-applications:previous-applications'
-    page = {
-        'heading': _('Find an event'),
-        'caption': _('Check your eligibility')
-    }
-
-    def form_valid(self, form):
-        success_url = reverse(
-            'grant_applications:select-an-event', args=(self.object.pk,)
-        ) + f'?{urlencode(form.cleaned_data)}'
-        return HttpResponseRedirect(success_url)
-
-    def get_context_data(self, **kwargs):
-        kwargs = super().get_context_data(**kwargs)
-        trade_event_aggregates = self.backoffice_service.get_trade_event_aggregates(
-            start_date_from=timezone.now().date()
-        )
-        kwargs.update({
-            'total_trade_events': trade_event_aggregates['total_trade_events'],
-            'trade_event_total_months': len(trade_event_aggregates['trade_event_months']),
-        })
-        return kwargs
-
-
-class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, ConfirmationRedirectMixin, PaginationMixin, UpdateView):
-    model = GrantApplicationLink
-    form_class = SelectAnEventForm
-    template_name = 'grant_applications/select_an_event.html'
-    back_url_name = 'grant-applications:find-an-event'
-    success_url_name = 'grant_applications:event-finance'
-    page = {
-        'heading': _('Select an event'),
-        'caption': _('Check your eligibility')
-    }
-    events_page_size = 10
-    grant_application_fields = ['event']
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['trade_events'] = self.trade_events
-        kwargs['initial'].update({
-            'filter_by_name': self.request.GET.get('filter_by_name'),
-            'filter_by_country': self.request.GET.get('filter_by_country', ''),
-            'filter_by_sector': self.request.GET.get('filter_by_sector', ''),
-            'filter_by_month': self.request.GET.get('filter_by_month', ''),
-        })
-        return kwargs
-
-    def get_pagination_total_pages(self):
-        if self.trade_events:
-            return self.trade_events['total_pages']
-
-    def get_current_page(self):
-        if self.request.method == 'GET':
-            return super().get_current_page()
-        return 1
-
-    def get_extra_href_params(self):
-        params = self.request.GET.copy()
-        params.pop('page', None)
-        return params.dict()
-
-    def get_trade_events(self):
-        params = {
-            'search': self.request.GET.get('filter_by_name'),
-            'country': self.request.GET.get('filter_by_country'),
-            'sector': self.request.GET.get('filter_by_sector')
-        }
-        filter_by_month = self.request.GET.get('filter_by_month')
-        if filter_by_month:
-            params['start_date_range_after'] = filter_by_month.split(':')[0]
-            params['end_date_range_before'] = filter_by_month.split(':')[1]
-
-        try:
-            trade_events = BackofficeService().list_trade_events(
-                page=self.get_current_page(),
-                page_size=self.events_page_size,
-                **{k: v for k, v in params.items() if v}
-            )
-        except BackofficeServiceException:
-            trade_events = None
-
-        return trade_events
-
-    def get_context_data(self, **kwargs):
-        if self.trade_events:
-            kwargs['number_of_events'] = self.trade_events['count']
-            kwargs['results_to'] = self.get_current_page() * self.events_page_size
-            kwargs['results_from'] = kwargs['results_to'] - self.events_page_size + 1
-        return super().get_context_data(**kwargs)
-
-    def get(self, request, *args, **kwargs):
-        self.trade_events = self.get_trade_events()
-        return super().get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        self.trade_events = self.get_trade_events()
-        return super().post(request, *args, **kwargs)
 
 
 class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
@@ -475,29 +480,29 @@ class ApplicationReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
         'heading': _('Review your application')
     }
     grant_application_flow = [
-        {'view_class': SelectCompanyView, 'form_kwargs': {'companies': None}},  # TODO
-        {'view_class': AboutYouView, 'form_kwargs': {}},
-        # {'view_class': FindAnEventView, 'form_kwargs': {}},  # TODO
+        # TODO: fix grant application review items
+        {'view_class': PreviousApplicationsView},
+        {'view_class': FindAnEventView},
         {'view_class': SelectAnEventView, 'form_kwargs': {'trade_events': None}},
-        {'view_class': PreviousApplicationsView, 'form_kwargs': {}},
-        {'view_class': EventIntentionView, 'form_kwargs': {}},
-        {'view_class': BusinessInformationView, 'form_kwargs': {}},
-        {'view_class': ExportExperienceView, 'form_kwargs': {}},
-        {'view_class': StateAidView, 'form_kwargs': {}},
+        {'view_class': SearchCompanyView},
+        {'view_class': SelectCompanyView, 'form_kwargs': {'companies': None}},
+        {'view_class': AboutYouView},
+        {'view_class': EventIntentionView},
+        {'view_class': BusinessInformationView},
+        {'view_class': ExportExperienceView},
+        {'view_class': StateAidView},
     ]
 
     def generate_application_summary(self):
         application_summary = []
 
-        url = SearchCompanyView(object=self.object).get_success_url(
-            search_term=self.backoffice_grant_application['search_term']
-        )
+        url = BeforeYouStartView(object=self.object).get_success_url()
 
         for view in self.grant_application_flow:
             summary = generate_grant_application_summary(
                 grant_application=self.object,
                 form_class=view['view_class'].form_class,
-                form_kwargs=view['form_kwargs'],
+                form_kwargs=view.get('form_kwargs', {}),
                 url=url
             )
             if summary:

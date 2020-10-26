@@ -1,27 +1,22 @@
-import re
 from unittest import skip
 from unittest.mock import patch
-from urllib.parse import urlparse, parse_qs
 
 from bs4 import BeautifulSoup
 from django.urls import reverse, resolve
-from django.utils import timezone
 from django.utils.datetime_safe import date
-from django.utils.http import urlencode
 
 from web.grant_applications.forms import BusinessDetailsForm
 from web.grant_applications.services import BackofficeServiceException, BackofficeService
 from web.grant_applications.views import (
-    SearchCompanyView, SelectCompanyView, AboutYouView, SelectAnEventView,
-    EventIntentionView, BusinessInformationView, ExportExperienceView,
+    SearchCompanyView, SelectCompanyView, AboutYouView, EventIntentionView, BusinessInformationView,
+    ExportExperienceView,
     StateAidView, ApplicationReviewView, EligibilityReviewView, EventFinanceView,
-    EligibilityConfirmationView, BusinessDetailsView, FindAnEventView
+    EligibilityConfirmationView, BusinessDetailsView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_COMPANY, FAKE_GRANT_MANAGEMENT_PROCESS,
-    FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT, FAKE_SECTOR, FAKE_SEARCH_COMPANIES,
-    FAKE_PAGINATED_LIST_EVENTS, FAKE_TRADE_EVENT_AGGREGATES
+    FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT, FAKE_SECTOR, FAKE_SEARCH_COMPANIES
 )
 from web.tests.helpers.testcases import BaseTestCase, LogCaptureMixin
 
@@ -317,263 +312,6 @@ class TestBusinessDetailsView(BaseTestCase):
         self.assertFormError(
             response, 'form', 'is_turnover_greater_than', self.form_msgs['required']
         )
-
-
-@patch.object(
-    BackofficeService, 'get_trade_event_aggregates', return_value=FAKE_TRADE_EVENT_AGGREGATES
-)
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(
-    BackofficeService, 'list_trade_events', side_effect=[
-        [FAKE_EVENT], [FAKE_EVENT], [FAKE_EVENT], FAKE_PAGINATED_LIST_EVENTS, [FAKE_EVENT],
-        [FAKE_EVENT], [FAKE_EVENT]
-    ]
-)
-class TestFindAnEventView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:find-an-event', args=(self.gal.pk,))
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, FindAnEventView.template_name)
-
-    def test_initial_filters_are_set_to_all(self, *mocks):
-        response = self.client.get(self.url)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertEqual(response.status_code, 200)
-        # Filter by name
-        self.assertNotIn('value', soup.find(id='id_filter_by_name').attrs)
-        # Filter by start date
-        self.assertEqual(
-            soup.find(id='id_filter_by_month').find('option', selected=True).text, 'All'
-        )
-        # Filter by country
-        self.assertEqual(
-            soup.find(id='id_filter_by_country').find('option', selected=True).text, 'All'
-        )
-        # Filter by sector
-        self.assertEqual(
-            soup.find(id='id_filter_by_sector').find('option', selected=True).text, 'All'
-        )
-
-    def test_error_on_bad_query_param(self, *mocks):
-        response = self.client.post(self.url, data={'filter_by_month': 'bad-value'})
-        self.assertFormError(
-            response, 'form', 'filter_by_month',
-            self.form_msgs['invalid-choice'].format('bad-value')
-        )
-
-    def test_query_params_sent_on_redirect(self, *mocks):
-        params = {
-            'filter_by_name': 'Name 1',
-            'filter_by_month': '2020-12-01:2020-12-31',
-            'filter_by_country': 'Country 1',
-            'filter_by_sector': 'Sector 1'
-        }
-        response = self.client.post(self.url, data=params)
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response=response,
-            expected_url=reverse(
-                'grant_applications:select-an-event', args=(self.gal.pk,)
-            ) + f'?{urlencode(params)}'
-        )
-        parsed_url = urlparse(response.url)
-        for k, v in parse_qs(parsed_url.query).items():
-            self.assertEqual(params.get(k), v[0])
-
-    def test_redirect_query_params_populate_redirect_form(self, *mocks):
-        response = self.client.post(
-            self.url,
-            follow=True,
-            data={
-                'filter_by_name': 'Name 1',
-                'filter_by_month': '2020-12-01:2020-12-31',
-                'filter_by_country': 'Country 1',
-                'filter_by_sector': 'Sector 1'
-            }
-        )
-        self.assertEqual(response.status_code, 200)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        # Filter by name
-        self.assertEqual(soup.find(id='id_filter_by_name').attrs['value'], 'Name 1')
-        # Filter by start date
-        self.assertEqual(
-            soup.find(id='id_filter_by_month').find('option', selected=True).text, 'December 2020'
-        )
-        # Filter by country
-        self.assertEqual(
-            soup.find(id='id_filter_by_country').find('option', selected=True).text, 'Country 1'
-        )
-        # Filter by sector
-        self.assertEqual(
-            soup.find(id='id_filter_by_sector').find('option', selected=True).text, 'Sector 1'
-        )
-
-    def test_get_future_aggregate_trade_events_only(self, *mocks):
-        response = self.client.get(self.url)
-        mocks[3].assert_called_once_with(start_date_from=timezone.now().date())
-        self.assertEqual(
-            response.context_data['total_trade_events'],
-            FAKE_TRADE_EVENT_AGGREGATES['total_trade_events']
-        )
-        self.assertEqual(
-            response.context_data['trade_event_total_months'],
-            len(FAKE_TRADE_EVENT_AGGREGATES['trade_event_months'])
-        )
-
-
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(
-    BackofficeService, 'list_trade_events',
-    side_effect=[FAKE_PAGINATED_LIST_EVENTS, [FAKE_EVENT], [FAKE_EVENT], [FAKE_EVENT]]
-)
-class TestSelectAnEventView(BaseTestCase):
-    page_size = SelectAnEventView.events_page_size
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:select-an-event', args=(self.gal.pk,))
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, SelectAnEventView.template_name)
-
-    def test_initial_filters_are_set_to_all(self, *mocks):
-        response = self.client.get(self.url)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertEqual(response.status_code, 200)
-        # Filter by name
-        self.assertNotIn('value', soup.find(id='id_filter_by_name').attrs)
-        # Filter by start date
-        self.assertEqual(
-            soup.find(id='id_filter_by_month').find('option', selected=True).text, 'All'
-        )
-        # Filter by country
-        self.assertEqual(
-            soup.find(id='id_filter_by_country').find('option', selected=True).text, 'All'
-        )
-        # Filter by sector
-        self.assertEqual(
-            soup.find(id='id_filter_by_sector').find('option', selected=True).text, 'All'
-        )
-
-    def test_get_defaults_to_event_page_1(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        mocks[0].assert_any_call(page=1, page_size=self.page_size)
-
-    def test_get_with_event_page(self, *mocks):
-        response = self.client.get(self.url, data={'page': 2})
-        self.assertEqual(response.status_code, 200)
-        mocks[0].assert_any_call(page=2, page_size=self.page_size)
-
-    def test_get_request_event_initial_is_not_backoffice_event_if_exists(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        selected_event = soup.find(attrs={'class': 'govuk-radios__input'}, checked=True)
-        self.assertIsNone(selected_event)
-
-    def test_get_on_list_events_backoffice_exception(self, *mocks):
-        mocks[0].side_effect = BackofficeServiceException
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-        soup = BeautifulSoup(response.content, 'html.parser')
-        html_elements = soup.find_all(id=re.compile(r'^id_no_matching_events_\d'))
-        self.assertEqual(len(html_elements), 3)
-
-    @patch.object(BackofficeService, 'get_grant_application')
-    def test_initial_when_no_event_is_set(self, *mocks):
-        mocks[3].return_value = FAKE_GRANT_APPLICATION.copy()
-        mocks[3].return_value['event'] = None
-
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-        soup = BeautifulSoup(response.content, 'html.parser')
-        all_event_radios = soup.find_all(attrs={'class': 'govuk-radios__input'})
-        for event_radio in all_event_radios:
-            self.assertNotIn('checked', event_radio.attrs)
-
-    def test_post_redirects(self, *mocks):
-        response = self.client.post(self.url, data={'event': FAKE_EVENT['id']})
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response=response,
-            expected_url=reverse(SelectAnEventView.success_url_name, args=(self.gal.pk,))
-        )
-
-    def test_event_is_saved_on_form_continue_button(self, *mocks):
-        response = self.client.post(self.url, data={'event': FAKE_EVENT['id']})
-        self.assertEqual(response.status_code, 302)
-        mocks[1].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            event=FAKE_EVENT['id']
-        )
-
-    def test_filter_by_name(self, *mocks):
-        response = self.client.get(self.url, data={'filter_by_name': 'AB'})
-        self.assertEqual(response.status_code, 200)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertEqual(soup.find(id='id_filter_by_name').attrs['value'], 'AB')
-        # Use name filter as a search_term to the backoffice api
-        mocks[0].assert_any_call(page=1, page_size=self.page_size, search='AB')
-
-    def test_filter_by_month(self, *mocks):
-        response = self.client.get(self.url, data={'filter_by_month': '2020-12-01:2020-12-31'})
-        self.assertEqual(response.status_code, 200)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertEqual(
-            soup.find(id='id_filter_by_month').find('option', selected=True).text,
-            'December 2020'
-        )
-        mocks[0].assert_any_call(
-            page=1,
-            page_size=self.page_size,
-            start_date_range_after='2020-12-01',
-            end_date_range_before='2020-12-31'
-        )
-
-    def test_filter_by_country(self, *mocks):
-        response = self.client.get(self.url, data={'filter_by_country': 'Country 1'})
-        self.assertEqual(response.status_code, 200)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertEqual(
-            soup.find(id='id_filter_by_country').find('option', selected=True).text,
-            FAKE_EVENT['country']
-        )
-        mocks[0].assert_any_call(page=1, page_size=self.page_size, country='Country 1')
-
-    def test_filter_by_sector(self, *mocks):
-        response = self.client.get(self.url, data={'filter_by_sector': 'Sector 1'})
-        self.assertEqual(response.status_code, 200)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertEqual(
-            soup.find(id='id_filter_by_sector').find('option', selected=True).text,
-            FAKE_EVENT['sector']
-        )
-        mocks[0].assert_any_call(page=1, page_size=self.page_size, sector='Sector 1')
-
-    def test_no_matching_events_text_is_shown(self, *mocks):
-        mocks[0].side_effect = None
-        mocks[0].return_value = []
-        response = self.client.get(self.url, data={'filter_by_name': 'Bla Bla Bla'})
-        self.assertEqual(response.status_code, 200)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        html_elements = soup.find_all(id=re.compile(r'^id_no_matching_events_\d'))
-        self.assertEqual(len(html_elements), 3)
-
-    def test_event_required_on_form_button_submit(self, *mocks):
-        response = self.client.post(self.url)
-        self.assertFormError(response, 'form', 'event', self.form_msgs['required'])
 
 
 @patch.object(
