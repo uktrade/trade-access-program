@@ -92,8 +92,8 @@ class BackofficeService:
 
         return company
 
-    def create_grant_application(self, search_term):
-        response = self.session.post(self.grant_applications_url, json={'search_term': search_term})
+    def create_grant_application(self, **data):
+        response = self.session.post(self.grant_applications_url, json=data)
         return response.json()
 
     def update_grant_application(self, grant_application_id, **data):

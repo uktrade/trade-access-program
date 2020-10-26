@@ -11,7 +11,7 @@
 {% block content %}
 
 {% block headings %}
-  <span class="govuk-caption-l">{{ page.caption|default:"Tradeshow access program" }}</span>
+  {% if page.caption %}<span class="govuk-caption-l">{{ page.caption }}</span>{% endif %}
   <h2 class="govuk-heading-l">{{ page.heading|default:"Tradeshow access program" }}</h2>
 {% endblock %}
 

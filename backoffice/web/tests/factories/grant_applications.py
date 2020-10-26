@@ -19,7 +19,6 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     event = factory.SubFactory('web.tests.factories.events.EventFactory')
     is_already_committed_to_event = True
     is_intending_on_other_financial_support = True
-    has_previously_applied = True
     previous_applications = 1
     is_first_exhibit_at_event = True
     number_of_times_exhibited_at_event = 0

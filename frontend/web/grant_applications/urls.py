@@ -5,30 +5,26 @@ from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, AboutYouView, SelectAnEventView,
     PreviousApplicationsView, EventIntentionView, BusinessInformationView, ExportExperienceView,
     StateAidView, ApplicationReviewView, ConfirmationView, EligibilityReviewView, EventFinanceView,
-    EligibilityConfirmationView, BusinessDetailsView, FindAnEventView
+    EligibilityConfirmationView, BusinessDetailsView, FindAnEventView, BeforeYouStartView
 )
 
 app_name = 'grant_applications'
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='grant_applications/index.html'), name='index'),
+    path('before-you-start/', BeforeYouStartView.as_view(), name='before-you-start'),
     path(
-        'before-you-start',
-        TemplateView.as_view(template_name='grant_applications/before-you-start.html'),
-        name='before-you-start'
+        '<pk>/previous-applications/',
+        PreviousApplicationsView.as_view(),
+        name='previous-applications'
     ),
-    path('search-company/', SearchCompanyView.as_view(), name='search-company'),
+    path('<pk>/search-company/', SearchCompanyView.as_view(), name='search-company'),
     path('<pk>/select-company/', SelectCompanyView.as_view(), name='select-company'),
     path('<pk>/business-details/', BusinessDetailsView.as_view(), name='business-details'),
     path('<pk>/about-you/', AboutYouView.as_view(), name='about-you'),
     path('<pk>/find-an-event/', FindAnEventView.as_view(), name='find-an-event'),
     path('<pk>/select-an-event/', SelectAnEventView.as_view(), name='select-an-event'),
     path('<pk>/event-finance/', EventFinanceView.as_view(), name='event-finance'),
-    path(
-        '<pk>/previous-applications/',
-        PreviousApplicationsView.as_view(),
-        name='previous-applications'
-    ),
     path('<pk>/eligibility-review/', EligibilityReviewView.as_view(), name='eligibility-review'),
     path(
         '<pk>/eligibility-confirmation/',

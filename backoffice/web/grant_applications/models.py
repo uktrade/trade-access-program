@@ -33,7 +33,7 @@ class GrantApplication(BaseMetaModel):
         OWNER = 'owner', _('Owner')
         OTHER = 'other', _('Other')
 
-    search_term = models.CharField(max_length=500)
+    search_term = models.CharField(max_length=500, null=True)
     is_based_in_uk = models.BooleanField(null=True)
     is_turnover_greater_than = models.BooleanField(null=True)
     company = models.ForeignKey('companies.Company', on_delete=PROTECT, null=True)
@@ -46,7 +46,6 @@ class GrantApplication(BaseMetaModel):
     event = models.ForeignKey('trade_events.Event', on_delete=PROTECT, null=True)
     is_already_committed_to_event = models.BooleanField(null=True)
     is_intending_on_other_financial_support = models.BooleanField(null=True)
-    has_previously_applied = models.BooleanField(null=True)
     previous_applications = models.IntegerField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(6)]
     )
