@@ -44,14 +44,16 @@ class PaginationMixin:
     """
     ellipsis = '...'
 
-    def get_extra_href_params(self):
+    def get_extra_pagination_href_params(self):
         return ''
 
     def get_current_page(self):
-        try:
-            return int(self.request.GET.get('page', 1))
-        except ValueError:
-            return 1
+        if self.request.method == 'GET':
+            try:
+                return int(self.request.GET.get('page', 1))
+            except ValueError:
+                return 1
+        return 1
 
     def get_pagination_total_pages(self):
         raise NotImplementedError('.get_pagination_total_pages() must be overridden.')
@@ -124,7 +126,7 @@ class PaginationMixin:
         """
         total_pages = self.get_pagination_total_pages()
         current_page = self.get_current_page()
-        extra_href_params = urlencode(self.get_extra_href_params())
+        extra_href_params = urlencode(self.get_extra_pagination_href_params())
 
         if total_pages and total_pages > 1:
             pagination = {

@@ -46,7 +46,6 @@ class Migration(migrations.Migration):
                 ('has_exported_before', models.BooleanField(null=True)),
                 ('is_planning_to_grow_exports', models.BooleanField(null=True)),
                 ('is_seeking_export_opportunities', models.BooleanField(null=True)),
-                ('has_received_de_minimis_aid', models.BooleanField(null=True)),
                 ('de_minimis_aid_public_authority', models.CharField(blank=True, max_length=500, null=True)),
                 ('de_minimis_aid_date_awarded', models.DateField(blank=True, null=True)),
                 ('de_minimis_aid_amount', models.IntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(1)])),
