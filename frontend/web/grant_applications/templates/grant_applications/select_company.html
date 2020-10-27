@@ -1,5 +1,28 @@
 {% extends 'grant_applications/generic_form_page.html' %}
 
-{% block after_content %}
-  <a href="{% url 'grant-applications:business-details' pk=grantapplicationlink.pk %}" id="id_details_not_listed" class="govuk-link govuk-link--no-visited-state">My details are not listed</a>
+{% block before_form %}
+{% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
+<div class="hmcts-search govuk-!-margin-bottom-4">
+  <form class="form" id="id_search_form" method="GET" novalidate>
+    {% include "core/govt_uk_form_field.html" with field=form.search_term %}
+    {% include "core/govt_uk_form_button.html" with button_class='govuk-button govuk-button--secondary hmcts-search__button' button_text="Search" %}
+  </form>
+</div>
+
+{% endblock %}
+
+{% block govuk_form %}
+{% with number_of_matches=form.duns_number|length %}
+  <p class="govuk-body">We found <strong>{{ number_of_matches }}</strong> {% if number_of_matches == 1 %}match{% else %}matches{% endif %}</p>
+{% endwith %}
+
+<form class="form" method="POST" novalidate>
+  {% csrf_token %}
+  {% include "core/govt_uk_form_field.html" with field=form.duns_number %}
+  {% include "core/govt_uk_form_button.html" with button_class=button_class button_name=button_name button_text=button_text %}
+</form>
+{% endblock %}
+
+{% block after_form %}
+  <span class="govuk-caption-m">If your business isn’t listed you can <a href="{% url 'grant-applications:business-details' pk=grantapplicationlink.pk %}" id="id_details_not_listed" class="govuk-link govuk-link--no-visited-state">enter the details manually</a></span>
 {% endblock %}

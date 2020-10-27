@@ -46,13 +46,11 @@ class SearchCompanyForm(forms.ModelForm):
         fields = ['search_term']
 
     search_term = forms.CharField(
-        label=_('Look up your company'),
-        help_text=_('Enter a company name'),
+        label=_('Full business name'),
+        min_length=2,
+        help_text=_("For example 'My Business Limited'"),
         widget=forms.TextInput(
-            attrs={
-                'class': 'govuk-input govuk-!-width-two-thirds',
-                'placeholder': 'Search...',
-            }
+            attrs={'class': 'govuk-input hmcts-search__input', 'placeholder': 'Search...'}
         )
     )
 
@@ -68,16 +66,22 @@ class SelectCompanyForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
-        fields = ['duns_number']
+        fields = ['search_term', 'duns_number']
 
-    duns_number = forms.ChoiceField(
-        label=_('We found the following matches:'),
-        widget=widgets.RadioSelect(),
+    search_term = forms.CharField(
+        required=False,
+        min_length=2,
+        label=_('Full business name'),
+        help_text=_("For example 'My Business Limited'"),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input hmcts-search__input', 'placeholder': 'Search...'}
+        )
     )
+    duns_number = forms.ChoiceField(label=_(''), widget=widgets.RadioSelect())
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data:
+        if not self.errors and 'duns_number' in cleaned_data:
             searched_company = next(
                 c for c in self.companies
                 if c['dnb_data']['duns_number'] == self.cleaned_data['duns_number']

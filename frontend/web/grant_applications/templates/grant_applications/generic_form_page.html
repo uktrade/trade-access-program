@@ -15,8 +15,14 @@
   <h2 class="govuk-heading-l">{{ page.heading|default:"Tradeshow access program" }}</h2>
 {% endblock %}
 
-{% block form %}
-  {% include "core/govt_uk_form.html" %}
+{% block forms %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% block before_form %}{% endblock %}
+    {% block govuk_form %}{% include "core/govt_uk_form.html" %}{% endblock %}
+    {% block after_form %}{% endblock %}
+  </div>
+</div>
 {% endblock %}
 
 {% endblock %}

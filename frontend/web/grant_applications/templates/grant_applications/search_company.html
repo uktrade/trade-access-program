@@ -1,1 +1,22 @@
 {% extends 'grant_applications/generic_form_page.html' %}
+
+{% block forms %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
+
+    <p class="govuk-body">Enter your full business name and we’ll search Companies House for a match.</p>
+
+    <div class="hmcts-search">
+
+      <form class="form" method="POST" novalidate>
+        {% csrf_token %}
+        {% include "core/govt_uk_form_fields.html" with form=form %}
+        {% include "core/govt_uk_form_button.html" with button_text=button_text button_class='govuk-button govuk-button--secondary hmcts-search__button' %}
+      </form>
+        </div>
+    <p class="govuk-caption-m">If you can’t find your details, or if you are a partnership, sole trader or other business entity that we may not have records for, then you can <a id="id_manual_company_details" href="{% url 'grant-applications:manual-company-details' pk=grantapplicationlink.pk %}" class="govuk-link">enter your details manually</a></p>
+
+  </div>
+</div>
+{% endblock %}

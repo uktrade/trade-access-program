@@ -3,11 +3,11 @@ from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
 
-class PageContextMixin:
-    page = {}
+class StaticContextMixin:
+    static_context = {}
 
     def get_context_data(self, **kwargs):
-        kwargs['page'] = self.page
+        kwargs.update(self.static_context)
         return super().get_context_data(**kwargs)
 
 
