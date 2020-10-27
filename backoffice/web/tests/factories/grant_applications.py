@@ -18,7 +18,6 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     applicant_position_within_business = 'director'
     event = factory.SubFactory('web.tests.factories.events.EventFactory')
     is_already_committed_to_event = True
-    is_intending_on_other_financial_support = True
     previous_applications = 1
     is_first_exhibit_at_event = True
     number_of_times_exhibited_at_event = 0
@@ -32,7 +31,6 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     has_exported_before = False
     is_planning_to_grow_exports = True
     is_seeking_export_opportunities = True
-    has_received_de_minimis_aid = False
     de_minimis_aid_public_authority = factory.Sequence(lambda n: f'authority-{n}')
     de_minimis_aid_date_awarded = factory.Sequence(lambda n: today() + timedelta(n))
     de_minimis_aid_amount = 1

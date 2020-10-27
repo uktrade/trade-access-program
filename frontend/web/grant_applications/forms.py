@@ -226,14 +226,11 @@ class SelectAnEventForm(forms.ModelForm):
     )
 
 
-class EventFinanceForm(FormatLabelMixin, forms.ModelForm):
+class EventCommitmentForm(FormatLabelMixin, forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
-        fields = [
-            'is_already_committed_to_event', 'is_intending_on_other_financial_support',
-            'has_received_de_minimis_aid'
-        ]
+        fields = ['is_already_committed_to_event']
 
     is_already_committed_to_event = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
@@ -247,34 +244,6 @@ class EventFinanceForm(FormatLabelMixin, forms.ModelForm):
             }
         ),
         label=_('Have you already committed to purchasing exhibition space for {event_name}?'),
-    )
-    is_intending_on_other_financial_support = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(
-            attrs={
-                'details': {
-                    'summary_text': 'Examples of financial support and costs',
-                    'text': 'TODO',  # TODO: Content needed
-                }
-            }
-        ),
-        label=_('Will you receive or are you applying for any other financial support '
-                'to exhibit at this event?')
-    )
-    has_received_de_minimis_aid = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        required=True,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(
-            attrs={
-                'details': {
-                    'summary_text': 'What is de minimis aid?',
-                    'text': 'TODO',  # TODO: Content needed
-                }
-            }
-        ),
-        label=_('Have you received over €200,000 de minimis aid during the last 3 fiscal years?')
     )
 
     def format_field_labels(self):
@@ -527,8 +496,6 @@ class StateAidForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        # TODO - Fix this view now that has_received_de_minimis_aid was moved to a previous view
-        #        in a previous commit
         has_received_de_minimis_aid = cleaned_data.get('has_received_de_minimis_aid')
 
         if has_received_de_minimis_aid is True:

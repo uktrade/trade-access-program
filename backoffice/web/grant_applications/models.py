@@ -45,7 +45,6 @@ class GrantApplication(BaseMetaModel):
     )
     event = models.ForeignKey('trade_events.Event', on_delete=PROTECT, null=True)
     is_already_committed_to_event = models.BooleanField(null=True)
-    is_intending_on_other_financial_support = models.BooleanField(null=True)
     previous_applications = models.IntegerField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(6)]
     )
@@ -65,7 +64,6 @@ class GrantApplication(BaseMetaModel):
     has_exported_before = models.BooleanField(null=True)
     is_planning_to_grow_exports = models.BooleanField(null=True)
     is_seeking_export_opportunities = models.BooleanField(null=True)
-    has_received_de_minimis_aid = models.BooleanField(null=True)
     de_minimis_aid_public_authority = models.CharField(null=True, blank=True, max_length=500)
     de_minimis_aid_date_awarded = models.DateField(null=True, blank=True)
     de_minimis_aid_amount = models.IntegerField(

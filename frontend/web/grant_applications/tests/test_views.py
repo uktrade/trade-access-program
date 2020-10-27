@@ -9,8 +9,7 @@ from web.grant_applications.forms import BusinessDetailsForm
 from web.grant_applications.services import BackofficeServiceException, BackofficeService
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, AboutYouView, EventIntentionView, BusinessInformationView,
-    ExportExperienceView,
-    StateAidView, ApplicationReviewView, EligibilityReviewView, EventFinanceView,
+    ExportExperienceView, StateAidView, ApplicationReviewView, EligibilityReviewView,
     EligibilityConfirmationView, BusinessDetailsView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
@@ -311,75 +310,6 @@ class TestBusinessDetailsView(BaseTestCase):
         self.assertFormError(response, 'form', 'number_of_employees', self.form_msgs['required'])
         self.assertFormError(
             response, 'form', 'is_turnover_greater_than', self.form_msgs['required']
-        )
-
-
-@patch.object(
-    BackofficeService, 'get_grant_application',
-    side_effect=[
-        FAKE_GRANT_APPLICATION, FAKE_GRANT_APPLICATION, FAKE_FLATTENED_GRANT_APPLICATION,
-        FAKE_FLATTENED_GRANT_APPLICATION
-    ]
-)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestEventFinanceView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:event-finance', args=(self.gal.pk,))
-
-    def test_get_template(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, EventFinanceView.template_name)
-
-    def test_form_details(self, *mocks):
-        response = self.client.get(self.url)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(soup.find_all('details')), 3)
-
-    def test_post_redirects(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data={
-                'is_already_committed_to_event': True,
-                'is_intending_on_other_financial_support': True,
-                'has_received_de_minimis_aid': False,
-            }
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response=response,
-            expected_url=reverse(EventFinanceView.success_url_name, args=(self.gal.pk,))
-        )
-
-    def test_post_data_is_saved(self, *mocks):
-        self.client.post(
-            self.url,
-            data={
-                'is_already_committed_to_event': True,
-                'is_intending_on_other_financial_support': False,
-                'has_received_de_minimis_aid': False,
-            }
-        )
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            is_already_committed_to_event=True,
-            is_intending_on_other_financial_support=False,
-            has_received_de_minimis_aid=False
-        )
-
-    def test_boolean_fields_must_be_present(self, *mocks):
-        response = self.client.post(self.url)
-        self.assertFormError(
-            response, 'form', 'is_already_committed_to_event', self.form_msgs['required']
-        )
-        self.assertFormError(
-            response, 'form', 'is_intending_on_other_financial_support', self.form_msgs['required']
-        )
-        self.assertFormError(
-            response, 'form', 'has_received_de_minimis_aid', self.form_msgs['required']
         )
 
 

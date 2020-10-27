@@ -13,7 +13,7 @@ from web.core.view_mixins import (
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, AboutYouForm, SelectAnEventForm, PreviousApplicationsForm,
     EventIntentionForm, BusinessInformationForm, ExportExperienceForm, StateAidForm,
-    EventFinanceForm, BusinessDetailsForm, FindAnEventForm, EmptyGrantApplicationLinkForm
+    BusinessDetailsForm, FindAnEventForm, EmptyGrantApplicationLinkForm, EventCommitmentForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -100,8 +100,7 @@ class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     form_class = SelectAnEventForm
     template_name = 'grant_applications/select_an_event.html'
     back_url_name = 'grant-applications:find-an-event'
-    # TODO: End user journey here for now
-    success_url_name = 'grant_applications:select-an-event'
+    success_url_name = 'grant_applications:event-commitment'
     page = {
         'heading': _('Select an event')
     }
@@ -123,12 +122,7 @@ class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
         if self.trade_events:
             return self.trade_events['total_pages']
 
-    def get_current_page(self):
-        if self.request.method == 'GET':
-            return super().get_current_page()
-        return 1
-
-    def get_extra_href_params(self):
+    def get_extra_pagination_href_params(self):
         params = self.request.GET.copy()
         params.pop('page', None)
         return params.dict()
@@ -169,6 +163,27 @@ class SelectAnEventView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMi
     def post(self, request, *args, **kwargs):
         self.trade_events = self.get_trade_events()
         return super().post(request, *args, **kwargs)
+
+
+class EventCommitmentView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
+                          BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
+    model = GrantApplicationLink
+    form_class = EventCommitmentForm
+    template_name = 'grant_applications/event_commitment.html'
+    back_url_name = 'grant-applications:select-an-event'
+    # TODO: End user journey here for now
+    success_url_name = 'grant_applications:confirmation'
+    page = {
+        'heading': _('Event commitment')
+    }
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'].format_label(
+            field_name='is_already_committed_to_event',
+            event_name=self.backoffice_grant_application['event']['name']
+        )
+        return context
 
 
 class SearchCompanyView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
@@ -259,34 +274,13 @@ class BusinessDetailsView(BackContextMixin, PageContextMixin, SuccessUrlObjectPk
         return super().form_valid(form, extra_grant_application_data={'company': None})
 
 
-class EventFinanceView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
-                       BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
-    model = GrantApplicationLink
-    form_class = EventFinanceForm
-    template_name = 'grant_applications/event_finance.html'
-    back_url_name = 'grant-applications:select-an-event'
-    success_url_name = 'grant_applications:eligibility-review'
-    page = {
-        'heading': _('Event finance'),
-        'caption': _('Check your eligibility')
-    }
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'].format_label(
-            field_name='is_already_committed_to_event',
-            event_name=self.backoffice_grant_application['event']['name']
-        )
-        return context
-
-
 class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObjectPkMixin,
                             InitialDataMixin, BackofficeMixin, ConfirmationRedirectMixin,
                             UpdateView):
     model = GrantApplicationLink
     form_class = EmptyGrantApplicationLinkForm
     template_name = 'grant_applications/eligibility_review.html'
-    back_url_name = 'grant-applications:event-finance'
+    back_url_name = 'grant-applications:business-details'
     success_url_name = 'grant_applications:eligibility-confirmation'
     page = {
         'heading': _('Confirm your answers'),
@@ -343,24 +337,11 @@ class EligibilityReviewView(BackContextMixin, PageContextMixin, SuccessUrlObject
             ]
         }
 
-    def event_finance_summary_list(self):
-        summary = generate_grant_application_summary(
-            grant_application=self.object,
-            form_class=EventFinanceView.form_class,
-            form_kwargs={},
-            url=reverse('grant-applications:event-finance', args=(self.object.pk,))
-        )
-        return {
-            'heading': _('Event finance'),
-            'summary': summary
-        }
-
     def get_context_data(self, **kwargs):
         kwargs['summary_lists'] = [
             self.company_summary_list(),
             self.previous_apps_summary_list(),
             self.event_summary_list(),
-            self.event_finance_summary_list()
         ]
         return super().get_context_data(**kwargs)
 
