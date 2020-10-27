@@ -243,7 +243,10 @@ class EventCommitmentForm(FormatLabelMixin, forms.ModelForm):
                 }
             }
         ),
-        label=_('Have you already committed to purchasing exhibition space for {event_name}?'),
+        label=_(
+            'Have you already committed to purchasing exhibition space for '
+            '<strong>{event_name}</strong>?'
+        ),
     )
 
     def format_field_labels(self):
