@@ -24,5 +24,5 @@
 {% endblock %}
 
 {% block after_form %}
-  <span class="govuk-caption-m">If your business isn’t listed you can <a href="{% url 'grant-applications:business-details' pk=grantapplicationlink.pk %}" id="id_details_not_listed" class="govuk-link govuk-link--no-visited-state">enter the details manually</a></span>
+  <span class="govuk-caption-m">If your business isn’t listed you can <a id="id_details_not_listed" href="{% url 'grant-applications:manual-company-details' pk=grantapplicationlink.pk %}" class="govuk-link">enter the details manually</a></span>
 {% endblock %}

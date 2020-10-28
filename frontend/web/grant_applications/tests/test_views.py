@@ -4,92 +4,17 @@ from bs4 import BeautifulSoup
 from django.urls import reverse, resolve
 from django.utils.datetime_safe import date
 
-from web.grant_applications.forms import BusinessDetailsForm
 from web.grant_applications.services import BackofficeServiceException, BackofficeService
 from web.grant_applications.views import (
-    AboutYouView, EventIntentionView, BusinessInformationView,
-    ExportExperienceView, StateAidView, ApplicationReviewView, EligibilityReviewView,
-    EligibilityConfirmationView, BusinessDetailsView
+    AboutYouView, EventIntentionView, BusinessInformationView, ExportExperienceView, StateAidView,
+    ApplicationReviewView, EligibilityReviewView, EligibilityConfirmationView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
-    FAKE_GRANT_APPLICATION, FAKE_COMPANY, FAKE_GRANT_MANAGEMENT_PROCESS,
+    FAKE_GRANT_APPLICATION, FAKE_GRANT_MANAGEMENT_PROCESS,
     FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT, FAKE_SECTOR, FAKE_SEARCH_COMPANIES
 )
 from web.tests.helpers.testcases import BaseTestCase
-
-
-@patch.object(BackofficeService, 'create_company', return_value=FAKE_COMPANY)
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestBusinessDetailsView(BaseTestCase):
-
-    def setUp(self):
-        super().setUp()
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:business-details', args=(self.gal.pk,))
-
-    def test_get_template(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, BusinessDetailsView.template_name)
-
-    def test_post(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data={
-                'is_based_in_uk': True,
-                'number_of_employees': BusinessDetailsForm.NumberOfEmployees.HAS_FEWER_THAN_10,
-                'is_turnover_greater_than': True
-            }
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            is_based_in_uk=True,
-            number_of_employees=BusinessDetailsForm.NumberOfEmployees.HAS_FEWER_THAN_10.value,
-            is_turnover_greater_than=True,
-            # company is automatically set to None in case it has been set previously
-            company=None
-        )
-
-    def test_post_cannot_set_company_field(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data={
-                'is_based_in_uk': True,
-                'number_of_employees': BusinessDetailsForm.NumberOfEmployees.HAS_FEWER_THAN_10,
-                'is_turnover_greater_than': True,
-                'company': FAKE_COMPANY['id']
-            }
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            is_based_in_uk=True,
-            number_of_employees=BusinessDetailsForm.NumberOfEmployees.HAS_FEWER_THAN_10.value,
-            is_turnover_greater_than=True,
-            # There is a hidden company field which sets the company as None
-            # in case it has been set previously
-            company=None
-        )
-
-    def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
-        self.gal.sent_for_review = True
-        self.gal.save()
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
-        )
-
-    def test_required_fields(self, *mocks):
-        response = self.client.post(self.url)
-        self.assertFormError(response, 'form', 'is_based_in_uk', self.form_msgs['required'])
-        self.assertFormError(response, 'form', 'number_of_employees', self.form_msgs['required'])
-        self.assertFormError(
-            response, 'form', 'is_turnover_greater_than', self.form_msgs['required']
-        )
 
 
 @patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
