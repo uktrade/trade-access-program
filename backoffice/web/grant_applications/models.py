@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import PROTECT
@@ -43,14 +44,32 @@ class GrantApplication(BaseMetaModel):
     number_of_times_exhibited_at_event = models.IntegerField(
         null=True, validators=[MinValueValidator(0)]
     )
-    goods_and_services_description = models.TextField(null=True)
-    business_name_at_exhibit = models.CharField(null=True, max_length=500)
+    previous_years_turnover_1 = models.DecimalField(
+        null=True, validators=[MinValueValidator(0)], **settings.CURRENCY_DECIMAL_PRECISION
+    )
+    previous_years_turnover_2 = models.DecimalField(
+        null=True, validators=[MinValueValidator(0)], **settings.CURRENCY_DECIMAL_PRECISION
+    )
+    previous_years_turnover_3 = models.DecimalField(
+        null=True, validators=[MinValueValidator(0)], **settings.CURRENCY_DECIMAL_PRECISION
+    )
+    previous_years_export_turnover_1 = models.DecimalField(
+        null=True, validators=[MinValueValidator(0)], **settings.CURRENCY_DECIMAL_PRECISION
+    )
+    previous_years_export_turnover_2 = models.DecimalField(
+        null=True, validators=[MinValueValidator(0)], **settings.CURRENCY_DECIMAL_PRECISION
+    )
+    previous_years_export_turnover_3 = models.DecimalField(
+        null=True, validators=[MinValueValidator(0)], **settings.CURRENCY_DECIMAL_PRECISION
+    )
+    sector = models.ForeignKey('sectors.Sector', on_delete=PROTECT, null=True)
     other_business_names = models.CharField(null=True, max_length=500)
-    turnover = models.IntegerField(null=True, validators=[MinValueValidator(0)])
+    products_and_services_description = models.TextField(null=True)
+    products_and_services_competitors = models.TextField(null=True)
+    business_name_at_exhibit = models.CharField(null=True, max_length=500)
     number_of_employees = models.CharField(
         null=True, choices=NumberOfEmployees.choices, max_length=20
     )
-    sector = models.ForeignKey('sectors.Sector', on_delete=PROTECT, null=True)
     website = models.URLField(null=True, max_length=500)
     has_exported_before = models.BooleanField(null=True)
     is_planning_to_grow_exports = models.BooleanField(null=True)

@@ -1,0 +1,42 @@
+{% extends 'grant_applications/generic_form_page.html' %}
+
+{% block govuk_form %}
+<form class="form" method="POST" novalidate>
+  {% csrf_token %}
+  {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
+
+  <!-- Previous turnover fields -->
+  <fieldset class="govuk-fieldset">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend">
+      <h1 class="govuk-fieldset__heading">
+        Enter your annual turnover for each of the last 3 fiscal years:
+      </h1>
+    </legend>
+    <span class="govuk-hint">For example, 25000</span>
+    {% include "core/govt_uk_form_field.html" with field=form.previous_years_turnover_1 %}
+    {% include "core/govt_uk_form_field.html" with field=form.previous_years_turnover_2 %}
+    {% include "core/govt_uk_form_field.html" with field=form.previous_years_turnover_3 %}
+  </fieldset>
+
+  <!-- Previous export turnover fields -->
+  <fieldset class="govuk-fieldset">
+    <legend class="govuk-fieldset__legend govuk-fieldset__legend">
+      <h1 class="govuk-fieldset__heading">
+        Confirm your annual turnover generated from exports for each of the last 3 fiscal years:
+      </h1>
+    </legend>
+    <span class="govuk-hint">For example, 25000</span>
+    {% include "core/govt_uk_form_field.html" with field=form.previous_years_export_turnover_1 %}
+    {% include "core/govt_uk_form_field.html" with field=form.previous_years_export_turnover_2 %}
+    {% include "core/govt_uk_form_field.html" with field=form.previous_years_export_turnover_3 %}
+  </fieldset>
+
+  <!-- Rest of form -->
+  {% include "core/govt_uk_form_field.html" with field=form.sector %}
+  {% include "core/govt_uk_form_field.html" with field=form.other_business_names %}
+  {% include "core/govt_uk_form_field.html" with field=form.products_and_services_description %}
+  {% include "core/govt_uk_form_field.html" with field=form.products_and_services_competitors %}
+
+  {% include "core/govt_uk_form_button.html" with button_class=button_class button_name=button_name button_text=button_text %}
+</form>
+{% endblock %}

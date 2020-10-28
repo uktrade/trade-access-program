@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
 from web.core import widgets
-from web.core.forms import MaxAllowedCharField, FORM_MSGS
+from web.core.forms import MaxAllowedCharField, FORM_MSGS, CurrencyField
 from web.core.utils import str_to_bool
 from web.grant_applications.form_mixins import FormatLabelMixin
 from web.grant_applications.models import GrantApplicationLink
@@ -295,29 +295,32 @@ class ContactDetailsForm(forms.ModelForm):
         return cleaned_data
 
 
-class BusinessInformationForm(forms.ModelForm):
+class CompanyTradingDetailsForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
-        fields = ['goods_and_services_description', 'other_business_names', 'sector']
+        fields = [
+            'previous_years_turnover_1', 'previous_years_turnover_2', 'previous_years_turnover_3',
+            'previous_years_export_turnover_1', 'previous_years_export_turnover_2',
+            'previous_years_export_turnover_3', 'sector', 'other_business_names',
+            'products_and_services_description', 'products_and_services_competitors'
+        ]
 
     def __init__(self, *args, **kwargs):
         sector_choices = get_sector_select_choices()
         super().__init__(*args, **kwargs)
         self.fields['sector'].choices = sector_choices
 
-    goods_and_services_description = MaxAllowedCharField(
-        label=_('Describe your main products and services'),
-        help_text=_(
-            'If possible include any advantages they offer over competitors in overseas markets'
-        ),
-        max_length=200,
-        widget=widgets.CharacterCountTextArea(
-            attrs={
-                'class': 'govuk-textarea govuk-js-character-count govuk-!-width-two-thirds',
-                'rows': 3,
-                'counter': 200
-            }
+    previous_years_turnover_1 = CurrencyField(label=_('Last year'))
+    previous_years_turnover_2 = CurrencyField(label=_('Year 2'))
+    previous_years_turnover_3 = CurrencyField(label=_('Year 3'))
+    previous_years_export_turnover_1 = CurrencyField(label=_('Last year'))
+    previous_years_export_turnover_2 = CurrencyField(label=_('Year 2'))
+    previous_years_export_turnover_3 = CurrencyField(label=_('Year 3'))
+    sector = forms.ChoiceField(
+        label=_('Industry sector'),
+        widget=forms.Select(
+            attrs={'class': 'govuk-select'}
         )
     )
     other_business_names = forms.CharField(
@@ -329,15 +332,34 @@ class BusinessInformationForm(forms.ModelForm):
         ),
         widget=forms.TextInput(
             attrs={
-                'class': 'govuk-input govuk-!-width-two-thirds',
+                'class': 'govuk-input',
                 'optional': True
             }
         )
     )
-    sector = forms.ChoiceField(
-        label=_('Industry sector'),
-        widget=forms.Select(
-            attrs={'class': 'govuk-select govuk-!-width-two-thirds'}
+    products_and_services_description = MaxAllowedCharField(
+        label=_('Describe your main products and services'),
+        max_length=2000,
+        widget=widgets.CharacterCountTextArea(
+            attrs={
+                'class': 'govuk-textarea govuk-js-character-count',
+                'rows': 7,
+                'counter': 2000
+            }
+        )
+    )
+    products_and_services_competitors = MaxAllowedCharField(
+        label=_(
+            'Describe any advantages your products and services offer over competitors in '
+            'overseas markets'
+        ),
+        max_length=2000,
+        widget=widgets.CharacterCountTextArea(
+            attrs={
+                'class': 'govuk-textarea govuk-js-character-count',
+                'rows': 7,
+                'counter': 2000
+            }
         )
     )
 

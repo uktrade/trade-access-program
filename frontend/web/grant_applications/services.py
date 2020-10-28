@@ -1,4 +1,5 @@
 import calendar
+import json
 import logging
 import re
 from collections import defaultdict
@@ -6,6 +7,7 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 from django.conf import settings
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.dateparse import parse_date
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
@@ -23,15 +25,13 @@ def _raise_for_status(response, **kwargs):
     try:
         response.raise_for_status()
     except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError) as e:
-        logger.error('An error occurred', exc_info=e)
+        logger.error('An error occurred', exc_info=e, extra={'response_data': response.json()})
         raise BackofficeServiceException
 
 
 def _log_hook(response, **kwargs):
-    body = response.request.body or b'No content'
-    logger.info(
-        f'EXTERNAL {response.request.method} : {response.request.url} : {body.decode()}'
-    )
+    body = response.request.body or 'No content'
+    logger.info(f'EXTERNAL {response.request.method} : {response.request.url} : {body}')
     if not response.ok:
         logger.error(f'RESPONSE : {response.status_code} : {response.text}')
 
@@ -56,6 +56,18 @@ class BackofficeService:
 
         # Attach response hooks
         self.session.hooks['response'] = [_log_hook, _raise_for_status]
+
+    def request(self, method, url, data):
+        return self.session.request(
+            method, url, data=json.dumps(data, cls=DjangoJSONEncoder),
+            headers={'Content-type': 'application/json'}
+        )
+
+    def post(self, url, data):
+        return self.request('POST', url, data)
+
+    def patch(self, url, data):
+        return self.request('PATCH', url, data)
 
     def create_company(self, duns_number, registration_number, name):
         response = self.session.post(
@@ -94,12 +106,12 @@ class BackofficeService:
         return company
 
     def create_grant_application(self, **data):
-        response = self.session.post(self.grant_applications_url, json=data)
+        response = self.post(self.grant_applications_url, data)
         return response.json()
 
     def update_grant_application(self, grant_application_id, **data):
         url = urljoin(self.grant_applications_url, f'{grant_application_id}/')
-        response = self.session.patch(url, json=data)
+        response = self.patch(url, data)
         return response.json()
 
     def get_grant_application(self, grant_application_id, flatten_map=None):
