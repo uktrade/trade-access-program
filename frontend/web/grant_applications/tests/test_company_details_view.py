@@ -53,7 +53,7 @@ class TestCompanyDetailsView(BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response=response,
-            expected_url=reverse('grant-applications:confirmation', args=(self.gal.pk,))
+            expected_url=reverse('grant-applications:contact-details', args=(self.gal.pk,))
         )
 
     def test_post_cannot_set_random_field(self, *mocks):

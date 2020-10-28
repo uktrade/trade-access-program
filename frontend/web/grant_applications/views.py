@@ -11,9 +11,10 @@ from web.core.view_mixins import (
     StaticContextMixin, SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin
 )
 from web.grant_applications.forms import (
-    SearchCompanyForm, SelectCompanyForm, AboutYouForm, SelectAnEventForm, PreviousApplicationsForm,
+    SearchCompanyForm, SelectCompanyForm, SelectAnEventForm, PreviousApplicationsForm,
     EventIntentionForm, BusinessInformationForm, ExportExperienceForm, StateAidForm,
-    FindAnEventForm, EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm
+    FindAnEventForm, EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm,
+    ContactDetailsForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -300,17 +301,30 @@ class ManualCompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlO
 
 
 class CompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                         UpdateView):
+                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = CompanyDetailsForm
     template_name = 'grant_applications/company_details.html'
     back_url_name = 'grant-applications:select-company'
-    # TODO: End user journey here for now
-    success_url_name = 'grant-applications:confirmation'
+    success_url_name = 'grant-applications:contact-details'
     static_context = {
         'page': {
             'heading':  _('Business size and turnover')
+        }
+    }
+
+
+class ContactDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
+                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
+    model = GrantApplicationLink
+    form_class = ContactDetailsForm
+    template_name = 'grant_applications/contact_details.html'
+    back_url_name = 'grant-applications:company-details'
+    # TODO: End user journey here for now
+    success_url_name = 'grant_applications:confirmation'
+    static_context = {
+        'page': {
+            'heading':  _('Business contact details')
         }
     }
 
@@ -395,7 +409,7 @@ class EligibilityConfirmationView(BackContextMixin, StaticContextMixin, SuccessU
     model = GrantApplicationLink
     form_class = EmptyGrantApplicationLinkForm
     template_name = 'grant_applications/eligibility_confirmation.html'
-    success_url_name = 'grant_applications:about-you'
+    success_url_name = 'grant_applications:contact-details'
     static_context = {
         'page': {
             'heading':  _('You are eligible for a TAP grant')
@@ -413,27 +427,13 @@ class EligibilityConfirmationView(BackContextMixin, StaticContextMixin, SuccessU
         return super().get_context_data(**kwargs)
 
 
-class AboutYouView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
-                   InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
-    model = GrantApplicationLink
-    form_class = AboutYouForm
-    template_name = 'grant_applications/about_you.html'
-    success_url_name = 'grant_applications:business-information'
-    static_context = {
-        'page': {
-            'heading':  _('About you'),
-            'caption': _('Grant application')
-        }
-    }
-
-
 class BusinessInformationView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
                               BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
                               UpdateView):
     model = GrantApplicationLink
     form_class = BusinessInformationForm
     template_name = 'grant_applications/business_information.html'
-    back_url_name = 'grant-applications:about-you'
+    back_url_name = 'grant-applications:contact-details'
     # TODO: End user journey here for now
     success_url_name = 'grant_applications:business-information'
     static_context = {
@@ -524,7 +524,7 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
         {'view_class': SelectAnEventView, 'form_kwargs': {'trade_events': None}},
         {'view_class': SearchCompanyView},
         {'view_class': SelectCompanyView, 'form_kwargs': {'companies': None}},
-        {'view_class': AboutYouView},
+        {'view_class': ContactDetailsView},
         {'view_class': EventIntentionView},
         {'view_class': BusinessInformationView},
         {'view_class': ExportExperienceView},

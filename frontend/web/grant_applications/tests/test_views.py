@@ -6,7 +6,7 @@ from django.utils.datetime_safe import date
 
 from web.grant_applications.services import BackofficeServiceException, BackofficeService
 from web.grant_applications.views import (
-    AboutYouView, EventIntentionView, BusinessInformationView, ExportExperienceView, StateAidView,
+    EventIntentionView, BusinessInformationView, ExportExperienceView, StateAidView,
     ApplicationReviewView, EligibilityReviewView, EligibilityConfirmationView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
@@ -94,81 +94,6 @@ class TestEligibilityConfirmationView(BaseTestCase):
         self.assertRedirects(
             response,
             expected_url=reverse(EligibilityConfirmationView.success_url_name, args=(self.gal.pk,))
-        )
-
-
-@patch.object(BackofficeService, 'list_sectors', return_value=[FAKE_SECTOR])
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(BackofficeService, 'list_trade_events', return_value=[FAKE_EVENT])
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestAboutYouView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:about-you', kwargs={'pk': self.gal.pk})
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, AboutYouView.template_name)
-
-    def test_post_redirects(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data={
-                'applicant_full_name': 'A Name',
-                'applicant_email': 'test@test.com',
-                'applicant_mobile_number': '+447777777777',
-                'applicant_position_within_business': 'director'
-            }
-        )
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response=response,
-            expected_url=reverse(AboutYouView.success_url_name, kwargs={'pk': self.gal.pk})
-        )
-
-    def test_required_fields(self, *mocks):
-        response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 200)
-        msg = 'This field is required.'
-        self.assertFormError(response, 'form', 'applicant_full_name', msg)
-        self.assertFormError(response, 'form', 'applicant_email', msg)
-        self.assertFormError(response, 'form', 'applicant_mobile_number', msg)
-        self.assertFormError(response, 'form', 'applicant_position_within_business', msg)
-
-    def test_post_data_is_saved(self, *mocks):
-        self.client.post(
-            self.url,
-            data={
-                'applicant_full_name': 'A Name',
-                'applicant_email': 'test@test.com',
-                'applicant_mobile_number': '07777777777',
-                'applicant_position_within_business': 'director'
-            }
-        )
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            applicant_full_name='A Name',
-            applicant_email='test@test.com',
-            applicant_mobile_number='+447777777777',
-            applicant_position_within_business='director'
-        )
-
-    def test_mobile_must_be_gb_number_international(self, *mocks):
-        response = self.client.post(self.url, data={'applicant_mobile_number': '+457777777777'})
-        self.assertFormError(
-            response, 'form', 'applicant_mobile_number',
-            "Enter a valid phone number (e.g. 0121 234 5678) or a number with an international "
-            "call prefix."
-        )
-
-    def test_mobile_must_be_gb_number_national(self, *mocks):
-        response = self.client.post(self.url, data={'applicant_mobile_number': '2025550154'})
-        self.assertFormError(
-            response, 'form', 'applicant_mobile_number',
-            "Enter a valid phone number (e.g. 0121 234 5678) or a number with an international "
-            "call prefix."
         )
 
 

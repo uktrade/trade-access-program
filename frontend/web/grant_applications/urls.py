@@ -2,7 +2,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 
 from web.grant_applications.views import (
-    SearchCompanyView, SelectCompanyView, AboutYouView, SelectAnEventView,
+    SearchCompanyView, SelectCompanyView, ContactDetailsView, SelectAnEventView,
     PreviousApplicationsView, EventIntentionView, BusinessInformationView, ExportExperienceView,
     StateAidView, ApplicationReviewView, ConfirmationView, EligibilityReviewView,
     EligibilityConfirmationView, FindAnEventView, BeforeYouStartView,
@@ -33,7 +33,7 @@ urlpatterns = [
     path('<pk>/confirmation/', ConfirmationView.as_view(), name='confirmation'),
 
     # TODO: views below need changes (see design document 3.02)
-    path('<pk>/about-you/', AboutYouView.as_view(), name='about-you'),
+    path('<pk>/contact-details/', ContactDetailsView.as_view(), name='contact-details'),
     path('<pk>/eligibility-review/', EligibilityReviewView.as_view(), name='eligibility-review'),
     path(
         '<pk>/eligibility-confirmation/',

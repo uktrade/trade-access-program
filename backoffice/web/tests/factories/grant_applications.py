@@ -15,7 +15,7 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     applicant_full_name = factory.Sequence(lambda n: f'name-{n}')
     applicant_email = factory.Sequence(lambda n: f'test{n}@test.com')
     applicant_mobile_number = factory.Sequence(lambda n: f'+44{n:011}')
-    applicant_position_within_business = 'director'
+    job_title = 'director'
     event = factory.SubFactory('web.tests.factories.events.EventFactory')
     is_already_committed_to_event = True
     previous_applications = 1

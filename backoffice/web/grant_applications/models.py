@@ -27,21 +27,13 @@ class GrantApplication(BaseMetaModel):
             elif number_of_employees >= 250:
                 return cls.HAS_250_OR_MORE
 
-    class ApplicantPositionWithinBusiness(models.TextChoices):
-        DIRECTOR = 'director', _('Director')
-        COMPANY_SECRETARY = 'company-secretary', _('Company Secretary')
-        OWNER = 'owner', _('Owner')
-        OTHER = 'other', _('Other')
-
     search_term = models.CharField(max_length=500, null=True)
     is_turnover_greater_than = models.BooleanField(null=True)
     company = models.ForeignKey('companies.Company', on_delete=PROTECT, null=True)
     applicant_full_name = models.CharField(null=True, max_length=500)
     applicant_email = models.EmailField(null=True)
     applicant_mobile_number = PhoneNumberField(null=True, region='GB')
-    applicant_position_within_business = models.CharField(
-        null=True, choices=ApplicantPositionWithinBusiness.choices, max_length=20
-    )
+    job_title = models.CharField(null=True, max_length=500)
     event = models.ForeignKey('trade_events.Event', on_delete=PROTECT, null=True)
     is_already_committed_to_event = models.BooleanField(null=True)
     previous_applications = models.IntegerField(

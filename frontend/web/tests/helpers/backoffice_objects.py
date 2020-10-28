@@ -5,7 +5,7 @@ FAKE_GRANT_APPLICATION = {
     'applicant_full_name': 'A',
     'applicant_email': 'A@test.com',
     'applicant_mobile_number': '+447777777777',
-    'applicant_position_within_business': 'Director',
+    'job_title': 'Director',
     'is_already_committed_to_event': True,
     'is_first_exhibit_at_event': False,
     'number_of_times_exhibited_at_event': 2,
