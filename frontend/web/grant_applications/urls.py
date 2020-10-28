@@ -22,11 +22,16 @@ urlpatterns = [
     path('<pk>/find-an-event/', FindAnEventView.as_view(), name='find-an-event'),
     path('<pk>/select-an-event/', SelectAnEventView.as_view(), name='select-an-event'),
     path('<pk>/event-commitment/', EventCommitmentView.as_view(), name='event-commitment'),
+    path('<pk>/search-company/', SearchCompanyView.as_view(), name='search-company'),
+    path('<pk>/select-company/', SelectCompanyView.as_view(), name='select-company'),
+    path(
+        '<pk>/manual-company-details/',
+        TemplateView.as_view(template_name='core/404.html'),  # TODO
+        name='manual-company-details'
+    ),
     path('<pk>/confirmation/', ConfirmationView.as_view(), name='confirmation'),
 
     # TODO: views below need changes (see design document 3.02)
-    path('<pk>/search-company/', SearchCompanyView.as_view(), name='search-company'),
-    path('<pk>/select-company/', SelectCompanyView.as_view(), name='select-company'),
     path('<pk>/business-details/', BusinessDetailsView.as_view(), name='business-details'),
     path('<pk>/about-you/', AboutYouView.as_view(), name='about-you'),
     path('<pk>/eligibility-review/', EligibilityReviewView.as_view(), name='eligibility-review'),
