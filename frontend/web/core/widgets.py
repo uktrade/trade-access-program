@@ -21,11 +21,23 @@ class CharacterCountTextArea(forms.Textarea):
 
 
 class WrappedTextInput(forms.TextInput):
-    template_name = 'widgets/wrapped_text_input.html'
+    template_name = 'widgets/wrapped_input.html'
 
 
-class CurrencyTextInput(WrappedTextInput):
+class WrappedNumberInput(forms.NumberInput):
+    template_name = 'widgets/wrapped_input.html'
+
+
+class CurrencyInput(WrappedTextInput):
+    """A special wrapped input that displays a currency symbol prefix.
+
+       We inherit the WrappedTextInput widget (rather than the WrappedNumberInput) because of GDS
+       guidelines for decimal numbers https://design-system.service.gov.uk/components/text-input/
+
+       The currency_symbol default is '£'.
+    """
+    currency_symbol = '£'
 
     def get_context(self, name, value, attrs):
-        attrs['prefix'] = '£'
+        attrs['prefix'] = self.currency_symbol
         return super().get_context(name, value, attrs)

@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 import factory
 from dateutil.utils import today
@@ -21,10 +22,16 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     previous_applications = 1
     is_first_exhibit_at_event = True
     number_of_times_exhibited_at_event = 0
-    goods_and_services_description = factory.Sequence(lambda n: f'description-{n}')
+    products_and_services_description = factory.Sequence(lambda n: f'description-{n}')
     business_name_at_exhibit = factory.Sequence(lambda n: f'name-{n}')
     other_business_names = factory.Sequence(lambda n: f'other-business-names-{n}')
-    turnover = 1000
+    previous_years_turnover_1 = Decimal('1.23')
+    previous_years_turnover_2 = Decimal('1.23')
+    previous_years_turnover_3 = Decimal('0.00')
+    previous_years_export_turnover_1 = Decimal('1.23')
+    previous_years_export_turnover_2 = Decimal('1.23')
+    previous_years_export_turnover_3 = Decimal('0.00')
+    products_and_services_competitors = factory.Sequence(lambda n: f'description-{n}')
     number_of_employees = GrantApplication.NumberOfEmployees.HAS_FEWER_THAN_10
     sector = factory.SubFactory('web.tests.factories.sector.SectorFactory')
     website = factory.Sequence(lambda n: f'www.website-{n}.com')

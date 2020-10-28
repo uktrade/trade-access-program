@@ -1,18 +1,17 @@
 from unittest.mock import patch
 
-from bs4 import BeautifulSoup
 from django.urls import reverse, resolve
 from django.utils.datetime_safe import date
 
 from web.grant_applications.services import BackofficeServiceException, BackofficeService
 from web.grant_applications.views import (
-    EventIntentionView, BusinessInformationView, ExportExperienceView, StateAidView,
+    EventIntentionView, ExportExperienceView, StateAidView,
     ApplicationReviewView, EligibilityReviewView, EligibilityConfirmationView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_GRANT_MANAGEMENT_PROCESS,
-    FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT, FAKE_SECTOR, FAKE_SEARCH_COMPANIES
+    FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT, FAKE_SEARCH_COMPANIES
 )
 from web.tests.helpers.testcases import BaseTestCase
 
@@ -94,89 +93,6 @@ class TestEligibilityConfirmationView(BaseTestCase):
         self.assertRedirects(
             response,
             expected_url=reverse(EligibilityConfirmationView.success_url_name, args=(self.gal.pk,))
-        )
-
-
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(BackofficeService, 'list_sectors', return_value=[FAKE_SECTOR])
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestBusinessInformationView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:business-information', kwargs={'pk': self.gal.pk})
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, BusinessInformationView.template_name)
-
-    def test_sector_choices_come_from_sector_model(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-        soup = BeautifulSoup(response.content, 'html.parser')
-        options = soup.find_all('option')
-        self.assertEqual(options[1].text, FAKE_SECTOR['full_name'])
-
-    def test_post(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data={
-                'goods_and_services_description': 'A description',
-                'other_business_names': 'A name',
-                'sector': FAKE_SECTOR['id'],
-            }
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            goods_and_services_description='A description',
-            other_business_names='A name',
-            sector=FAKE_SECTOR['id'],
-        )
-
-    def test_other_business_names_not_required(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data={
-                'goods_and_services_description': 'A description',
-                'sector': FAKE_SECTOR['id'],
-            }
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            goods_and_services_description='A description',
-            other_business_names=None,
-            sector=FAKE_SECTOR['id'],
-        )
-
-    def test_initial_form_data_from_grant_application_object(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertEqual(
-            soup.find('textarea', attrs={'name': 'goods_and_services_description'}).text,
-            FAKE_GRANT_APPLICATION['goods_and_services_description']
-        )
-        self.assertInHTML(
-            soup.find('input', attrs={'name': 'other_business_names'}).attrs['value'],
-            FAKE_GRANT_APPLICATION['other_business_names']
-        )
-        self.assertEqual(
-            soup.find(id='id_sector').find('option', selected=True).attrs['value'],
-            FAKE_GRANT_APPLICATION['sector']['id']
-        )
-
-    def test_redirect_to_confirmation_page_if_application_already_sent_for_review(self, *mocks):
-        self.gal.sent_for_review = True
-        self.gal.save()
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
         )
 
 

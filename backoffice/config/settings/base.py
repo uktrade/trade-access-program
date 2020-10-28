@@ -204,8 +204,8 @@ COMPANIES_HOUSE_API_KEY = env('COMPANIES_HOUSE_API_KEY', default=None)
 
 MIN_GRANT_VALUE = 500
 MAX_GRANT_VALUE = 2500
-GRANT_VALUE_DECIMAL_PRECISION = {
-    'max_digits': 6,
+CURRENCY_DECIMAL_PRECISION = {
+    'max_digits': 10,
     'decimal_places': 2,
 }
 

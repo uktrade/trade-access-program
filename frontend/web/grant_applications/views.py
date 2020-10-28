@@ -12,7 +12,7 @@ from web.core.view_mixins import (
 )
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, SelectAnEventForm, PreviousApplicationsForm,
-    EventIntentionForm, BusinessInformationForm, ExportExperienceForm, StateAidForm,
+    EventIntentionForm, CompanyTradingDetailsForm, ExportExperienceForm, StateAidForm,
     FindAnEventForm, EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm,
     ContactDetailsForm
 )
@@ -320,13 +320,34 @@ class ContactDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectP
     form_class = ContactDetailsForm
     template_name = 'grant_applications/contact_details.html'
     back_url_name = 'grant-applications:company-details'
-    # TODO: End user journey here for now
-    success_url_name = 'grant_applications:confirmation'
+    success_url_name = 'grant_applications:company-trading-details'
     static_context = {
         'page': {
             'heading':  _('Business contact details')
         }
     }
+
+
+class CompanyTradingDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
+                                BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                                UpdateView):
+    model = GrantApplicationLink
+    form_class = CompanyTradingDetailsForm
+    template_name = 'grant_applications/company_trading_details.html'
+    back_url_name = 'grant-applications:contact-details'
+    # TODO: End user journey here for now
+    success_url_name = 'grant_applications:confirmation'
+    static_context = {
+        'page': {
+            'heading':  _('Business trading details')
+        }
+    }
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.backoffice_grant_application['sector']:
+            initial['sector'] = self.backoffice_grant_application['sector']['id']
+        return initial
 
 
 class EligibilityReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
@@ -427,35 +448,12 @@ class EligibilityConfirmationView(BackContextMixin, StaticContextMixin, SuccessU
         return super().get_context_data(**kwargs)
 
 
-class BusinessInformationView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                              BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                              UpdateView):
-    model = GrantApplicationLink
-    form_class = BusinessInformationForm
-    template_name = 'grant_applications/business_information.html'
-    back_url_name = 'grant-applications:contact-details'
-    # TODO: End user journey here for now
-    success_url_name = 'grant_applications:business-information'
-    static_context = {
-        'page': {
-            'heading':  _('About your business'),
-            'caption': _('Grant application')
-        }
-    }
-
-    def get_initial(self):
-        initial = super().get_initial()
-        if self.backoffice_grant_application['sector']:
-            initial['sector'] = self.backoffice_grant_application['sector']['id']
-        return initial
-
-
 class EventIntentionView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
                          BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = EventIntentionForm
     template_name = 'grant_applications/event_intention.html'
-    back_url_name = 'grant-applications:business-information'
+    back_url_name = 'grant-applications:company-trading-details'
     success_url_name = 'grant_applications:export-experience'
     static_context = {
         'page': {
@@ -482,7 +480,7 @@ class ExportExperienceView(BackContextMixin, StaticContextMixin, SuccessUrlObjec
     model = GrantApplicationLink
     form_class = ExportExperienceForm
     template_name = 'grant_applications/generic_form_page.html'
-    back_url_name = 'grant-applications:business-information'
+    back_url_name = 'grant-applications:company-trading-details'
     success_url_name = 'grant_applications:state-aid'
     static_context = {
         'page': {
@@ -526,7 +524,7 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
         {'view_class': SelectCompanyView, 'form_kwargs': {'companies': None}},
         {'view_class': ContactDetailsView},
         {'view_class': EventIntentionView},
-        {'view_class': BusinessInformationView},
+        {'view_class': CompanyTradingDetailsView},
         {'view_class': ExportExperienceView},
         {'view_class': StateAidView},
     ]

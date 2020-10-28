@@ -1,10 +1,14 @@
 from django import forms
 
+from web.core.widgets import CurrencyInput
+
 FORM_MSGS = {
     'required': 'This field is required.',
     'not-required': 'This field is not required.',
     'resubmit': 'An unexpected error occurred. Please resubmit the form.',
-    'invalid-choice': 'Select a valid choice. {} is not one of the available choices.'
+    'invalid-choice': 'Select a valid choice. {} is not one of the available choices.',
+    'positive': 'Ensure this value is greater than or equal to 0.',
+    '2dp': 'Ensure that there are no more than 2 decimal places.'
 }
 
 
@@ -18,3 +22,9 @@ class MaxAllowedCharField(forms.CharField):
         # https://design-system.service.gov.uk/components/character-count/
         attrs.pop('maxlength', None)
         return attrs
+
+
+class CurrencyField(forms.DecimalField):
+
+    def __init__(self, **kwargs):
+        super().__init__(min_value=0, decimal_places=2, widget=CurrencyInput(), **kwargs)

@@ -87,7 +87,7 @@ class SupportingInformationContent:
                     'headers': [_('Evidence')],
                     'rows': [
                         [_(f"The applicant indicated that the company has a turnover of "
-                           f"£{self.grant_application.turnover}.")]
+                           f"£{self.grant_application.previous_years_turnover_1}.")]
                     ]
                 }
             ]

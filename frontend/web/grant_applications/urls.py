@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, ContactDetailsView, SelectAnEventView,
-    PreviousApplicationsView, EventIntentionView, BusinessInformationView, ExportExperienceView,
+    PreviousApplicationsView, EventIntentionView, CompanyTradingDetailsView, ExportExperienceView,
     StateAidView, ApplicationReviewView, ConfirmationView, EligibilityReviewView,
     EligibilityConfirmationView, FindAnEventView, BeforeYouStartView,
     EventCommitmentView, CompanyDetailsView
@@ -30,10 +30,15 @@ urlpatterns = [
         name='manual-company-details'
     ),
     path('<pk>/company-details/', CompanyDetailsView.as_view(), name='company-details'),
+    path('<pk>/contact-details/', ContactDetailsView.as_view(), name='contact-details'),
+    path(
+        '<pk>/company-trading-details/',
+        CompanyTradingDetailsView.as_view(),
+        name='company-trading-details'
+    ),
     path('<pk>/confirmation/', ConfirmationView.as_view(), name='confirmation'),
 
     # TODO: views below need changes (see design document 3.02)
-    path('<pk>/contact-details/', ContactDetailsView.as_view(), name='contact-details'),
     path('<pk>/eligibility-review/', EligibilityReviewView.as_view(), name='eligibility-review'),
     path(
         '<pk>/eligibility-confirmation/',
@@ -41,11 +46,6 @@ urlpatterns = [
         name='eligibility-confirmation'
     ),
     path('<pk>/event-intention/', EventIntentionView.as_view(), name='event-intention'),
-    path(
-        '<pk>/business-information/',
-        BusinessInformationView.as_view(),
-        name='business-information'
-    ),
     path('<pk>/export-experience/', ExportExperienceView.as_view(), name='export-experience'),
     path('<pk>/state-aid/', StateAidView.as_view(), name='state-aid'),
     path('<pk>/application-review/', ApplicationReviewView.as_view(), name='application-review'),
