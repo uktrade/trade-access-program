@@ -98,34 +98,6 @@ class SelectCompanyForm(forms.ModelForm):
         return cleaned_data
 
 
-class CompanyDetailsForm(forms.ModelForm):
-
-    class Meta:
-        model = GrantApplicationLink
-        fields = ['number_of_employees', 'is_turnover_greater_than']
-
-    class NumberOfEmployees(TextChoices):
-        HAS_FEWER_THAN_10 = 'fewer-than-10', _('Fewer than 10')
-        HAS_10_TO_49 = '10-to-49', _('10 to 49')
-        HAS_50_TO_249 = '50-to-249', _('50 to 249')
-        HAS_250_OR_MORE = '250-or-more', _('250 or More')
-
-    number_of_employees = forms.ChoiceField(
-        choices=NumberOfEmployees.choices,
-        widget=widgets.RadioSelect(),
-        label=_('How many UK based employees does the business currently have?')
-    )
-    is_turnover_greater_than = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_(
-            'Was your turnover greater than €50m, or your balance sheet '
-            '(or Statement of Financial Position) greater than €43m, in the last fiscal year?'
-        )
-    )
-
-
 class FindAnEventForm(forms.ModelForm):
 
     class Meta:
@@ -251,13 +223,40 @@ class EventCommitmentForm(FormatLabelMixin, forms.ModelForm):
         self.format_label('is_already_committed_to_event', event_name=self.data['event'])
 
 
-class AboutYouForm(forms.ModelForm):
+class CompanyDetailsForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = ['number_of_employees', 'is_turnover_greater_than']
+
+    class NumberOfEmployees(TextChoices):
+        HAS_FEWER_THAN_10 = 'fewer-than-10', _('Fewer than 10')
+        HAS_10_TO_49 = '10-to-49', _('10 to 49')
+        HAS_50_TO_249 = '50-to-249', _('50 to 249')
+        HAS_250_OR_MORE = '250-or-more', _('250 or More')
+
+    number_of_employees = forms.ChoiceField(
+        choices=NumberOfEmployees.choices,
+        widget=widgets.RadioSelect(),
+        label=_('How many UK based employees does the business currently have?')
+    )
+    is_turnover_greater_than = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_(
+            'Was your turnover greater than €50m, or your balance sheet '
+            '(or Statement of Financial Position) greater than €43m, in the last fiscal year?'
+        )
+    )
+
+
+class ContactDetailsForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
         fields = [
-            'applicant_full_name', 'applicant_email', 'applicant_mobile_number',
-            'applicant_position_within_business'
+            'applicant_full_name', 'applicant_email', 'applicant_mobile_number', 'job_title'
         ]
 
     applicant_full_name = forms.CharField(
@@ -282,13 +281,10 @@ class AboutYouForm(forms.ModelForm):
             attrs={'class': 'govuk-input govuk-input--width-10'}
         )
     )
-    applicant_position_within_business = forms.ChoiceField(
-        label=_('What is your position within the business?'),
-        choices=[
-            ('director', 'Director'), ('company-secretary', 'Company secretary'),
-            ('owner', 'Owner'), ('other', 'Other')
-        ],
-        widget=widgets.RadioSelect()
+    job_title = forms.CharField(
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+        )
     )
 
     def clean(self):

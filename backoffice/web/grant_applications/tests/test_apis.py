@@ -45,7 +45,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                 'applicant_full_name': ga.applicant_full_name,
                 'applicant_email': ga.applicant_email,
                 'applicant_mobile_number': ga.applicant_mobile_number,
-                'applicant_position_within_business': ga.applicant_position_within_business,
+                'job_title': ga.job_title,
                 'event': {
                     'id': ga.event.id_str,
                     'city': ga.event.city,
@@ -144,7 +144,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                 'applicant_full_name': None,
                 'applicant_email': None,
                 'applicant_mobile_number': None,
-                'applicant_position_within_business': None,
+                'job_title': None,
                 'event': None,
                 'is_already_committed_to_event': None,
                 'previous_applications': None,
