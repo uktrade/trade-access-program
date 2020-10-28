@@ -98,11 +98,11 @@ class SelectCompanyForm(forms.ModelForm):
         return cleaned_data
 
 
-class BusinessDetailsForm(forms.ModelForm):
+class CompanyDetailsForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
-        fields = ['is_based_in_uk', 'number_of_employees', 'is_turnover_greater_than']
+        fields = ['number_of_employees', 'is_turnover_greater_than']
 
     class NumberOfEmployees(TextChoices):
         HAS_FEWER_THAN_10 = 'fewer-than-10', _('Fewer than 10')
@@ -110,24 +110,18 @@ class BusinessDetailsForm(forms.ModelForm):
         HAS_50_TO_249 = '50-to-249', _('50 to 249')
         HAS_250_OR_MORE = '250-or-more', _('250 or More')
 
-    is_based_in_uk = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_('Is your business based in the UK?')
-    )
     number_of_employees = forms.ChoiceField(
         choices=NumberOfEmployees.choices,
         widget=widgets.RadioSelect(),
-        label=_('How many employees are currently on your payroll in the UK, across all sites?')
+        label=_('How many UK based employees does the business currently have?')
     )
     is_turnover_greater_than = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
         widget=widgets.RadioSelect(),
         label=_(
-            'Was your turnover in the last fiscal year greater than €50m or your balance sheet '
-            '(or Statement of Financial Position) greater than €43m?'
+            'Was your turnover greater than €50m, or your balance sheet '
+            '(or Statement of Financial Position) greater than €43m, in the last fiscal year?'
         )
     )
 

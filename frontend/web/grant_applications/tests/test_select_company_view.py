@@ -61,7 +61,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         link_html = BeautifulSoup(response.content, 'html.parser').find(id='id_details_not_listed')
         self.assertEqual(
             link_html.attrs['href'],
-            reverse('grant-applications:business-details', args=(self.gal.pk,))
+            reverse('grant-applications:manual-company-details', args=(self.gal.pk,))
         )
 
     @skip("TODO: confirm with design what to display when no company found.")
@@ -88,7 +88,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response=response,
-            expected_url=reverse('grant-applications:confirmation', args=(self.gal.pk,))
+            expected_url=reverse('grant-applications:company-details', args=(self.gal.pk,))
         )
 
     def test_post_creates_backoffice_company(self, m_search_companies, m_update_grant_application,

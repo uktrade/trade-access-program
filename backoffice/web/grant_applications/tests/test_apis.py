@@ -26,7 +26,6 @@ class GrantApplicationsApiTests(BaseAPITestCase):
             data_contains={
                 'id': ga.id_str,
                 'search_term': ga.search_term,
-                'is_based_in_uk': ga.is_based_in_uk,
                 'is_turnover_greater_than': ga.is_turnover_greater_than,
                 'company': {
                     'id': ga.company.id_str,
@@ -140,7 +139,6 @@ class GrantApplicationsApiTests(BaseAPITestCase):
             response,
             data_contains={
                 'search_term': 'company-1',
-                'is_based_in_uk': None,
                 'is_turnover_greater_than': None,
                 'company': None,
                 'applicant_full_name': None,

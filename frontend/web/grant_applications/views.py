@@ -13,7 +13,7 @@ from web.core.view_mixins import (
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, AboutYouForm, SelectAnEventForm, PreviousApplicationsForm,
     EventIntentionForm, BusinessInformationForm, ExportExperienceForm, StateAidForm,
-    BusinessDetailsForm, FindAnEventForm, EmptyGrantApplicationLinkForm, EventCommitmentForm
+    FindAnEventForm, EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -223,8 +223,7 @@ class SelectCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
     form_class = SelectCompanyForm
     template_name = 'grant_applications/select_company.html'
     back_url_name = 'grant-applications:search-company'
-    # TODO: End user journey here for now
-    success_url_name = 'grant-applications:confirmation'
+    success_url_name = 'grant-applications:company-details'
     static_context = {
         'page': {
             'heading':  _('Find your business')
@@ -281,18 +280,17 @@ class SelectCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
         return super().post(request, *args, **kwargs)
 
 
-class BusinessDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                          BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                          UpdateView):
+class ManualCompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
+                               BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                               UpdateView):
     model = GrantApplicationLink
-    form_class = BusinessDetailsForm
-    template_name = 'grant_applications/business_details.html'
+    form_class = CompanyDetailsForm
+    template_name = 'grant_applications/company_details.html'
     back_url_name = 'grant-applications:select-company'
-    success_url_name = 'grant_applications:previous-applications'
+    success_url_name = 'grant-applications:company-details'
     static_context = {
         'page': {
-            'heading':  _('Your company details'),
-            'caption': _('Check your eligibility')
+            'heading':  _('Business details')
         }
     }
 
@@ -301,13 +299,29 @@ class BusinessDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObject
         return super().form_valid(form, extra_grant_application_data={'company': None})
 
 
+class CompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
+                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                         UpdateView):
+    model = GrantApplicationLink
+    form_class = CompanyDetailsForm
+    template_name = 'grant_applications/company_details.html'
+    back_url_name = 'grant-applications:select-company'
+    # TODO: End user journey here for now
+    success_url_name = 'grant-applications:confirmation'
+    static_context = {
+        'page': {
+            'heading':  _('Business size and turnover')
+        }
+    }
+
+
 class EligibilityReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
                             InitialDataMixin, BackofficeMixin, ConfirmationRedirectMixin,
                             UpdateView):
     model = GrantApplicationLink
     form_class = EmptyGrantApplicationLinkForm
     template_name = 'grant_applications/eligibility_review.html'
-    back_url_name = 'grant-applications:business-details'
+    back_url_name = 'grant-applications:company-details'
     success_url_name = 'grant_applications:eligibility-confirmation'
     static_context = {
         'page': {
@@ -569,12 +583,14 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
 
 class ConfirmationView(StaticContextMixin, TemplateView):
     template_name = 'grant_applications/confirmation.html'
-    page = {
-        'panel_title': _('Application complete'),
-        'panel_ref_text': _('Your reference number'),
-        'confirmation_email_text': _('We have sent you a confirmation email.'),
-        'next_steps_heading': _('What happens next'),
-        'next_steps_line_1': _("We've sent your application to the Trade Access Program team."),
-        'next_steps_line_2': _('They will contact you either to confirm your registration, or '
-                               'to ask for more information.'),
+    static_context = {
+        'page': {
+            'panel_title': _('Application complete'),
+            'panel_ref_text': _('Your reference number'),
+            'confirmation_email_text': _('We have sent you a confirmation email.'),
+            'next_steps_heading': _('What happens next'),
+            'next_steps_line_1': _("We've sent your application to the Trade Access Program team."),
+            'next_steps_line_2': _('They will contact you either to confirm your registration, or '
+                                   'to ask for more information.'),
+        }
     }
