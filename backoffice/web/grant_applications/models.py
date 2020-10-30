@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import PROTECT
@@ -27,6 +28,19 @@ class GrantApplication(BaseMetaModel):
                 return cls.HAS_50_TO_249
             elif number_of_employees >= 250:
                 return cls.HAS_250_OR_MORE
+
+    class ExportRegions(models.TextChoices):
+        Africa = 'africa', 'Africa'
+        Asia = 'asia', 'Asia'
+        Australasia = 'australasia', 'Australasia'
+        Europe = 'europe', 'Europe'
+        MiddleEast = 'middle east', 'Middle East'
+        NorthAmerica = 'north america', 'North America'
+        SouthAmerica = 'south america', 'South America'
+
+    class MarketsIntendingOnExportingTo(models.TextChoices):
+        Existing = 'existing', 'existing markets'
+        New = 'new', 'new markets not exported to in the last 12 months'
 
     search_term = models.CharField(max_length=500, null=True)
     is_turnover_greater_than = models.BooleanField(null=True)
@@ -73,6 +87,16 @@ class GrantApplication(BaseMetaModel):
     website = models.URLField(null=True, max_length=500)
     has_exported_before = models.BooleanField(null=True)
     has_product_or_service_for_export = models.BooleanField(null=True)
+    has_exported_in_last_12_months = models.BooleanField(null=True)
+    export_regions = ArrayField(
+        models.CharField(max_length=50, choices=ExportRegions.choices), null=True
+    )
+    markets_intending_on_exporting_to = ArrayField(
+        models.CharField(max_length=10, choices=MarketsIntendingOnExportingTo.choices), null=True
+    )
+    in_contact_with_dit_trade_advisor = models.BooleanField(null=True)
+    export_experience_description = models.TextField(null=True)
+    export_strategy = models.TextField(null=True)
     de_minimis_aid_public_authority = models.CharField(null=True, blank=True, max_length=500)
     de_minimis_aid_date_awarded = models.DateField(null=True, blank=True)
     de_minimis_aid_amount = models.IntegerField(

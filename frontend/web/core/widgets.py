@@ -12,6 +12,10 @@ class RadioSelect(forms.widgets.RadioSelect):
         return option
 
 
+class CheckboxSelectMultiple(forms.widgets.CheckboxSelectMultiple):
+    template_name = 'widgets/checkbox_select_multiple.html'
+
+
 class TextWithDetailInput(forms.TextInput):
     template_name = 'widgets/text_with_detail_input.html'
 

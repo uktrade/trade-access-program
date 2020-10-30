@@ -14,7 +14,7 @@ from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, SelectAnEventForm, PreviousApplicationsForm,
     EventIntentionForm, CompanyTradingDetailsForm, ExportExperienceForm, StateAidForm,
     FindAnEventForm, EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm,
-    ContactDetailsForm
+    ContactDetailsForm, ExportDetailsForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -356,10 +356,24 @@ class ExportExperienceView(BackContextMixin, StaticContextMixin, SuccessUrlObjec
     form_class = ExportExperienceForm
     template_name = 'grant_applications/export_experience.html'
     back_url_name = 'grant-applications:company-trading-details'
-    success_url_name = 'grant_applications:confirmation'
+    success_url_name = 'grant_applications:export-details'
     static_context = {
         'page': {
             'heading':  _('Export experience')
+        }
+    }
+
+
+class ExportDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
+                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
+    model = GrantApplicationLink
+    form_class = ExportDetailsForm
+    template_name = 'grant_applications/export_details.html'
+    back_url_name = 'grant-applications:export-experience'
+    success_url_name = 'grant_applications:confirmation'
+    static_context = {
+        'page': {
+            'heading':  _('Export details')
         }
     }
 

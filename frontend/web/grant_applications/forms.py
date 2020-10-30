@@ -444,6 +444,76 @@ class ExportExperienceForm(forms.ModelForm):
         return cleaned_data
 
 
+class ExportDetailsForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = [
+            'has_exported_in_last_12_months', 'export_regions', 'markets_intending_on_exporting_to',
+            'in_contact_with_dit_trade_advisor', 'export_experience_description', 'export_strategy'
+        ]
+
+    has_exported_in_last_12_months = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_('Has your business exported any products or services in the last 12 months?'),
+    )
+    export_regions = forms.MultipleChoiceField(
+        label=_('Which region(s) has your business exported to?'),
+        choices=(
+            ('africa', 'Africa'),
+            ('asia', 'Asia'),
+            ('australasia', 'Australasia'),
+            ('europe', 'Europe'),
+            ('middle east', 'Middle East'),
+            ('north america', 'North America'),
+            ('south america', 'South America')
+        ),
+        widget=widgets.CheckboxSelectMultiple()
+    )
+    markets_intending_on_exporting_to = forms.MultipleChoiceField(
+        label=_('Which markets are you intending to export to using the TAP grant?'),
+        choices=(
+            ('existing', 'existing markets'),
+            ('new', 'new markets not exported to in the last 12 months')
+        ),
+        widget=widgets.CheckboxSelectMultiple()
+    )
+    in_contact_with_dit_trade_advisor = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_('Are you in contact with a DIT trade advisor?'),
+    )
+    export_experience_description = MaxAllowedCharField(
+        label=_('Describe your experience of exporting including successes and challenges'),
+        max_length=2000,
+        widget=widgets.CharacterCountTextArea(
+            attrs={
+                'class': 'govuk-textarea govuk-js-character-count',
+                'rows': 7,
+                'counter': 2000
+            }
+        )
+    )
+    export_strategy = MaxAllowedCharField(
+        label=_('Provide a brief summary of your export strategy'),
+        help_text=_(
+            'Include short term (within the next 2 years) and longer term (2–5 years) objectives'
+            ' and any barriers to entry'
+        ),
+        max_length=2000,
+        widget=widgets.CharacterCountTextArea(
+            attrs={
+                'class': 'govuk-textarea govuk-js-character-count',
+                'rows': 7,
+                'counter': 2000
+            }
+        )
+    )
+
+
 class StateAidForm(forms.ModelForm):
 
     class Meta:
