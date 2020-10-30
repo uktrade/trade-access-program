@@ -6,7 +6,7 @@ from web.grant_applications.views import (
     PreviousApplicationsView, EventIntentionView, CompanyTradingDetailsView, ExportExperienceView,
     StateAidView, ApplicationReviewView, ConfirmationView, EligibilityReviewView,
     EligibilityConfirmationView, FindAnEventView, BeforeYouStartView,
-    EventCommitmentView, CompanyDetailsView
+    EventCommitmentView, CompanyDetailsView, ExportDetailsView
 )
 
 app_name = 'grant_applications'
@@ -36,6 +36,8 @@ urlpatterns = [
         CompanyTradingDetailsView.as_view(),
         name='company-trading-details'
     ),
+    path('<pk>/export-experience/', ExportExperienceView.as_view(), name='export-experience'),
+    path('<pk>/export-details/', ExportDetailsView.as_view(), name='export-details'),
     path('<pk>/confirmation/', ConfirmationView.as_view(), name='confirmation'),
 
     # TODO: views below need changes (see design document 3.02)
@@ -46,7 +48,7 @@ urlpatterns = [
         name='eligibility-confirmation'
     ),
     path('<pk>/event-intention/', EventIntentionView.as_view(), name='event-intention'),
-    path('<pk>/export-experience/', ExportExperienceView.as_view(), name='export-experience'),
+
     path('<pk>/state-aid/', StateAidView.as_view(), name='state-aid'),
     path('<pk>/application-review/', ApplicationReviewView.as_view(), name='application-review'),
 ]

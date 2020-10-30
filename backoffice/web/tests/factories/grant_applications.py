@@ -37,6 +37,12 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     website = factory.Sequence(lambda n: f'www.website-{n}.com')
     has_exported_before = False
     has_product_or_service_for_export = True
+    has_exported_in_last_12_months = True
+    export_regions = ['africa', 'north america']
+    markets_intending_on_exporting_to = ['existing', 'new']
+    in_contact_with_dit_trade_advisor = True
+    export_experience_description = 'A description'
+    export_strategy = 'A strategy'
     de_minimis_aid_public_authority = factory.Sequence(lambda n: f'authority-{n}')
     de_minimis_aid_date_awarded = factory.Sequence(lambda n: today() + timedelta(n))
     de_minimis_aid_amount = 1

@@ -1,0 +1,19 @@
+<div class="govuk-form-group">
+  <fieldset class="govuk-fieldset" aria-describedby="waste-hint">
+    <div class="govuk-checkboxes">
+      {% for _, item, _ in widget.optgroups %}
+        <div class="govuk-checkboxes__item">
+          {% if item.0.value|cut:"'" in widget.value %}
+            <input class="govuk-checkboxes__input" id="{{ item.0.attrs.id }}" name="{{ widget.name }}" type="checkbox" value="{{ item.0.value }}" checked>
+          {% else %}
+            <input class="govuk-checkboxes__input" id="{{ item.0.attrs.id }}" name="{{ widget.name }}" type="checkbox" value="{{ item.0.value }}">
+          {% endif %}
+          <label class="govuk-label govuk-checkboxes__label" for="{{ widget.name }}">
+            {{ item.0.label }}
+          </label>
+        </div>
+      {% endfor %}
+    </div>
+
+  </fieldset>
+</div>
