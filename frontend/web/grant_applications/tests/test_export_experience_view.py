@@ -37,6 +37,29 @@ class TestExportExperienceView(BaseTestCase):
             has_product_or_service_for_export=True
         )
 
+    def test_post_redirect_to_export_details_on_true(self, *mocks):
+        mocks[0].return_value['has_exported_before'] = True
+        response = self.client.post(self.url, data={'has_exported_before': True})
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:export-details', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
+
+    def test_post_redirect_to_confirmation_on_false(self, *mocks):
+        response = self.client.post(
+            self.url,
+            data={
+                'has_exported_before': False,
+                'has_product_or_service_for_export': True,
+            }
+        )
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:confirmation', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
+
     def test_2nd_question_not_required_if_has_exported_before_is_true(self, *mocks):
         response = self.client.post(self.url, data={'has_exported_before': True})
         self.assertEqual(response.status_code, 302)

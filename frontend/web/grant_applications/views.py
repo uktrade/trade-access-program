@@ -349,19 +349,26 @@ class CompanyTradingDetailsView(BackContextMixin, StaticContextMixin, SuccessUrl
         return initial
 
 
-class ExportExperienceView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                           BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                           UpdateView):
+class ExportExperienceView(BackContextMixin, StaticContextMixin, BackofficeMixin, InitialDataMixin,
+                           ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = ExportExperienceForm
     template_name = 'grant_applications/export_experience.html'
     back_url_name = 'grant-applications:company-trading-details'
-    success_url_name = 'grant_applications:export-details'
     static_context = {
         'page': {
             'heading':  _('Export experience')
         }
     }
+
+    def get_success_url(self):
+        if not hasattr(self, 'backoffice_grant_application'):
+            self.backoffice_grant_application = BackofficeService().get_grant_application(
+                self.object.backoffice_grant_application_id
+            )
+        if self.backoffice_grant_application['has_exported_before']:
+            return reverse('grant-applications:export-details', args=(self.object.pk,))
+        return reverse('grant-applications:confirmation', args=(self.object.pk,))
 
 
 class ExportDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
