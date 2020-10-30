@@ -5,8 +5,8 @@ from django.utils.datetime_safe import date
 
 from web.grant_applications.services import BackofficeServiceException, BackofficeService
 from web.grant_applications.views import (
-    EventIntentionView, ExportExperienceView, StateAidView,
-    ApplicationReviewView, EligibilityReviewView, EligibilityConfirmationView
+    EventIntentionView, StateAidView, ApplicationReviewView, EligibilityReviewView,
+    EligibilityConfirmationView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
@@ -148,37 +148,6 @@ class TestEventIntentionView(BaseTestCase):
             response, 'form', 'number_of_times_exhibited_at_event', self.form_msgs['required']
         )
         mocks[0].assert_not_called()
-
-
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestExportExperienceView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:export-experience', kwargs={'pk': self.gal.pk})
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, ExportExperienceView.template_name)
-
-    def test_post(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data={
-                'has_exported_before': True,
-                'is_planning_to_grow_exports': True,
-                'is_seeking_export_opportunities': False,
-            }
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            has_exported_before=True,
-            is_planning_to_grow_exports=True,
-            is_seeking_export_opportunities=False
-        )
 
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)

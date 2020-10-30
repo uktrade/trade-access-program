@@ -4,7 +4,7 @@ from web.core.widgets import CurrencyInput
 
 FORM_MSGS = {
     'required': 'This field is required.',
-    'not-required': 'This field is not required.',
+    'invalid-combination': 'The form contains an invalid combination of fields.',
     'resubmit': 'An unexpected error occurred. Please resubmit the form.',
     'invalid-choice': 'Select a valid choice. {} is not one of the available choices.',
     'positive': 'Ensure this value is greater than or equal to 0.',

@@ -409,31 +409,39 @@ class ExportExperienceForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
-        fields = [
-            'has_exported_before', 'is_planning_to_grow_exports', 'is_seeking_export_opportunities'
-        ]
+        fields = ['has_exported_before', 'has_product_or_service_for_export']
 
     has_exported_before = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
         widget=widgets.RadioSelect(),
-        label=_('Have you exported before?'),
+        label=_('Has your business exported any products or services before?'),
     )
-
-    is_planning_to_grow_exports = forms.TypedChoiceField(
+    has_product_or_service_for_export = forms.TypedChoiceField(
+        required=False,
+        empty_value=None,
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
         widget=widgets.RadioSelect(),
-        label=_('Are you planning to grow your exports in up to six countries within '
-                'the European Union or beyond?')
+        label=_(
+            'Do you have a product or service suitable for, or that could be developed for, export?'
+        )
     )
 
-    is_seeking_export_opportunities = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_('Are you actively investigating export opportunities for your business?')
-    )
+    def clean(self):
+        cleaned_data = super().clean()
+        has_exported_before = cleaned_data.get('has_exported_before')
+        has_product_or_service_for_export = cleaned_data.get('has_product_or_service_for_export')
+
+        if has_exported_before is False and has_product_or_service_for_export is None:
+            self.add_error(
+                'has_product_or_service_for_export', forms.ValidationError(FORM_MSGS['required'])
+            )
+
+        if has_exported_before is True and has_product_or_service_for_export is not None:
+            cleaned_data['has_product_or_service_for_export'] = None
+
+        return cleaned_data
 
 
 class StateAidForm(forms.ModelForm):

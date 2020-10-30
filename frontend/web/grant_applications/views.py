@@ -335,8 +335,7 @@ class CompanyTradingDetailsView(BackContextMixin, StaticContextMixin, SuccessUrl
     form_class = CompanyTradingDetailsForm
     template_name = 'grant_applications/company_trading_details.html'
     back_url_name = 'grant-applications:contact-details'
-    # TODO: End user journey here for now
-    success_url_name = 'grant_applications:confirmation'
+    success_url_name = 'grant_applications:export-experience'
     static_context = {
         'page': {
             'heading':  _('Business trading details')
@@ -348,6 +347,21 @@ class CompanyTradingDetailsView(BackContextMixin, StaticContextMixin, SuccessUrl
         if self.backoffice_grant_application['sector']:
             initial['sector'] = self.backoffice_grant_application['sector']['id']
         return initial
+
+
+class ExportExperienceView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
+                           BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                           UpdateView):
+    model = GrantApplicationLink
+    form_class = ExportExperienceForm
+    template_name = 'grant_applications/export_experience.html'
+    back_url_name = 'grant-applications:company-trading-details'
+    success_url_name = 'grant_applications:confirmation'
+    static_context = {
+        'page': {
+            'heading':  _('Export experience')
+        }
+    }
 
 
 class EligibilityReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
@@ -472,21 +486,6 @@ class EventIntentionView(BackContextMixin, StaticContextMixin, SuccessUrlObjectP
             event_name=self.backoffice_grant_application['event']['name']
         )
         return context
-
-
-class ExportExperienceView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                           BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                           UpdateView):
-    model = GrantApplicationLink
-    form_class = ExportExperienceForm
-    template_name = 'grant_applications/generic_form_page.html'
-    back_url_name = 'grant-applications:company-trading-details'
-    success_url_name = 'grant_applications:state-aid'
-    static_context = {
-        'page': {
-            'heading':  _('About your export experience')
-        }
-    }
 
 
 class StateAidView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
