@@ -72,8 +72,7 @@ class GrantApplication(BaseMetaModel):
     )
     website = models.URLField(null=True, max_length=500)
     has_exported_before = models.BooleanField(null=True)
-    is_planning_to_grow_exports = models.BooleanField(null=True)
-    is_seeking_export_opportunities = models.BooleanField(null=True)
+    has_product_or_service_for_export = models.BooleanField(null=True)
     de_minimis_aid_public_authority = models.CharField(null=True, blank=True, max_length=500)
     de_minimis_aid_date_awarded = models.DateField(null=True, blank=True)
     de_minimis_aid_amount = models.IntegerField(

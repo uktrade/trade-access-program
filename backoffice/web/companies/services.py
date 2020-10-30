@@ -12,10 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 def _log_hook(response, **kwargs):
-    body = response.request.body or b'No content'
-    logger.info(
-        f'EXTERNAL {response.request.method} : {response.request.url} : {body.decode()}'
-    )
+    body = response.request.body or 'No content'
+    logger.info(f'EXTERNAL {response.request.method} : {response.request.url} : {body}')
     if not response.ok:
         logger.error(f'RESPONSE : {response.status_code} : {response.text}')
 

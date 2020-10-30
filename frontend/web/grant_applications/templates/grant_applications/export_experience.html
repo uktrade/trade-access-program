@@ -1,0 +1,50 @@
+{% extends 'grant_applications/generic_form_page.html' %}
+
+{% block govuk_form %}
+<form class="form" method="POST" novalidate>
+  {% csrf_token %}
+  {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
+
+  <div class="govuk-form-group{% if form.has_exported_before.errors %} govuk-form-group--error{% endif %}">
+    {% include "core/govt_uk_form_field_label.html" with field=form.has_exported_before %}
+    {% include "core/govt_uk_form_field_hint.html" with field=form.has_exported_before %}
+    {% include "core/govt_uk_form_field_errors.html" with field=form.has_exported_before %}
+
+    <fieldset class="govuk-fieldset">
+
+      <div class="govuk-radios govuk-radios--conditional" data-module="govuk-radios">
+
+        <div class="govuk-radios__item">
+          {% ifequal form.has_exported_before.value|cut:"'" form.has_exported_before.subwidgets.0.data.value|cut:"'" %}
+            <input class="govuk-radios__input" id="id_has_exported_before_01" name="has_exported_before" type="radio" value="True" checked>
+          {% else %}
+            <input class="govuk-radios__input" id="id_has_exported_before_02" name="has_exported_before" type="radio" value="True">
+          {% endifequal %}
+          <label class="govuk-label govuk-radios__label" for="id_has_exported_before_0">
+            {{ form.has_exported_before.subwidgets.0.choice_label }}
+          </label>
+        </div>
+
+        <div class="govuk-radios__item">
+          {% ifequal form.has_exported_before.value|cut:"'" form.has_exported_before.subwidgets.1.data.value|cut:"'" %}
+            <input class="govuk-radios__input" id="id_has_exported_before_11" name="has_exported_before" type="radio" value="False" data-aria-controls="has_product_or_service_for_export-conditional" checked>
+          {% else %}
+            <input class="govuk-radios__input" id="id_has_exported_before_12" name="has_exported_before" type="radio" value="False" data-aria-controls="has_product_or_service_for_export-conditional">
+          {% endifequal %}
+          <label class="govuk-label govuk-radios__label" for="id_has_exported_before_1">
+            {{ form.has_exported_before.subwidgets.1.choice_label }}
+          </label>
+        </div>
+
+        <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="has_product_or_service_for_export-conditional">
+          {% include "core/govt_uk_form_field.html" with field=form.has_product_or_service_for_export %}
+        </div>
+
+      </div>
+    </fieldset>
+  </div>
+
+  {% include "core/govt_uk_form_button.html" %}
+
+</form>
+{% endblock %}
