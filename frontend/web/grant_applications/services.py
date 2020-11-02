@@ -8,6 +8,7 @@ from urllib.parse import urljoin, urlparse
 import requests
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
+from django.urls import reverse
 from django.utils.dateparse import parse_date
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
@@ -42,6 +43,7 @@ class BackofficeService:
         # URLs
         self.base_url = settings.BACKOFFICE_API_URL
         self.grant_applications_url = urljoin(self.base_url, 'grant-applications/')
+        self.state_aid_url = urljoin(self.base_url, 'state-aid/')
         self.companies_url = urljoin(self.base_url, 'companies/')
         self.trade_events_url = urljoin(self.base_url, 'trade-events/')
         self.trade_event_aggregates_url = urljoin(self.base_url, 'trade-events/aggregates/')
@@ -127,6 +129,26 @@ class BackofficeService:
             urljoin(self.grant_applications_url, f'{grant_application_id}/send-for-review/'),
             json={'application_summary': application_summary}
         )
+        return response.json()
+
+    def create_state_aid(self, **data):
+        response = self.post(self.state_aid_url, data)
+        return response.json()
+
+    def update_state_aid(self, state_aid_id, **data):
+        url = urljoin(self.state_aid_url, f'{state_aid_id}/')
+        response = self.patch(url, data)
+        return response.json()
+
+    def delete_state_aid(self, state_aid_id):
+        self.session.delete(urljoin(self.state_aid_url, f'{state_aid_id}/'))
+
+    def get_state_aid(self, state_aid_id):
+        response = self.session.get(urljoin(self.state_aid_url, f'{state_aid_id}/'))
+        return response.json()
+
+    def list_state_aids(self, **params):
+        response = self.session.get(self.state_aid_url, params=params)
         return response.json()
 
     def search_companies(self, **params):
@@ -285,9 +307,6 @@ def generate_grant_application_summary(grant_application, form_class, form_kwarg
     summary = []
 
     for field_name in data_form.fields:
-        if hasattr(data_form, 'format_field_labels'):
-            data_form.format_field_labels()
-
         row = {
             'key': str(data_form[field_name].label),
             'value': _serialize_field(form_data.get(field_name)) or 'Not Applicable',
@@ -300,3 +319,38 @@ def generate_grant_application_summary(grant_application, form_class, form_kwarg
         summary.append(row)
 
     return summary
+
+
+def get_state_aid_summary_table(grant_application_link, state_aid_items):
+    if not state_aid_items:
+        return {
+            'headers': ['Authority', 'Amount', 'Description', 'Date received'],
+            'rows': [['-', '-', '-', '-']]
+        }
+
+    table = {
+        'cols': [
+            "style=width:13%", "style=width:13%", "style=width:31%", "style=width:13%",
+            "style=width:13%", "style=width:7%", "style=width:10%"
+        ],
+        'headers': ['Authority', 'Amount', 'Description', 'Date received', '', '', ''],
+        'rows': [],
+    }
+    link_html = "<a class='govuk-link govuk-link--no-visited-state' href='{href}'>{text}</a>"
+
+    for state_aid in state_aid_items:
+        resolve_kwargs = {'pk': grant_application_link.pk, 'state_aid_pk': state_aid['id']}
+        duplicate_href = reverse('grant-applications:duplicate-state-aid', kwargs=resolve_kwargs)
+        edit_href = reverse('grant-applications:edit-state-aid', kwargs=resolve_kwargs)
+        remove_href = reverse('grant-applications:delete-state-aid', kwargs=resolve_kwargs)
+        table['rows'].append([
+            state_aid['authority'],
+            state_aid['amount'],
+            state_aid['description'],
+            state_aid['date_received'],
+            link_html.format(text='Duplicate', href=duplicate_href),
+            link_html.format(text='Edit', href=edit_href),
+            link_html.format(text='Remove', href=remove_href)
+        ])
+
+    return table

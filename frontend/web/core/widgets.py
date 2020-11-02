@@ -1,3 +1,5 @@
+from datetime import date
+
 from django import forms
 
 
@@ -10,6 +12,56 @@ class RadioSelect(forms.widgets.RadioSelect):
         if 'hints' in self.attrs:
             option['hint'] = self.attrs['hints'][index]
         return option
+
+
+class DatePartInput(forms.TextInput):
+    template_name = 'widgets/date_part_input.html'
+
+
+class DateInput(forms.MultiWidget):
+    template_name = 'widgets/date_input.html'
+
+    def __init__(self, attrs=None):
+        widgets = [
+            DatePartInput(
+                attrs={
+                    'label': 'Day',
+                    'class': 'govuk-date-input__item govuk-input govuk-input--width-2',
+                    'pattern': '[0-9]*',
+                    'inputmode': 'numeric',
+                }
+            ),
+            DatePartInput(
+                attrs={
+                    'label': 'Month',
+                    'class': 'govuk-date-input__item govuk-input govuk-input--width-2',
+                    'pattern': '[0-9]*',
+                    'inputmode': 'numeric',
+                }
+            ),
+            DatePartInput(
+                attrs={
+                    'label': 'Year',
+                    'class': 'govuk-date-input__item govuk-input govuk-input--width-3',
+                    'pattern': '[0-9]*',
+                    'inputmode': 'numeric',
+                }
+            ),
+        ]
+        super().__init__(widgets, attrs)
+
+    def decompress(self, value):
+        if isinstance(value, date):
+            return [value.day, value.month, value.year]
+        elif isinstance(value, str):
+            year, month, day = value.split('-')
+            return [day, month, year]
+        return [None, None, None]
+
+    def value_from_datadict(self, data, files, name):
+        day, month, year = super().value_from_datadict(data, files, name)
+        if all([day, month, year]):
+            return '{}-{}-{}'.format(year, month, day)
 
 
 class CheckboxSelectMultiple(forms.widgets.CheckboxSelectMultiple):

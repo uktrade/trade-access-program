@@ -3,10 +3,11 @@ from django.views.generic import TemplateView
 
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, ContactDetailsView, SelectAnEventView,
-    PreviousApplicationsView, CompanyTradingDetailsView, ExportExperienceView, StateAidView,
+    PreviousApplicationsView, CompanyTradingDetailsView, ExportExperienceView, StateAidSummaryView,
     ApplicationReviewView, ConfirmationView, EligibilityReviewView, EligibilityConfirmationView,
     FindAnEventView, BeforeYouStartView, EventCommitmentView, CompanyDetailsView, ExportDetailsView,
-    TradeEventDetailsView
+    TradeEventDetailsView, AddStateAidView, EditStateAidView, DeleteStateAidView,
+    DuplicateStateAidView
 )
 
 app_name = 'grant_applications'
@@ -39,6 +40,19 @@ urlpatterns = [
     path('<pk>/export-experience/', ExportExperienceView.as_view(), name='export-experience'),
     path('<pk>/export-details/', ExportDetailsView.as_view(), name='export-details'),
     path('<pk>/trade-event-details/', TradeEventDetailsView.as_view(), name='trade-event-details'),
+    path('<pk>/state-aid-summary/', StateAidSummaryView.as_view(), name='state-aid-summary'),
+    path('<pk>/add-state-aid/', AddStateAidView.as_view(), name='add-state-aid'),
+    path('<pk>/edit-state-aid/<state_aid_pk>/', EditStateAidView.as_view(), name='edit-state-aid'),
+    path(
+        '<pk>/delete-state-aid/<state_aid_pk>/',
+        DeleteStateAidView.as_view(),
+        name='delete-state-aid'
+    ),
+    path(
+        '<pk>/duplicate-state-aid/<state_aid_pk>/',
+        DuplicateStateAidView.as_view(),
+        name='duplicate-state-aid'
+    ),
     path('<pk>/confirmation/', ConfirmationView.as_view(), name='confirmation'),
 
     # TODO: views below need changes (see design document 3.02)
@@ -49,6 +63,5 @@ urlpatterns = [
         name='eligibility-confirmation'
     ),
 
-    path('<pk>/state-aid/', StateAidView.as_view(), name='state-aid'),
     path('<pk>/application-review/', ApplicationReviewView.as_view(), name='application-review'),
 ]

@@ -36,8 +36,8 @@
 
         <p class="govuk-body">The application takes around 45 to 60 minutes.</p>
 
-        {% url 'grant-applications:before-you-start' as button_href %}
-        {% include "core/govt_uk_link_button.html" with button_text="Apply now" button_href=button_href %}
+        {% url 'grant-applications:before-you-start' as a_href %}
+        {% include "core/govt_uk_start_link_button.html" with a_text="Apply now" a_href=a_href %}
       </div>
 
     </div>

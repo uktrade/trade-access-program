@@ -1,0 +1,19 @@
+{% extends 'grant_applications/generic_form_page.html' %}
+
+{% block content %}
+  <h2 class="govuk-heading-l">{{ page.heading }}</h2>
+
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+      <p class="govuk-body">Please provide details of any state aid your business has received during the current and two previous fiscal years. If you haven’t received any you can continue without entering anything.</p>
+      {% include 'core/govt_uk_details.html' with summary_text='Why do we need to know this?' text='TODO' %}
+    </div>
+  </div>
+
+  {% include 'core/govt_uk_table.html' with table=table %}
+
+  {% url 'grant-applications:add-state-aid' pk=grantapplicationlink.pk as a_href %}
+  {% include 'core/govt_uk_link_button.html' with text='Add state aid' href=a_href class='govuk-button moj-button-menu__item govuk-button--secondary' %}
+  {% include 'core/govt_uk_form.html' %}
+
+{% endblock %}

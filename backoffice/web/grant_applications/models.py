@@ -42,18 +42,21 @@ class GrantApplication(BaseMetaModel):
         Existing = 'existing', 'existing markets'
         New = 'new', 'new markets not exported to in the last 12 months'
 
+    previous_applications = models.IntegerField(
+        null=True, validators=[MinValueValidator(0), MaxValueValidator(6)]
+    )
+    event = models.ForeignKey('trade_events.Event', on_delete=PROTECT, null=True)
+    is_already_committed_to_event = models.BooleanField(null=True)
     search_term = models.CharField(max_length=500, null=True)
-    is_turnover_greater_than = models.BooleanField(null=True)
     company = models.ForeignKey('companies.Company', on_delete=PROTECT, null=True)
+    number_of_employees = models.CharField(
+        null=True, choices=NumberOfEmployees.choices, max_length=20
+    )
+    is_turnover_greater_than = models.BooleanField(null=True)
     applicant_full_name = models.CharField(null=True, max_length=500)
     applicant_email = models.EmailField(null=True)
     applicant_mobile_number = PhoneNumberField(null=True, region='GB')
     job_title = models.CharField(null=True, max_length=500)
-    event = models.ForeignKey('trade_events.Event', on_delete=PROTECT, null=True)
-    is_already_committed_to_event = models.BooleanField(null=True)
-    previous_applications = models.IntegerField(
-        null=True, validators=[MinValueValidator(0), MaxValueValidator(6)]
-    )
     previous_years_turnover_1 = models.DecimalField(
         null=True, validators=[MinValueValidator(0)], **settings.CURRENCY_DECIMAL_PRECISION
     )
@@ -76,11 +79,6 @@ class GrantApplication(BaseMetaModel):
     other_business_names = models.CharField(null=True, max_length=500)
     products_and_services_description = models.TextField(null=True)
     products_and_services_competitors = models.TextField(null=True)
-    business_name_at_exhibit = models.CharField(null=True, max_length=500)
-    number_of_employees = models.CharField(
-        null=True, choices=NumberOfEmployees.choices, max_length=20
-    )
-    website = models.URLField(null=True, max_length=500)
     has_exported_before = models.BooleanField(null=True)
     has_product_or_service_for_export = models.BooleanField(null=True)
     has_exported_in_last_12_months = models.BooleanField(null=True)
@@ -102,14 +100,6 @@ class GrantApplication(BaseMetaModel):
     stand_trade_name = models.CharField(null=True, max_length=500)
     trade_show_experience_description = models.TextField(null=True)
     additional_guidance = models.TextField(null=True)
-    de_minimis_aid_public_authority = models.CharField(null=True, blank=True, max_length=500)
-    de_minimis_aid_date_awarded = models.DateField(null=True, blank=True)
-    de_minimis_aid_amount = models.IntegerField(
-        null=True, blank=True, validators=[MinValueValidator(1)]
-    )
-    de_minimis_aid_description = models.CharField(null=True, blank=True, max_length=500)
-    de_minimis_aid_recipient = models.CharField(null=True, blank=True, max_length=500)
-    de_minimis_aid_date_received = models.DateField(null=True, blank=True)
     application_summary = models.JSONField(default=list)
 
     def send_for_review(self):
@@ -121,3 +111,11 @@ class GrantApplication(BaseMetaModel):
         for summary in self.application_summary:
             _answers += [[row['key'], row['value']] for row in summary['summary']]
         return _answers
+
+
+class StateAid(BaseMetaModel):
+    authority = models.CharField(max_length=500)
+    date_received = models.DateField()
+    amount = models.IntegerField(validators=[MinValueValidator(1)])
+    description = models.CharField(max_length=500)
+    grant_application = models.ForeignKey(GrantApplication, on_delete=PROTECT)

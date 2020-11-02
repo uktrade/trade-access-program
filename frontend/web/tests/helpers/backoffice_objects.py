@@ -1,35 +1,6 @@
 FAKE_GRANT_APPLICATION = {
     'id': '993c394c-dd5d-413c-bd70-1ba4f1e2b050',
     'previous_applications': 1,
-    'search_term': 'company-1',
-    'applicant_full_name': 'A',
-    'applicant_email': 'A@test.com',
-    'applicant_mobile_number': '+447777777777',
-    'job_title': 'Director',
-    'is_already_committed_to_event': True,
-    'is_first_exhibit_at_event': False,
-    'number_of_times_exhibited_at_event': 2,
-    'previous_years_turnover_1': 1001,
-    'previous_years_turnover_2': 1002,
-    'previous_years_turnover_3': 1003,
-    'previous_years_export_turnover_1': 101,
-    'previous_years_export_turnover_2': 102,
-    'previous_years_export_turnover_3': 103,
-    'other_business_names': 'D',
-    'products_and_services_description': 'E',
-    'products_and_services_competitors': 'F',
-    'business_name_at_exhibit': 'G',
-    'number_of_employees': 'fewer-than-10',
-    'website': 'www.test.com',
-    'has_exported_before': False,
-    'is_planning_to_grow_exports': True,
-    'is_seeking_export_opportunities': True,
-    'de_minimis_aid_public_authority': None,
-    'de_minimis_aid_date_awarded': None,
-    'de_minimis_aid_amount': None,
-    'de_minimis_aid_description': None,
-    'de_minimis_aid_recipient': None,
-    'de_minimis_aid_date_received': None,
     'event': {
         'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg',
         'name': 'Event 1',
@@ -37,6 +8,8 @@ FAKE_GRANT_APPLICATION = {
         'start_date': '2020-12-12',
         'end_date': '2020-12-14'
     },
+    'is_already_committed_to_event': True,
+    'search_term': 'company-1',
     'company': {
         'id': '0dc205e4-1f11-4a81-90a6-f7a733da055e',
         'duns_number': '1234',
@@ -56,11 +29,44 @@ FAKE_GRANT_APPLICATION = {
             }
         }
     },
+    'number_of_employees': 'fewer-than-10',
+    'is_turnover_greater_than': True,
+    'applicant_full_name': 'A',
+    'applicant_email': 'A@test.com',
+    'applicant_mobile_number': '+447777777777',
+    'job_title': 'Director',
+    'previous_years_turnover_1': 1001,
+    'previous_years_turnover_2': 1002,
+    'previous_years_turnover_3': 1003,
+    'previous_years_export_turnover_1': 101,
+    'previous_years_export_turnover_2': 102,
+    'previous_years_export_turnover_3': 103,
     'sector': {
         'id': 'e98cee83-9f4e-4ad2-8d10-7f25867b91b5',
         'name': 'Sector 1',
         'full_name': 'Sector 1',
     },
+    'other_business_names': 'D',
+    'products_and_services_description': 'E',
+    'products_and_services_competitors': 'F',
+    'has_exported_before': False,
+    'has_product_or_service_for_export': True,
+    'has_exported_in_last_12_months': False,
+    'export_regions': ['asia', 'africa'],
+    'markets_intending_on_exporting_to': ['new', 'existing'],
+    'is_in_contact_with_dit_trade_advisor': False,
+    'export_experience_description': 'A description',
+    'export_strategy': 'A strategy',
+    'interest_in_event_description': 'A description',
+
+    'is_in_contact_with_tcp': False,
+    'tcp_name': 'A Name',
+    'tcp_email': 'tcp@test.com',
+    'tcp_mobile_number': '+447777777777',
+    'is_intending_to_exhibit_as_tcp_stand': True,
+    'stand_trade_name': 'A Name',
+    'trade_show_experience_description': 'A description',
+    'additional_guidance': 'Some additional guidance',
     'grant_management_process': {
         'id': '98d123ef-4218-4485-8285-c3c064f73893',
         'status': 'NEW',
@@ -75,6 +81,14 @@ FAKE_FLATTENED_GRANT_APPLICATION['duns_number'] = 1
 FAKE_FLATTENED_GRANT_APPLICATION['sector'] = 'Sector 1'
 FAKE_FLATTENED_GRANT_APPLICATION['grant_management_process'] = \
     '98d123ef-4218-4485-8285-c3c064f73893'
+
+FAKE_STATE_AID = {
+    'id': '37a6898f-3c16-4fdf-8454-ff86c16c6454',
+    'authority': 'An authority',
+    'date_received': '2020-02-14',
+    'amount': 2000,
+    'description': 'A description',
+}
 
 FAKE_GRANT_MANAGEMENT_PROCESS = {
     'id': 'bcccc6df-d144-4cac-af39-3c693588ab20',

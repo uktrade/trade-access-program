@@ -1,6 +1,5 @@
 from django import forms
 from django.conf import settings
-from django.core.validators import MinValueValidator
 from django.db.models import TextChoices
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
@@ -37,65 +36,6 @@ class PreviousApplicationsForm(forms.ModelForm):
         widget=widgets.RadioSelect(),
         label=_('How many grants have you received from TAP since April 1st 2009?'),
     )
-
-
-class SearchCompanyForm(forms.ModelForm):
-
-    class Meta:
-        model = GrantApplicationLink
-        fields = ['search_term']
-
-    search_term = forms.CharField(
-        label=_('Full business name'),
-        min_length=2,
-        help_text=_("For example 'My Business Limited'"),
-        widget=forms.TextInput(
-            attrs={'class': 'govuk-input hmcts-search__input', 'placeholder': 'Search...'}
-        )
-    )
-
-
-class SelectCompanyForm(forms.ModelForm):
-
-    def __init__(self, companies, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.companies = companies
-        company_options = generate_company_select_options(companies)
-        self.fields['duns_number'].choices = company_options['choices']
-        self.fields['duns_number'].widget.attrs['hints'] = company_options['hints']
-
-    class Meta:
-        model = GrantApplicationLink
-        fields = ['search_term', 'duns_number']
-
-    search_term = forms.CharField(
-        required=False,
-        min_length=2,
-        label=_('Full business name'),
-        help_text=_("For example 'My Business Limited'"),
-        widget=forms.TextInput(
-            attrs={'class': 'govuk-input hmcts-search__input', 'placeholder': 'Search...'}
-        )
-    )
-    duns_number = forms.ChoiceField(label=_(''), widget=widgets.RadioSelect())
-
-    def clean(self):
-        cleaned_data = super().clean()
-        if not self.errors and 'duns_number' in cleaned_data:
-            searched_company = next(
-                c for c in self.companies
-                if c['dnb_data']['duns_number'] == self.cleaned_data['duns_number']
-            )
-            try:
-                company = BackofficeService().get_or_create_company(
-                    duns_number=self.cleaned_data['duns_number'],
-                    registration_number=searched_company['registration_number'],
-                    name=searched_company['dnb_data']['primary_name']
-                )
-                cleaned_data['company'] = company['id']
-            except BackofficeServiceException:
-                raise forms.ValidationError(FORM_MSGS['resubmit'])
-        return cleaned_data
 
 
 class FindAnEventForm(forms.ModelForm):
@@ -220,6 +160,65 @@ class EventCommitmentForm(FormatLabelMixin, forms.ModelForm):
     )
 
 
+class SearchCompanyForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = ['search_term']
+
+    search_term = forms.CharField(
+        label=_('Full business name'),
+        min_length=2,
+        help_text=_("For example 'My Business Limited'"),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input hmcts-search__input', 'placeholder': 'Search...'}
+        )
+    )
+
+
+class SelectCompanyForm(forms.ModelForm):
+
+    def __init__(self, companies, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.companies = companies
+        company_options = generate_company_select_options(companies)
+        self.fields['duns_number'].choices = company_options['choices']
+        self.fields['duns_number'].widget.attrs['hints'] = company_options['hints']
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = ['search_term', 'duns_number']
+
+    search_term = forms.CharField(
+        required=False,
+        min_length=2,
+        label=_('Full business name'),
+        help_text=_("For example 'My Business Limited'"),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input hmcts-search__input', 'placeholder': 'Search...'}
+        )
+    )
+    duns_number = forms.ChoiceField(label=_(''), widget=widgets.RadioSelect())
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.errors and 'duns_number' in cleaned_data:
+            searched_company = next(
+                c for c in self.companies
+                if c['dnb_data']['duns_number'] == self.cleaned_data['duns_number']
+            )
+            try:
+                company = BackofficeService().get_or_create_company(
+                    duns_number=self.cleaned_data['duns_number'],
+                    registration_number=searched_company['registration_number'],
+                    name=searched_company['dnb_data']['primary_name']
+                )
+                cleaned_data['company'] = company['id']
+            except BackofficeServiceException:
+                raise forms.ValidationError(FORM_MSGS['resubmit'])
+        return cleaned_data
+
+
 class CompanyDetailsForm(forms.ModelForm):
 
     class Meta:
@@ -316,9 +315,7 @@ class CompanyTradingDetailsForm(forms.ModelForm):
     previous_years_export_turnover_3 = CurrencyField(label=_('Year 3'))
     sector = forms.ChoiceField(
         label=_('Industry sector'),
-        widget=forms.Select(
-            attrs={'class': 'govuk-select'}
-        )
+        widget=forms.Select(attrs={'class': 'govuk-select'})
     )
     other_business_names = forms.CharField(
         required=False,
@@ -591,92 +588,46 @@ class TradeEventDetailsForm(FormatLabelMixin, forms.ModelForm):
         return cleaned_data
 
 
-class StateAidForm(forms.ModelForm):
+class AddStateAidForm(forms.ModelForm):
 
     class Meta:
         model = GrantApplicationLink
-        fields = [
-            'has_received_de_minimis_aid',
-            'de_minimis_aid_public_authority', 'de_minimis_aid_date_awarded',
-            'de_minimis_aid_amount', 'de_minimis_aid_description', 'de_minimis_aid_recipient',
-            'de_minimis_aid_date_received'
-        ]
+        fields = ['authority', 'amount', 'description', 'date_received']
 
-    has_received_de_minimis_aid = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        required=True,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_(
-            'Have you received any de minimis aid (whether de minimis aid from or '
-            'attributable to DIT or any other public authority) during the current and two '
-            'previous Fiscal Years?'
-        )
-    )
-    de_minimis_aid_public_authority = forms.CharField(
-        required=False,
-        empty_value=None,
+    authority = forms.CharField(
         label=_('Authority'),
         widget=forms.TextInput(
-            attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+            attrs={'class': 'govuk-input'}
         )
     )
-    de_minimis_aid_date_awarded = forms.DateField(
-        required=False,
-        label=_('Date awarded'),
-        widget=forms.widgets.SelectDateWidget(
-            attrs={'class': 'govuk-date-input__item govuk-input govuk-input--width-4'},
-        )
-    )
-    de_minimis_aid_amount = forms.IntegerField(
-        required=False,
+    amount = CurrencyField(
         label=_('Total amount of aid'),
-        widget=forms.NumberInput(
-            attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
-        ),
-        validators=[MinValueValidator(1)]
+        help_text=_('For example, 1000'),
+        min_value=1
     )
-    de_minimis_aid_description = forms.CharField(
-        required=False,
-        empty_value=None,
+    description = MaxAllowedCharField(
         label=_('Description of aid'),
-        widget=forms.Textarea(
-            attrs={'class': 'govuk-textarea govuk-!-width-two-thirds'}
+        max_length=2000,
+        widget=widgets.CharacterCountTextArea(
+            attrs={
+                'class': 'govuk-textarea govuk-js-character-count',
+                'rows': 7,
+                'counter': 2000
+            }
         )
     )
-    de_minimis_aid_recipient = forms.CharField(
-        required=False,
-        empty_value=None,
-        label=_('Recipient'),
-        widget=forms.TextInput(
-            attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
-        )
-    )
-    de_minimis_aid_date_received = forms.DateField(
-        required=False,
-        label=_('Date of received aid'),
-        widget=forms.widgets.SelectDateWidget(
-            attrs={'class': 'govuk-date-input__item govuk-input govuk-input--width-4'},
-        )
+    date_received = forms.DateField(
+        label=_('Date aid received'),
+        help_text=_('For example, 3 11 2020'),
+        widget=widgets.DateInput()
     )
 
-    def mark_fields_required(self, cleaned_data, *fields):
-        """Used for conditionally marking many fields as required."""
-        for field in fields:
-            if cleaned_data.get(field) is None:
-                msg = forms.ValidationError(FORM_MSGS['required'])
-                self.add_error(field, msg)
-        return cleaned_data
 
-    def clean(self):
-        cleaned_data = super().clean()
-        has_received_de_minimis_aid = cleaned_data.get('has_received_de_minimis_aid')
+class EditStateAidForm(AddStateAidForm):
 
-        if has_received_de_minimis_aid is True:
-            cleaned_data = self.mark_fields_required(
-                cleaned_data, 'de_minimis_aid_public_authority', 'de_minimis_aid_date_awarded',
-                'de_minimis_aid_amount', 'de_minimis_aid_description', 'de_minimis_aid_recipient',
-                'de_minimis_aid_date_received'
-            )
-
-        return cleaned_data
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in self.fields:
+            self.fields[field_name].required = False
+            if hasattr(self.fields[field_name], 'empty_value'):
+                self.fields[field_name].empty_value = None
