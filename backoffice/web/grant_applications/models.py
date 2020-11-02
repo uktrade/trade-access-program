@@ -54,10 +54,6 @@ class GrantApplication(BaseMetaModel):
     previous_applications = models.IntegerField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(6)]
     )
-    is_first_exhibit_at_event = models.BooleanField(null=True)
-    number_of_times_exhibited_at_event = models.IntegerField(
-        null=True, validators=[MinValueValidator(0)]
-    )
     previous_years_turnover_1 = models.DecimalField(
         null=True, validators=[MinValueValidator(0)], **settings.CURRENCY_DECIMAL_PRECISION
     )
@@ -94,9 +90,18 @@ class GrantApplication(BaseMetaModel):
     markets_intending_on_exporting_to = ArrayField(
         models.CharField(max_length=10, choices=MarketsIntendingOnExportingTo.choices), null=True
     )
-    in_contact_with_dit_trade_advisor = models.BooleanField(null=True)
+    is_in_contact_with_dit_trade_advisor = models.BooleanField(null=True)
     export_experience_description = models.TextField(null=True)
     export_strategy = models.TextField(null=True)
+    interest_in_event_description = models.TextField(null=True)
+    is_in_contact_with_tcp = models.BooleanField(null=True)
+    tcp_name = models.CharField(null=True, max_length=500)
+    tcp_email = models.EmailField(null=True)
+    tcp_mobile_number = PhoneNumberField(null=True, region='GB')
+    is_intending_to_exhibit_as_tcp_stand = models.BooleanField(null=True)
+    stand_trade_name = models.CharField(null=True, max_length=500)
+    trade_show_experience_description = models.TextField(null=True)
+    additional_guidance = models.TextField(null=True)
     de_minimis_aid_public_authority = models.CharField(null=True, blank=True, max_length=500)
     de_minimis_aid_date_awarded = models.DateField(null=True, blank=True)
     de_minimis_aid_amount = models.IntegerField(

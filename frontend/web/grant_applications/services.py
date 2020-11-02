@@ -59,8 +59,7 @@ class BackofficeService:
 
     def request(self, method, url, data):
         return self.session.request(
-            method, url, data=json.dumps(data, cls=DjangoJSONEncoder),
-            headers={'Content-type': 'application/json'}
+            method, url, json=json.loads(json.dumps(data, cls=DjangoJSONEncoder))
         )
 
     def post(self, url, data):

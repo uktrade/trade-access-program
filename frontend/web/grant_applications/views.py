@@ -12,9 +12,9 @@ from web.core.view_mixins import (
 )
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, SelectAnEventForm, PreviousApplicationsForm,
-    EventIntentionForm, CompanyTradingDetailsForm, ExportExperienceForm, StateAidForm,
-    FindAnEventForm, EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm,
-    ContactDetailsForm, ExportDetailsForm
+    CompanyTradingDetailsForm, ExportExperienceForm, StateAidForm, FindAnEventForm,
+    EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm, ContactDetailsForm,
+    ExportDetailsForm, TradeEventDetailsForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -368,7 +368,7 @@ class ExportExperienceView(BackContextMixin, StaticContextMixin, BackofficeMixin
             )
         if self.backoffice_grant_application['has_exported_before']:
             return reverse('grant-applications:export-details', args=(self.object.pk,))
-        return reverse('grant-applications:confirmation', args=(self.object.pk,))
+        return reverse('grant-applications:trade-event-details', args=(self.object.pk,))
 
 
 class ExportDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
@@ -377,12 +377,39 @@ class ExportDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
     form_class = ExportDetailsForm
     template_name = 'grant_applications/export_details.html'
     back_url_name = 'grant-applications:export-experience'
-    success_url_name = 'grant_applications:confirmation'
+    success_url_name = 'grant_applications:trade-event-details'
     static_context = {
         'page': {
             'heading':  _('Export details')
         }
     }
+
+
+class TradeEventDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
+                            BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                            UpdateView):
+    model = GrantApplicationLink
+    form_class = TradeEventDetailsForm
+    template_name = 'grant_applications/trade_event_details.html'
+    success_url_name = 'grant_applications:confirmation'
+    static_context = {
+        'page': {
+            'heading':  _('Trade show experience')
+        }
+    }
+
+    def get_back_url(self):
+        if self.backoffice_grant_application['has_exported_before']:
+            return reverse('grant-applications:export-details', args=(self.object.pk,))
+        return reverse('grant-applications:export-experience', args=(self.object.pk,))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'].format_label(
+            field_name='interest_in_event_description',
+            event_name=self.backoffice_grant_application['event']['name']
+        )
+        return context
 
 
 class EligibilityReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
@@ -483,32 +510,6 @@ class EligibilityConfirmationView(BackContextMixin, StaticContextMixin, SuccessU
         return super().get_context_data(**kwargs)
 
 
-class EventIntentionView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
-    model = GrantApplicationLink
-    form_class = EventIntentionForm
-    template_name = 'grant_applications/event_intention.html'
-    back_url_name = 'grant-applications:company-trading-details'
-    success_url_name = 'grant_applications:export-experience'
-    static_context = {
-        'page': {
-            'heading':  _('Your application')
-        }
-    }
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['form'].format_label(
-            field_name='is_first_exhibit_at_event',
-            event_name=self.backoffice_grant_application['event']['name']
-        )
-        context['form'].format_label(
-            field_name='number_of_times_exhibited_at_event',
-            event_name=self.backoffice_grant_application['event']['name']
-        )
-        return context
-
-
 class StateAidView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
                    InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
@@ -543,7 +544,7 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
         {'view_class': SearchCompanyView},
         {'view_class': SelectCompanyView, 'form_kwargs': {'companies': None}},
         {'view_class': ContactDetailsView},
-        {'view_class': EventIntentionView},
+        {'view_class': TradeEventDetailsView},
         {'view_class': CompanyTradingDetailsView},
         {'view_class': ExportExperienceView},
         {'view_class': StateAidView},

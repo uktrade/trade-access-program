@@ -38,7 +38,9 @@ class TestExportExperienceView(BaseTestCase):
         )
 
     def test_post_redirect_to_export_details_on_true(self, *mocks):
-        mocks[0].return_value['has_exported_before'] = True
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['has_exported_before'] = True
+        mocks[0].return_value = fake_grant_application
         response = self.client.post(self.url, data={'has_exported_before': True})
         self.assertRedirects(
             response,
@@ -46,7 +48,7 @@ class TestExportExperienceView(BaseTestCase):
             fetch_redirect_response=False
         )
 
-    def test_post_redirect_to_confirmation_on_false(self, *mocks):
+    def test_post_redirect_to_trade_event_details_on_false(self, *mocks):
         response = self.client.post(
             self.url,
             data={
@@ -56,7 +58,7 @@ class TestExportExperienceView(BaseTestCase):
         )
         self.assertRedirects(
             response,
-            reverse('grant-applications:confirmation', args=(self.gal.pk,)),
+            reverse('grant-applications:trade-event-details', args=(self.gal.pk,)),
             fetch_redirect_response=False
         )
 

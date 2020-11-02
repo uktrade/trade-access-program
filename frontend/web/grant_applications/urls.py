@@ -3,10 +3,10 @@ from django.views.generic import TemplateView
 
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, ContactDetailsView, SelectAnEventView,
-    PreviousApplicationsView, EventIntentionView, CompanyTradingDetailsView, ExportExperienceView,
-    StateAidView, ApplicationReviewView, ConfirmationView, EligibilityReviewView,
-    EligibilityConfirmationView, FindAnEventView, BeforeYouStartView,
-    EventCommitmentView, CompanyDetailsView, ExportDetailsView
+    PreviousApplicationsView, CompanyTradingDetailsView, ExportExperienceView, StateAidView,
+    ApplicationReviewView, ConfirmationView, EligibilityReviewView, EligibilityConfirmationView,
+    FindAnEventView, BeforeYouStartView, EventCommitmentView, CompanyDetailsView, ExportDetailsView,
+    TradeEventDetailsView
 )
 
 app_name = 'grant_applications'
@@ -38,6 +38,7 @@ urlpatterns = [
     ),
     path('<pk>/export-experience/', ExportExperienceView.as_view(), name='export-experience'),
     path('<pk>/export-details/', ExportDetailsView.as_view(), name='export-details'),
+    path('<pk>/trade-event-details/', TradeEventDetailsView.as_view(), name='trade-event-details'),
     path('<pk>/confirmation/', ConfirmationView.as_view(), name='confirmation'),
 
     # TODO: views below need changes (see design document 3.02)
@@ -47,7 +48,6 @@ urlpatterns = [
         EligibilityConfirmationView.as_view(),
         name='eligibility-confirmation'
     ),
-    path('<pk>/event-intention/', EventIntentionView.as_view(), name='event-intention'),
 
     path('<pk>/state-aid/', StateAidView.as_view(), name='state-aid'),
     path('<pk>/application-review/', ApplicationReviewView.as_view(), name='application-review'),

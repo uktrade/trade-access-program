@@ -48,12 +48,10 @@ class PaginationMixin:
         return ''
 
     def get_current_page(self):
-        if self.request.method == 'GET':
-            try:
-                return int(self.request.GET.get('page', 1))
-            except ValueError:
-                return 1
-        return 1
+        try:
+            return int(self.request.GET.get('page', 1))
+        except ValueError:
+            return 1
 
     def get_pagination_total_pages(self):
         raise NotImplementedError('.get_pagination_total_pages() must be overridden.')
