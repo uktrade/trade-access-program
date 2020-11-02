@@ -219,9 +219,6 @@ class EventCommitmentForm(FormatLabelMixin, forms.ModelForm):
         ),
     )
 
-    def format_field_labels(self):
-        self.format_label('is_already_committed_to_event', event_name=self.data['event'])
-
 
 class CompanyDetailsForm(forms.ModelForm):
 
@@ -364,47 +361,6 @@ class CompanyTradingDetailsForm(forms.ModelForm):
     )
 
 
-class EventIntentionForm(FormatLabelMixin, forms.ModelForm):
-
-    class Meta:
-        model = GrantApplicationLink
-        fields = [
-            'is_first_exhibit_at_event', 'number_of_times_exhibited_at_event',
-        ]
-
-    is_first_exhibit_at_event = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_("Is this the first time you intend to exhibit at {event_name}?")
-    )
-
-    number_of_times_exhibited_at_event = forms.IntegerField(
-        required=False,
-        min_value=0,
-        label=_("How many times have you exhibited at this {event_name} previously?"),
-        widget=forms.NumberInput(
-            attrs={'class': 'govuk-input govuk-!-width-one-quarter'}
-        )
-    )
-
-    def format_field_labels(self):
-        self.format_label('is_first_exhibit_at_event', event_name=self.data['event'])
-        self.format_label('number_of_times_exhibited_at_event', event_name=self.data['event'])
-
-    def clean(self):
-        cleaned_data = super().clean()
-        is_first_exhibit_at_event = cleaned_data.get('is_first_exhibit_at_event')
-        number_of_times_exhibited_at_event = cleaned_data.get('number_of_times_exhibited_at_event')
-
-        if not is_first_exhibit_at_event and number_of_times_exhibited_at_event is None:
-            self.add_error(
-                'number_of_times_exhibited_at_event',
-                forms.ValidationError(FORM_MSGS['required'])
-            )
-        return cleaned_data
-
-
 class ExportExperienceForm(forms.ModelForm):
 
     class Meta:
@@ -450,7 +406,8 @@ class ExportDetailsForm(forms.ModelForm):
         model = GrantApplicationLink
         fields = [
             'has_exported_in_last_12_months', 'export_regions', 'markets_intending_on_exporting_to',
-            'in_contact_with_dit_trade_advisor', 'export_experience_description', 'export_strategy'
+            'is_in_contact_with_dit_trade_advisor', 'export_experience_description',
+            'export_strategy'
         ]
 
     has_exported_in_last_12_months = forms.TypedChoiceField(
@@ -480,7 +437,7 @@ class ExportDetailsForm(forms.ModelForm):
         ),
         widget=widgets.CheckboxSelectMultiple()
     )
-    in_contact_with_dit_trade_advisor = forms.TypedChoiceField(
+    is_in_contact_with_dit_trade_advisor = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
         widget=widgets.RadioSelect(),
@@ -512,6 +469,126 @@ class ExportDetailsForm(forms.ModelForm):
             }
         )
     )
+
+
+class TradeEventDetailsForm(FormatLabelMixin, forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = [
+            'interest_in_event_description', 'is_in_contact_with_tcp', 'tcp_name', 'tcp_email',
+            'tcp_mobile_number', 'is_intending_to_exhibit_as_tcp_stand', 'stand_trade_name',
+            'trade_show_experience_description', 'additional_guidance'
+        ]
+
+    interest_in_event_description = MaxAllowedCharField(
+        label=_('Why are you particularly interested in <strong>{event_name}</strong>?'),
+        max_length=2000,
+        widget=widgets.CharacterCountTextArea(
+            attrs={
+                'class': 'govuk-textarea govuk-js-character-count',
+                'rows': 7,
+                'counter': 2000
+            }
+        )
+    )
+    is_in_contact_with_tcp = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_('Are you in contact with a Trade Challenge Partner (TCP) about this event?')
+    )
+    tcp_name = forms.CharField(
+        required=False,
+        empty_value=None,
+        label=_('TCP contact name'),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+        )
+    )
+    tcp_email = forms.CharField(
+        required=False,
+        empty_value=None,
+        label=_('TCP email address'),
+        widget=forms.TextInput(
+            attrs={
+                'class': 'govuk-input govuk-!-width-two-thirds',
+                'type': 'email',
+            }
+        )
+    )
+    tcp_mobile_number = PhoneNumberField(
+        required=False,
+        empty_value=None,
+        label=_('TCP mobile number'),
+        region='GB',
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input govuk-input--width-10'}
+        )
+    )
+    is_intending_to_exhibit_as_tcp_stand = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_('Are you intending to exhibit as part of a TCP organised stand?')
+    )
+    stand_trade_name = forms.CharField(
+        label=_('Are you intending to exhibit as part of a TCP organised stand?'),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input'}
+        )
+    )
+    trade_show_experience_description = MaxAllowedCharField(
+        label=_(
+            'What experience do you have of trade shows and how have they benefited your business?'
+        ),
+        max_length=2000,
+        widget=widgets.CharacterCountTextArea(
+            attrs={
+                'class': 'govuk-textarea govuk-js-character-count',
+                'rows': 7,
+                'counter': 2000
+            }
+        )
+    )
+    additional_guidance = MaxAllowedCharField(
+        label=_(
+            'In addition to the financial support, are there particular areas where you would like'
+            ' guidance and help either before, during or after the event? '
+        ),
+        max_length=2000,
+        widget=widgets.CharacterCountTextArea(
+            attrs={
+                'class': 'govuk-textarea govuk-js-character-count',
+                'rows': 7,
+                'counter': 2000
+            }
+        )
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_in_contact_with_tcp = cleaned_data.get('is_in_contact_with_tcp')
+        tcp_name = cleaned_data.get('tcp_name')
+        tcp_email = cleaned_data.get('tcp_email')
+        tcp_mobile_number = cleaned_data.get('tcp_mobile_number')
+
+        if is_in_contact_with_tcp is True:
+            if not tcp_name and 'tcp_name' not in self.errors:
+                self.add_error('tcp_name', forms.ValidationError(FORM_MSGS['required']))
+            if not tcp_email and 'tcp_email' not in self.errors:
+                self.add_error('tcp_email', forms.ValidationError(FORM_MSGS['required']))
+            if not tcp_mobile_number and 'tcp_mobile_number' not in self.errors:
+                self.add_error('tcp_mobile_number', forms.ValidationError(FORM_MSGS['required']))
+        elif is_in_contact_with_tcp is False:
+            cleaned_data['tcp_name'] = None
+            cleaned_data['tcp_email'] = None
+            cleaned_data['tcp_mobile_number'] = None
+
+        if 'tcp_mobile_number' in cleaned_data and cleaned_data['tcp_mobile_number']:
+            cleaned_data['tcp_mobile_number'] = cleaned_data['tcp_mobile_number'].as_e164
+
+        return cleaned_data
 
 
 class StateAidForm(forms.ModelForm):

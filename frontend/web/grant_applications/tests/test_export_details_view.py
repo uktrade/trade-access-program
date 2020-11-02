@@ -29,7 +29,7 @@ class TestExportDetailsView(BaseTestCase):
                 'has_exported_in_last_12_months': True,
                 'export_regions': ['africa', 'north america'],
                 'markets_intending_on_exporting_to': ['existing', 'new'],
-                'in_contact_with_dit_trade_advisor': True,
+                'is_in_contact_with_dit_trade_advisor': True,
                 'export_experience_description': 'A description',
                 'export_strategy': 'A strategy'
             }
@@ -40,7 +40,7 @@ class TestExportDetailsView(BaseTestCase):
             has_exported_in_last_12_months=True,
             export_regions=['africa', 'north america'],
             markets_intending_on_exporting_to=['existing', 'new'],
-            in_contact_with_dit_trade_advisor=True,
+            is_in_contact_with_dit_trade_advisor=True,
             export_experience_description='A description',
             export_strategy='A strategy'
         )
@@ -52,7 +52,7 @@ class TestExportDetailsView(BaseTestCase):
         self.assertFormError(response, 'form', 'has_exported_in_last_12_months', msg)
         self.assertFormError(response, 'form', 'export_regions', msg)
         self.assertFormError(response, 'form', 'markets_intending_on_exporting_to', msg)
-        self.assertFormError(response, 'form', 'in_contact_with_dit_trade_advisor', msg)
+        self.assertFormError(response, 'form', 'is_in_contact_with_dit_trade_advisor', msg)
         self.assertFormError(response, 'form', 'export_experience_description', msg)
         self.assertFormError(response, 'form', 'export_strategy', msg)
 

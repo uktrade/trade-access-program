@@ -5,8 +5,7 @@ from django.utils.datetime_safe import date
 
 from web.grant_applications.services import BackofficeServiceException, BackofficeService
 from web.grant_applications.views import (
-    EventIntentionView, StateAidView, ApplicationReviewView, EligibilityReviewView,
-    EligibilityConfirmationView
+    StateAidView, ApplicationReviewView, EligibilityReviewView, EligibilityConfirmationView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
@@ -94,60 +93,6 @@ class TestEligibilityConfirmationView(BaseTestCase):
             response,
             expected_url=reverse(EligibilityConfirmationView.success_url_name, args=(self.gal.pk,))
         )
-
-
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(
-    BackofficeService, 'list_sectors',
-    return_value=[{'id': 1, 'full_name': 'full-name-1'}, {'id': 2, 'full_name': 'full-name-2'}]
-)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestEventIntentionView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:event-intention', kwargs={'pk': self.gal.pk})
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, EventIntentionView.template_name)
-
-    def test_post(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data={
-                'is_first_exhibit_at_event': False,
-                'number_of_times_exhibited_at_event': 1,
-            }
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            is_first_exhibit_at_event=False,
-            number_of_times_exhibited_at_event=1
-        )
-
-    def test_true_is_first_exhibit_at_event_makes_number_of_times_exhibited_optional(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data={
-                'is_first_exhibit_at_event': True,
-            }
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            is_first_exhibit_at_event=True,
-            number_of_times_exhibited_at_event=None
-        )
-
-    def test_false_is_first_exhibit_at_event_makes_number_of_times_exhibited_required(self, *mocks):
-        response = self.client.post(self.url, data={'is_first_exhibit_at_event': False})
-        self.assertFormError(
-            response, 'form', 'number_of_times_exhibited_at_event', self.form_msgs['required']
-        )
-        mocks[0].assert_not_called()
 
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
