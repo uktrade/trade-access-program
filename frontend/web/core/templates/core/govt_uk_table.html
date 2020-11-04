@@ -1,4 +1,6 @@
-<table class="govuk-table govuk-!-width-two-thirds">
+<table class="{{ class|default:'govuk-table' }}" id="id_table">
+  {% for col in table.cols %}<col {{ col }} >{% endfor %}
+
   {% if table.caption %}
   <caption class="govuk-table__caption">{{ table.caption }}</caption>
   {% endif %}
@@ -16,8 +18,14 @@
   {% for row in table.rows %}
   <tbody class="govuk-table__body">
     <tr class="govuk-table__row">
-      <th scope="row" class="govuk-table__header">{{ row.label }}</th>
-      <td class="govuk-table__cell">{{ row.value }}</td>
+      {% if row.header %}
+      <th scope="row" class="govuk-table__header">{{ row.header }}</th>
+      {% endif %}
+      {% for cell in row %}
+      <td class="govuk-table__cell" style="white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;">
+        {{ cell.text|default:cell|safe }}
+      </td>
+      {% endfor %}
     </tr>
   </tbody>
   {% endfor %}

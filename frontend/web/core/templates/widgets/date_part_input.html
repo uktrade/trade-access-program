@@ -1,0 +1,6 @@
+<div class="govuk-date-input__item">
+  <div class="govuk-form-group">
+    {% if widget.attrs.label %}<label class="govuk-label govuk-date-input__label" for="{{ widget.attrs.id }}">{{ widget.attrs.label }}</label>{% endif %}
+    {% include 'django/forms/widgets/number.html' %}
+  </div>
+</div>

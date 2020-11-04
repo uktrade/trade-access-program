@@ -1,11 +1,10 @@
 from unittest.mock import patch
 
 from django.urls import reverse, resolve
-from django.utils.datetime_safe import date
 
 from web.grant_applications.services import BackofficeServiceException, BackofficeService
 from web.grant_applications.views import (
-    StateAidView, ApplicationReviewView, EligibilityReviewView, EligibilityConfirmationView
+    ApplicationReviewView, EligibilityReviewView, EligibilityConfirmationView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
@@ -93,80 +92,6 @@ class TestEligibilityConfirmationView(BaseTestCase):
             response,
             expected_url=reverse(EligibilityConfirmationView.success_url_name, args=(self.gal.pk,))
         )
-
-
-@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestStateAidView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:state-aid', kwargs={'pk': self.gal.pk})
-
-    def test_get(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, StateAidView.template_name)
-
-    def test_post(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data={
-                'has_received_de_minimis_aid': True,
-                'de_minimis_aid_public_authority': 'An authority',
-                'de_minimis_aid_date_awarded': date(2020, 6, 20),
-                'de_minimis_aid_amount': 2000,
-                'de_minimis_aid_description': 'A description',
-                'de_minimis_aid_recipient': 'A recipient',
-                'de_minimis_aid_date_received': date(2020, 6, 25),
-            }
-        )
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            has_received_de_minimis_aid=True,
-            de_minimis_aid_public_authority='An authority',
-            de_minimis_aid_date_awarded=date(2020, 6, 20),
-            de_minimis_aid_amount=2000,
-            de_minimis_aid_description='A description',
-            de_minimis_aid_recipient='A recipient',
-            de_minimis_aid_date_received=date(2020, 6, 25)
-        )
-
-    def test_post_no_aid(self, *mocks):
-        response = self.client.post(self.url, data={'has_received_de_minimis_aid': False})
-        self.assertEqual(response.status_code, 302)
-        mocks[0].assert_called_once_with(
-            grant_application_id=str(self.gal.backoffice_grant_application_id),
-            has_received_de_minimis_aid=False,
-            de_minimis_aid_public_authority=None,
-            de_minimis_aid_date_awarded=None,
-            de_minimis_aid_amount=None,
-            de_minimis_aid_description=None,
-            de_minimis_aid_recipient=None,
-            de_minimis_aid_date_received=None
-        )
-
-    def test_required_fields_when_aid_is_selected(self, *mocks):
-        response = self.client.post(self.url, data={'has_received_de_minimis_aid': True})
-        self.assertEqual(response.status_code, 200)
-        msg = self.form_msgs['required']
-        self.assertFormError(response, 'form', 'de_minimis_aid_public_authority', msg)
-        self.assertFormError(response, 'form', 'de_minimis_aid_date_awarded', msg)
-        self.assertFormError(response, 'form', 'de_minimis_aid_amount', msg)
-        self.assertFormError(response, 'form', 'de_minimis_aid_description', msg)
-        self.assertFormError(response, 'form', 'de_minimis_aid_recipient', msg)
-        self.assertFormError(response, 'form', 'de_minimis_aid_date_received', msg)
-
-    def test_aid_amount_is_integer(self, *mocks):
-        response = self.client.post(
-            self.url,
-            data={
-                'has_received_de_minimis_aid': True,
-                'de_minimis_aid_amount': 'bad-value',
-            }
-        )
-        self.assertFormError(response, 'form', 'de_minimis_aid_amount', 'Enter a whole number.')
 
 
 @patch.object(

@@ -1,0 +1,9 @@
+<div class="govuk-form-group">
+  <fieldset class="govuk-fieldset" role="group" aria-describedby="{{ widget.attrs.id }}-hint">
+    <div class="govuk-date-input" id="{{ widget.attrs.id }}">
+      {% for subwidget in widget.subwidgets %}
+      {% include subwidget.template_name with widget=subwidget %}
+      {% endfor %}
+    </div>
+  </fieldset>
+</div>

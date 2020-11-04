@@ -11,7 +11,7 @@ from web.grant_applications.services import (
 )
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_SEARCH_COMPANIES, FAKE_COMPANY,
-    FAKE_SECTOR, FAKE_EVENT, FAKE_TRADE_EVENT_AGGREGATES
+    FAKE_SECTOR, FAKE_EVENT, FAKE_TRADE_EVENT_AGGREGATES, FAKE_STATE_AID
 )
 from web.tests.helpers.testcases import BaseTestCase, LogCaptureMixin
 
@@ -26,6 +26,14 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
         # Fake backoffice grant application object
         cls.bga = FAKE_GRANT_APPLICATION
         cls.bga_response_body = json.dumps(cls.bga)
+
+        # Fake backoffice state aid object
+        cls.bsa = FAKE_STATE_AID
+        cls.bsa_response_body = json.dumps(cls.bsa)
+
+        # Fake backoffice list state aid object
+        cls.lsa = [FAKE_STATE_AID]
+        cls.lsa_response_body = json.dumps(cls.lsa)
 
         # Fake backoffice grant management process object
         cls.gmp = FAKE_GRANT_MANAGEMENT_PROCESS
@@ -174,6 +182,73 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
         request = httpretty.last_request()
         self.assertEqual(bga['id'], self.bga['id'])
         self.assertEqual(request.method, 'GET')
+
+    @httpretty.activate
+    def test_create_state_aid(self):
+        httpretty.register_uri(
+            httpretty.POST,
+            self.service.state_aid_url,
+            status=201,
+            body=self.bsa_response_body
+        )
+        bsa = self.service.create_state_aid(**FAKE_STATE_AID)
+        self.assertEqual(bsa['id'], self.bsa['id'])
+
+        requests = httpretty.latest_requests()
+        self.assertEqual(len(requests), 1)
+        self.assertEqual(requests[0].method, 'POST')
+        self.assertDictEqual(requests[0].parsed_body, FAKE_STATE_AID)
+
+    @httpretty.activate
+    def test_update_state_aid(self):
+        httpretty.register_uri(
+            httpretty.PATCH,
+            urljoin(self.service.state_aid_url, f'{self.bsa["id"]}/'),
+            status=200,
+            body=self.bsa_response_body,
+            match_querystring=False
+        )
+        self.service.update_state_aid(self.bsa['id'], amount=1000)
+        request = httpretty.last_request()
+        self.assertEqual(request.method, 'PATCH')
+        self.assertEqual(request.parsed_body, {'amount': 1000})
+
+    @httpretty.activate
+    def test_delete_state_aid(self):
+        httpretty.register_uri(
+            httpretty.DELETE,
+            urljoin(self.service.state_aid_url, f'{self.bsa["id"]}/'),
+            status=204
+        )
+        self.service.delete_state_aid(self.bsa['id'])
+        request = httpretty.last_request()
+        self.assertEqual(request.method, 'DELETE')
+
+    @httpretty.activate
+    def test_get_state_aid(self):
+        httpretty.register_uri(
+            httpretty.GET,
+            urljoin(self.service.state_aid_url, f'{self.bsa["id"]}/'),
+            status=200,
+            body=self.bsa_response_body,
+            match_querystring=False
+        )
+        bsa = self.service.get_state_aid(self.bsa['id'])
+        request = httpretty.last_request()
+        self.assertEqual(bsa['id'], self.bsa['id'])
+        self.assertEqual(request.method, 'GET')
+
+    @httpretty.activate
+    def test_list_state_aids(self):
+        httpretty.register_uri(
+            httpretty.GET,
+            self.service.state_aid_url,
+            status=200,
+            body=self.lsa_response_body,
+            match_querystring=False
+        )
+        lsa = self.service.list_state_aids()
+        self.assertEqual(lsa, self.lsa)
 
     @httpretty.activate
     def test_get_grant_application_flattens_response_data(self):

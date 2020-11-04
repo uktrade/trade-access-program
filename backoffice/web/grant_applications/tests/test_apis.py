@@ -1,14 +1,15 @@
 from unittest.mock import patch
 
 from django.urls import reverse
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
-from web.grant_applications.models import GrantApplication
+from web.grant_applications.models import GrantApplication, StateAid
 from web.grant_management.models import GrantManagementProcess
 from web.tests.factories.companies import CompanyFactory
 from web.tests.factories.events import EventFactory
 from web.tests.factories.grant_applications import GrantApplicationFactory
 from web.tests.factories.grant_management import GrantManagementProcessFactory
+from web.tests.factories.state_aid import StateAidFactory
 from web.tests.helpers import BaseAPITestCase
 
 
@@ -25,8 +26,22 @@ class GrantApplicationsApiTests(BaseAPITestCase):
             response,
             data_contains={
                 'id': ga.id_str,
+                'previous_applications': ga.previous_applications,
+                'event': {
+                    'id': ga.event.id_str,
+                    'city': ga.event.city,
+                    'country': ga.event.country,
+                    'name': ga.event.name,
+                    'show_type': ga.event.show_type,
+                    'start_date': str(ga.event.start_date),
+                    'end_date': str(ga.event.end_date),
+                    'sector': ga.event.sector,
+                    'sub_sector': ga.event.sub_sector,
+                    'tcp': ga.event.tcp,
+                    'tcp_website': ga.event.tcp_website,
+                },
+                'is_already_committed_to_event': ga.is_already_committed_to_event,
                 'search_term': ga.search_term,
-                'is_turnover_greater_than': ga.is_turnover_greater_than,
                 'company': {
                     'id': ga.company.id_str,
                     'duns_number': ga.company.duns_number,
@@ -42,41 +57,25 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                     'previous_applications': 0,
                     'applications_in_review': 0,
                 },
+                'number_of_employees': ga.number_of_employees,
+                'is_turnover_greater_than': ga.is_turnover_greater_than,
                 'applicant_full_name': ga.applicant_full_name,
                 'applicant_email': ga.applicant_email,
                 'applicant_mobile_number': ga.applicant_mobile_number,
                 'job_title': ga.job_title,
-                'event': {
-                    'id': ga.event.id_str,
-                    'city': ga.event.city,
-                    'country': ga.event.country,
-                    'name': ga.event.name,
-                    'show_type': ga.event.show_type,
-                    'start_date': str(ga.event.start_date),
-                    'end_date': str(ga.event.end_date),
-                    'sector': ga.event.sector,
-                    'sub_sector': ga.event.sub_sector,
-                    'tcp': ga.event.tcp,
-                    'tcp_website': ga.event.tcp_website,
-                 },
-                'is_already_committed_to_event': ga.is_already_committed_to_event,
-                'previous_applications': ga.previous_applications,
-                'products_and_services_description': ga.products_and_services_description,
-                'products_and_services_competitors': ga.products_and_services_competitors,
-                'business_name_at_exhibit': ga.business_name_at_exhibit,
-                'other_business_names': ga.other_business_names,
                 'previous_years_turnover_1': str(ga.previous_years_turnover_1),
                 'previous_years_turnover_2': str(ga.previous_years_turnover_2),
                 'previous_years_turnover_3': str(ga.previous_years_turnover_3),
                 'previous_years_export_turnover_1': str(ga.previous_years_export_turnover_1),
                 'previous_years_export_turnover_2': str(ga.previous_years_export_turnover_2),
                 'previous_years_export_turnover_3': str(ga.previous_years_export_turnover_3),
-                'number_of_employees': ga.number_of_employees,
                 'sector': {
                     'id': ga.sector.id_str,
                     'full_name': ga.sector.full_name,
                 },
-                'website': ga.website,
+                'other_business_names': ga.other_business_names,
+                'products_and_services_description': ga.products_and_services_description,
+                'products_and_services_competitors': ga.products_and_services_competitors,
                 'has_exported_before': ga.has_exported_before,
                 'has_product_or_service_for_export': ga.has_product_or_service_for_export,
                 'has_exported_in_last_12_months': ga.has_exported_in_last_12_months,
@@ -94,12 +93,6 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                 'stand_trade_name': ga.stand_trade_name,
                 'trade_show_experience_description': ga.trade_show_experience_description,
                 'additional_guidance': ga.additional_guidance,
-                'de_minimis_aid_public_authority': ga.de_minimis_aid_public_authority,
-                'de_minimis_aid_date_awarded': str(ga.de_minimis_aid_date_awarded.date()),
-                'de_minimis_aid_amount': ga.de_minimis_aid_amount,
-                'de_minimis_aid_description': ga.de_minimis_aid_description,
-                'de_minimis_aid_recipient': ga.de_minimis_aid_recipient,
-                'de_minimis_aid_date_received': str(ga.de_minimis_aid_date_received.date()),
                 'application_summary': ga.application_summary,
             }
         )
@@ -149,47 +142,10 @@ class GrantApplicationsApiTests(BaseAPITestCase):
         self.assertEqual(response.status_code, HTTP_201_CREATED, msg=response.data)
         self.assert_response_data_contains(response, data_contains={'search_term': 'company-1'})
 
-    def test_on_create_all_optional_fields_are_none(self, *mocks):
+    def test_on_create_all_fields_are_optional(self, *mocks):
         path = reverse('grant-applications:grant-applications-list')
-        response = self.client.post(path, data={'search_term': 'company-1'})
+        response = self.client.post(path)
         self.assertEqual(response.status_code, HTTP_201_CREATED, msg=response.data)
-        self.assert_response_data_contains(
-            response,
-            data_contains={
-                'search_term': 'company-1',
-                'is_turnover_greater_than': None,
-                'company': None,
-                'applicant_full_name': None,
-                'applicant_email': None,
-                'applicant_mobile_number': None,
-                'job_title': None,
-                'event': None,
-                'is_already_committed_to_event': None,
-                'previous_applications': None,
-                'products_and_services_description': None,
-                'products_and_services_competitors': None,
-                'business_name_at_exhibit': None,
-                'other_business_names': None,
-                'previous_years_turnover_1': None,
-                'previous_years_turnover_2': None,
-                'previous_years_turnover_3': None,
-                'previous_years_export_turnover_1': None,
-                'previous_years_export_turnover_2': None,
-                'previous_years_export_turnover_3': None,
-                'number_of_employees': None,
-                'sector': None,
-                'website': None,
-                'has_exported_before': None,
-                'has_product_or_service_for_export': None,
-                'de_minimis_aid_public_authority': None,
-                'de_minimis_aid_date_awarded': None,
-                'de_minimis_aid_amount': None,
-                'de_minimis_aid_description': None,
-                'de_minimis_aid_recipient': None,
-                'de_minimis_aid_date_received': None,
-                'application_summary': [],
-            }
-        )
 
     def test_new_grant_application_refreshes_dnb_company_data(self, *mocks):
         path = reverse('grant-applications:grant-applications-list')
@@ -231,3 +187,51 @@ class GrantApplicationsApiTests(BaseAPITestCase):
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(response.data['grant_management_process']['grant_application'], ga.id)
         self.assertTrue(GrantManagementProcess.objects.filter(grant_application=ga).exists())
+
+
+class StateAidApiTests(BaseAPITestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.ga = GrantApplicationFactory()
+
+    def test_get_grant_application_detail(self, *mocks):
+        state_aid = StateAidFactory(grant_application=self.ga)
+        path = reverse('grant-applications:state-aid-detail', args=(state_aid.id,))
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
+        self.assert_response_data_contains(
+            response,
+            data_contains={
+                'id': state_aid.id_str,
+                'authority': state_aid.authority,
+                'date_received': str(state_aid.date_received),
+                'amount': state_aid.amount,
+                'description': state_aid.description,
+                'grant_application': self.ga.id
+            }
+        )
+
+    def test_create_state_aid(self):
+        path = reverse('grant-applications:state-aid-list')
+        response = self.client.post(
+            path,
+            data={
+                'authority': 'authority 1',
+                'date_received': '2020-10-01',
+                'amount': 1000,
+                'description': 'A description',
+                'grant_application': self.ga.id_str
+            }
+        )
+        self.assertEqual(response.status_code, HTTP_201_CREATED, msg=response.data)
+        self.assertTrue(StateAid.objects.filter(grant_application=self.ga).exists())
+
+    def test_delete_state_aid(self):
+        state_aid = StateAidFactory(grant_application=self.ga)
+        self.assertTrue(StateAid.objects.filter(grant_application=self.ga).exists())
+
+        path = reverse('grant-applications:state-aid-detail', args=(state_aid.id,))
+        response = self.client.delete(path)
+        self.assertEqual(response.status_code, HTTP_204_NO_CONTENT, msg=response.data)
+        self.assertFalse(StateAid.objects.filter(grant_application=self.ga).exists())

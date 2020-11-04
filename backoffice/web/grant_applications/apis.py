@@ -2,9 +2,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from web.grant_applications.models import GrantApplication
+from web.grant_applications.models import GrantApplication, StateAid
 from web.grant_applications.serializers import (
-    GrantApplicationReadSerializer, GrantApplicationWriteSerializer
+    GrantApplicationReadSerializer, GrantApplicationWriteSerializer, StateAidSerializer
 )
 
 
@@ -22,3 +22,9 @@ class GrantApplicationsViewSet(ModelViewSet):
         instance.send_for_review()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class StateAidViewSet(ModelViewSet):
+    queryset = StateAid.objects.all()
+    serializer_class = StateAidSerializer
+    filterset_fields = ['grant_application']

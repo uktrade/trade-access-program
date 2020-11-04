@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from bs4 import BeautifulSoup
 from django.urls import reverse
 
 from web.grant_applications.services import BackofficeService
@@ -21,6 +22,34 @@ class TestTradeEventDetailsView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, TradeEventDetailsView.template_name)
+
+    def test_back_url_export_details(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['has_exported_before'] = True
+        mocks[1].return_value = fake_grant_application
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        back_html = BeautifulSoup(response.content, 'html.parser').find(id='id_back_link')
+        self.assertEqual(
+            back_html.attrs['href'],
+            reverse('grant-applications:export-details', args=(self.gal.pk,))
+        )
+
+    def test_back_url_export_experience(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['has_exported_before'] = False
+        mocks[1].return_value = fake_grant_application
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        back_html = BeautifulSoup(response.content, 'html.parser').find(id='id_back_link')
+        self.assertEqual(
+            back_html.attrs['href'],
+            reverse('grant-applications:export-experience', args=(self.gal.pk,))
+        )
 
     def test_post(self, *mocks):
         response = self.client.post(
@@ -101,7 +130,9 @@ class TestTradeEventDetailsView(BaseTestCase):
             tcp_mobile_number=None,
         )
         self.assertRedirects(
-            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
+            response,
+            reverse('grant-applications:state-aid-summary', args=(self.gal.pk,)),
+            fetch_redirect_response=False
         )
 
     def test_conditionally_optional_fields_present(self, *mocks):
@@ -133,5 +164,7 @@ class TestTradeEventDetailsView(BaseTestCase):
             tcp_mobile_number=None,
         )
         self.assertRedirects(
-            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
+            response,
+            reverse('grant-applications:state-aid-summary', args=(self.gal.pk,)),
+            fetch_redirect_response=False
         )
