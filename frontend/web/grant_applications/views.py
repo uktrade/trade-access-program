@@ -8,6 +8,7 @@ from django.views.generic import CreateView, UpdateView, TemplateView, RedirectV
 from django.views.generic.detail import SingleObjectMixin
 
 from web.core.forms import FORM_MSGS
+from web.core.utils import flatten_nested_dict
 from web.core.view_mixins import (
     StaticContextMixin, SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin
 )
@@ -543,7 +544,7 @@ class EligibilityReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
     form_class = EmptyGrantApplicationLinkForm
     template_name = 'grant_applications/eligibility_review.html'
     back_url_name = 'grant-applications:company-details'
-    success_url_name = 'grant_applications:eligibility-confirmation'
+    success_url_name = 'grant_applications:application-review'
     static_context = {
         'page': {
             'heading':  _('Confirm your answers')
@@ -571,7 +572,7 @@ class EligibilityReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
 
     def previous_apps_summary_list(self):
         summary = generate_grant_application_summary(
-            grant_application=self.object,
+            application_data={},
             form_class=PreviousApplicationsView.form_class,
             form_kwargs={},
             url=reverse('grant-applications:previous-applications', args=(self.object.pk,))
@@ -609,30 +610,6 @@ class EligibilityReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
         return super().get_context_data(**kwargs)
 
 
-class EligibilityConfirmationView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                                  InitialDataMixin, BackofficeMixin, ConfirmationRedirectMixin,
-                                  UpdateView):
-    model = GrantApplicationLink
-    form_class = EmptyGrantApplicationLinkForm
-    template_name = 'grant_applications/eligibility_confirmation.html'
-    success_url_name = 'grant_applications:contact-details'
-    static_context = {
-        'page': {
-            'heading':  _('You are eligible for a TAP grant')
-        }
-    }
-
-    def get_context_data(self, **kwargs):
-        kwargs['table'] = {
-            'rows': [{
-                'label': f"Grant available for "
-                         f"{self.backoffice_grant_application['event']['name']}",
-                'value': '£1500',  # TODO: get event grant value from event data
-            }]
-        }
-        return super().get_context_data(**kwargs)
-
-
 class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
                             BackofficeMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
@@ -642,15 +619,12 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
     success_url_name = 'grant_applications:confirmation'
     static_context = {
         'page': {
-            'heading':  _('Review your application')
+            'heading':  _('Check your answers before you submit your application')
         }
     }
-    grant_application_flow = [
-        # TODO: fix grant application review items
+    sections = [
         {'view_class': PreviousApplicationsView},
-        {'view_class': FindAnEventView},
         {'view_class': SelectAnEventView, 'form_kwargs': {'trade_events': None}},
-        {'view_class': SearchCompanyView},
         {'view_class': SelectCompanyView, 'form_kwargs': {'companies': None}},
         {'view_class': ContactDetailsView},
         {'view_class': TradeEventDetailsView},
@@ -664,9 +638,19 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
 
         url = BeforeYouStartView(object=self.object).get_success_url()
 
-        for view in self.grant_application_flow:
+        for view in self.sections:
+            application_data = self.backoffice_grant_application.copy()
+            flatten_map = {
+                'event': 'event.name',
+                'sector': 'sector.full_name',
+                'duns_number': 'company.duns_number',
+                'company': 'company.name',
+            }
+            for k, m in flatten_map.items():
+                application_data[k] = flatten_nested_dict(application_data, key_path=m)
+
             summary = generate_grant_application_summary(
-                grant_application=self.object,
+                application_data=application_data,
                 form_class=view['view_class'].form_class,
                 form_kwargs=view.get('form_kwargs', {}),
                 url=url

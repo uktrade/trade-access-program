@@ -16,8 +16,8 @@ class TestUtils(BaseTestCase):
     def test_flatten_nested_dict(self):
         test_dict = {
             'outer-key': {
-                'inner-key': 'expected-value'
+                'inner-key': 'inner-value'
             }
         }
-        value = utils.flatten_nested_dict(test_dict, key_path=['outer-key', 'inner-key'])
-        self.assertEqual(value, 'expected-value')
+        value = utils.flatten_nested_dict(test_dict, key_path='outer-key.inner-key')
+        self.assertEqual(value, 'inner-value')

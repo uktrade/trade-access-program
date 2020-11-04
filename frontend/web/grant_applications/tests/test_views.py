@@ -3,9 +3,7 @@ from unittest.mock import patch
 from django.urls import reverse, resolve
 
 from web.grant_applications.services import BackofficeServiceException, BackofficeService
-from web.grant_applications.views import (
-    ApplicationReviewView, EligibilityReviewView, EligibilityConfirmationView
-)
+from web.grant_applications.views import ApplicationReviewView, EligibilityReviewView
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
     FAKE_GRANT_APPLICATION, FAKE_GRANT_MANAGEMENT_PROCESS,
@@ -59,44 +57,12 @@ class TestEligibilityReviewView(BaseTestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
             response,
-            expected_url=reverse(EligibilityReviewView.success_url_name, args=(self.gal.pk,))
+            expected_url=reverse(EligibilityReviewView.success_url_name, args=(self.gal.pk,)),
+            fetch_redirect_response=False
         )
 
 
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-@patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
-class TestEligibilityConfirmationView(BaseTestCase):
-
-    def setUp(self):
-        self.gal = GrantApplicationLinkFactory()
-        self.url = reverse('grant-applications:eligibility-confirmation', args=(self.gal.pk,))
-
-    def test_get_template(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, EligibilityConfirmationView.template_name)
-
-    def test_table_context(self, *mocks):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('table', response.context_data)
-
-    def test_post(self, *mocks):
-        self.client.post(self.url)
-        mocks[0].assert_not_called()
-
-    def test_post_redirects(self, *mocks):
-        response = self.client.post(self.url)
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(
-            response,
-            expected_url=reverse(EligibilityConfirmationView.success_url_name, args=(self.gal.pk,))
-        )
-
-
-@patch.object(
-    BackofficeService, 'get_grant_application', return_value=FAKE_FLATTENED_GRANT_APPLICATION
-)
 @patch.object(
     BackofficeService, 'send_grant_application_for_review',
     return_value=FAKE_GRANT_MANAGEMENT_PROCESS
