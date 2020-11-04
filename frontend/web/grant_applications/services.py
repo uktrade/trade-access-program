@@ -13,8 +13,6 @@ from django.utils.dateparse import parse_date
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
-from web.core.utils import flatten_nested_dict
-
 logger = logging.getLogger(__name__)
 
 
@@ -115,14 +113,10 @@ class BackofficeService:
         response = self.patch(url, data)
         return response.json()
 
-    def get_grant_application(self, grant_application_id, flatten_map=None):
-        flatten_map = flatten_map or {}
+    def get_grant_application(self, grant_application_id):
         url = urljoin(self.grant_applications_url, f'{grant_application_id}/')
         response = self.session.get(url)
-        out = response.json()
-        for k, m in flatten_map.items():
-            out[k] = flatten_nested_dict(out, key_path=m.split('.'))
-        return out
+        return response.json()
 
     def send_grant_application_for_review(self, grant_application_id, application_summary):
         response = self.session.post(
@@ -292,24 +286,15 @@ def _serialize_field(value):
     return value
 
 
-def generate_grant_application_summary(grant_application, form_class, form_kwargs, url=None):
-    form_data = BackofficeService().get_grant_application(
-        str(grant_application.backoffice_grant_application_id),
-        flatten_map={
-            'event': 'event.name',
-            'sector': 'sector.full_name',
-            'duns_number': 'company.duns_number',
-            'company': 'company.name',
-        }
-    )
-    data_form = form_class(data=form_data, **form_kwargs)
+def generate_grant_application_summary(application_data, form_class, form_kwargs, url=None):
+    data_form = form_class(data=application_data, **form_kwargs)
 
     summary = []
 
     for field_name in data_form.fields:
         row = {
             'key': str(data_form[field_name].label),
-            'value': _serialize_field(form_data.get(field_name)) or 'Not Applicable',
+            'value': _serialize_field(application_data.get(field_name)) or 'Not Applicable',
         }
         if url:
             row['action'] = {

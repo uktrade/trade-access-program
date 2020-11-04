@@ -251,46 +251,6 @@ class TestBackofficeService(LogCaptureMixin, BaseTestCase):
         self.assertEqual(lsa, self.lsa)
 
     @httpretty.activate
-    def test_get_grant_application_flattens_response_data(self):
-        httpretty.register_uri(
-            httpretty.GET,
-            urljoin(self.service.grant_applications_url, f'{self.bga["id"]}/'),
-            status=200,
-            body=self.bga_response_body,
-            match_querystring=False
-        )
-        bga = self.service.get_grant_application(
-            self.bga['id'],
-            flatten_map={
-                'event': 'event.name',
-                'company': 'company.duns_number',
-                'sector': 'sector.id',
-            }
-        )
-        self.assertNotEqual(bga, FAKE_GRANT_APPLICATION)
-        self.assertEqual(bga['event'], FAKE_GRANT_APPLICATION['event']['name'])
-        self.assertEqual(bga['company'], FAKE_GRANT_APPLICATION['company']['duns_number'])
-        self.assertEqual(bga['sector'], FAKE_GRANT_APPLICATION['sector']['id'])
-
-    @httpretty.activate
-    def test_get_grant_application_flattens_response_data_create_new_key(self):
-        httpretty.register_uri(
-            httpretty.GET,
-            urljoin(self.service.grant_applications_url, f'{self.bga["id"]}/'),
-            status=200,
-            body=self.bga_response_body,
-            match_querystring=False
-        )
-        bga = self.service.get_grant_application(
-            self.bga['id'],
-            flatten_map={
-                'new-key': 'event.name',
-            }
-        )
-        self.assertEqual(bga['new-key'], FAKE_GRANT_APPLICATION['event']['name'])
-        self.assertDictEqual(bga['event'], FAKE_GRANT_APPLICATION['event'])
-
-    @httpretty.activate
     def test_send_grant_application_for_review(self):
         httpretty.register_uri(
             httpretty.POST,
