@@ -7,7 +7,7 @@ from web.grant_applications.views import (
     ApplicationReviewView, ConfirmationView, EligibilityReviewView, FindAnEventView,
     BeforeYouStartView, EventCommitmentView, CompanyDetailsView, ExportDetailsView,
     TradeEventDetailsView, AddStateAidView, EditStateAidView, DeleteStateAidView,
-    DuplicateStateAidView
+    DuplicateStateAidView, ManualCompanyDetailsView
 )
 
 app_name = 'grant_applications'
@@ -27,7 +27,7 @@ urlpatterns = [
     path('<pk>/select-company/', SelectCompanyView.as_view(), name='select-company'),
     path(
         '<pk>/manual-company-details/',
-        TemplateView.as_view(template_name='core/404.html'),  # TODO
+        ManualCompanyDetailsView.as_view(),
         name='manual-company-details'
     ),
     path('<pk>/company-details/', CompanyDetailsView.as_view(), name='company-details'),

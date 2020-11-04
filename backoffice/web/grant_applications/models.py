@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models import PROTECT
 from django.utils.translation import gettext_lazy as _
@@ -42,6 +42,18 @@ class GrantApplication(BaseMetaModel):
         Existing = 'existing', 'existing markets'
         New = 'new', 'new markets not exported to in the last 12 months'
 
+    class CompanyType(models.TextChoices):
+        LIMITED_COMPANY = 'limited company', _('Limited company')
+        PARTNERSHIP = 'partnership', _('Partnership')
+        SOLE_TRADER = 'sole trader', _('Sole trader')
+        OTHER = 'other', _('Other e.g. charity, university, publicly funded body')
+
+    class TimeTradingInUk(models.TextChoices):
+        LESS_THAN_1_YEAR = 'less than 1 year', _('Less than 1 year')
+        TWO_TO_FIVE_YEARS = '2 to 5 years', _('2 to 5 years')
+        SIX_TO_TEN_YEARS = '6 to 10 years', _('6 to 10 years')
+        MORE_THAN_10_YEARS = 'more than 10 years', _('More than 10 years')
+
     previous_applications = models.IntegerField(
         null=True, validators=[MinValueValidator(0), MaxValueValidator(6)]
     )
@@ -49,6 +61,18 @@ class GrantApplication(BaseMetaModel):
     is_already_committed_to_event = models.BooleanField(null=True)
     search_term = models.CharField(max_length=500, null=True)
     company = models.ForeignKey('companies.Company', on_delete=PROTECT, null=True)
+    company_type = models.CharField(null=True, choices=CompanyType.choices, max_length=20)
+    company_name = models.CharField(null=True, max_length=500)
+    company_postcode = models.CharField(null=True, max_length=10)
+    time_trading_in_uk = models.CharField(null=True, choices=TimeTradingInUk.choices, max_length=20)
+    manual_registration_number = models.CharField(
+        null=True, validators=[RegexValidator(regex=r'(SC|NI|[0-9]{2})[0-9]{6}')], max_length=10
+    )
+    manual_vat_number = models.CharField(
+        null=True, max_length=10,
+        validators=[RegexValidator(regex=r'([0-9]{9}([0-9]{3})?|[A-Z]{2}[0-9]{3})')]
+    )
+    website = models.URLField(null=True, max_length=500)
     number_of_employees = models.CharField(
         null=True, choices=NumberOfEmployees.choices, max_length=20
     )

@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from bs4 import BeautifulSoup
 from django.urls import reverse
 
 from web.grant_applications.forms import CompanyDetailsForm
@@ -26,6 +27,29 @@ class TestCompanyDetailsView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, CompanyDetailsView.template_name)
+
+    def test_back_url_select_company(self, *mocks):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        back_html = BeautifulSoup(response.content, 'html.parser').find(id='id_back_link')
+        self.assertEqual(
+            back_html.attrs['href'],
+            reverse('grant-applications:select-company', args=(self.gal.pk,))
+        )
+
+    def test_back_url_manual_company_details(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['company'] = None
+        mocks[1].return_value = fake_grant_application
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        back_html = BeautifulSoup(response.content, 'html.parser').find(id='id_back_link')
+        self.assertEqual(
+            back_html.attrs['href'],
+            reverse('grant-applications:manual-company-details', args=(self.gal.pk,))
+        )
 
     def test_post(self, *mocks):
         response = self.client.post(
