@@ -7,19 +7,18 @@
     <div class="govuk-grid-row">
       <div class="govuk-grid-column-two-thirds">
         <div class="govuk-panel govuk-panel--confirmation">
-          <h1 class="govuk-panel__title">{{ page.panel_title }}</h1>
+          <h1 class="govuk-panel__title">Application complete</h1>
           <div class="govuk-panel__body">
-            {{ page.panel_ref_text }}<br><strong>{{ view.kwargs.pk }}</strong>
+            Your reference number<br><strong>{{ pk }}</strong>
           </div>
         </div>
 
-        <p class="govuk-body">{{ page.confirmation_email_text }}</p>
+        <p class="govuk-body">A confirmation email has been sent to the address you have provided.</p>
 
-        <h2 class="govuk-heading-m">{{ page.next_steps_heading }}</h2>
+        <h2 class="govuk-heading-m">What happens next</h2>
 
-        <p class="govuk-body">{{ page.next_steps_line_1 }}</p>
-        <p class="govuk-body">{{ page.next_steps_line_2 }}</p>
-
+        <p class="govuk-body">We've sent your application to the Trade Access Program team.</p>
+        <p class="govuk-body">They will contact you using the details you’ve provided to confirm whether your application has been successful or to ask you for any further information.</p>
       </div>
     </div>
   </main>
