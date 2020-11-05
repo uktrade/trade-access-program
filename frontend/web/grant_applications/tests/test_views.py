@@ -6,12 +6,12 @@ from web.grant_applications.services import BackofficeServiceException, Backoffi
 from web.grant_applications.views import ApplicationReviewView, EligibilityReviewView
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
-    FAKE_GRANT_APPLICATION, FAKE_GRANT_MANAGEMENT_PROCESS,
-    FAKE_FLATTENED_GRANT_APPLICATION, FAKE_EVENT, FAKE_SEARCH_COMPANIES
+    FAKE_GRANT_APPLICATION, FAKE_GRANT_MANAGEMENT_PROCESS, FAKE_EVENT, FAKE_SEARCH_COMPANIES
 )
 from web.tests.helpers.testcases import BaseTestCase
 
 
+@patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
 @patch.object(BackofficeService, 'update_grant_application', return_value=FAKE_GRANT_APPLICATION)
 class TestEligibilityReviewView(BaseTestCase):
 
@@ -19,39 +19,16 @@ class TestEligibilityReviewView(BaseTestCase):
         self.gal = GrantApplicationLinkFactory()
         self.url = reverse('grant-applications:eligibility-review', args=(self.gal.pk,))
 
-    @patch.object(
-        BackofficeService, 'get_grant_application',
-        side_effect=[
-            FAKE_GRANT_APPLICATION, FAKE_FLATTENED_GRANT_APPLICATION,
-            FAKE_FLATTENED_GRANT_APPLICATION
-        ]
-    )
     def test_get_template(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, EligibilityReviewView.template_name)
 
-    @patch.object(
-        BackofficeService, 'get_grant_application',
-        side_effect=[
-            FAKE_GRANT_APPLICATION, FAKE_FLATTENED_GRANT_APPLICATION,
-            FAKE_FLATTENED_GRANT_APPLICATION
-        ]
-    )
     def test_summary_lists(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertIn('summary_lists', response.context_data)
 
-    @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
-    def test_post(self, *mocks):
-        self.client.post(self.url)
-        mocks[1].assert_not_called()
-
-    @patch.object(
-        BackofficeService, 'get_grant_application',
-        side_effect=[FAKE_GRANT_APPLICATION, FAKE_GRANT_APPLICATION]
-    )
     def test_post_redirects(self, *mocks):
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, 302)

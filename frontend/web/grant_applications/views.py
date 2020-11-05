@@ -16,7 +16,8 @@ from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, SelectAnEventForm, PreviousApplicationsForm,
     CompanyTradingDetailsForm, ExportExperienceForm, FindAnEventForm,
     EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm, ContactDetailsForm,
-    ExportDetailsForm, TradeEventDetailsForm, AddStateAidForm, EditStateAidForm
+    ExportDetailsForm, TradeEventDetailsForm, AddStateAidForm, EditStateAidForm,
+    ManualCompanyDetailsForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -256,11 +257,8 @@ class SelectCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
         return super().form_valid(
             form,
             # Set manual company details to None in case they have previously been set
-            # TODO: do we need this
             extra_grant_application_data={
-                'is_based_in_uk': None,
-                'number_of_employees': None,
-                'is_turnover_greater_than': None,
+                f: None for f in ManualCompanyDetailsForm.Meta.fields
             }
         )
 
@@ -283,24 +281,23 @@ class SelectCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
         return super().post(request, *args, **kwargs)
 
 
-# TODO
-# class ManualCompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-#                                BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-#                                UpdateView):
-#     model = GrantApplicationLink
-#     form_class = CompanyDetailsForm
-#     template_name = 'grant_applications/company_details.html'
-#     back_url_name = 'grant-applications:select-company'
-#     success_url_name = 'grant-applications:company-details'
-#     static_context = {
-#         'page': {
-#             'heading':  _('Business details')
-#         }
-#     }
-#
-#     def form_valid(self, form):
-#         # Set company to None in case it has been set previously
-#         return super().form_valid(form, extra_grant_application_data={'company': None})
+class ManualCompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
+                               BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                               UpdateView):
+    model = GrantApplicationLink
+    form_class = ManualCompanyDetailsForm
+    template_name = 'grant_applications/manual_company_details.html'
+    back_url_name = 'grant-applications:select-company'
+    success_url_name = 'grant-applications:company-details'
+    static_context = {
+        'page': {
+            'heading':  _('Business details')
+        }
+    }
+
+    def form_valid(self, form):
+        # Set company to None in case it has been set previously
+        return super().form_valid(form, extra_grant_application_data={'company': None})
 
 
 class CompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
@@ -308,13 +305,17 @@ class CompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectP
     model = GrantApplicationLink
     form_class = CompanyDetailsForm
     template_name = 'grant_applications/company_details.html'
-    back_url_name = 'grant-applications:select-company'
     success_url_name = 'grant-applications:contact-details'
     static_context = {
         'page': {
             'heading':  _('Business size and turnover')
         }
     }
+
+    def get_back_url(self):
+        if self.backoffice_grant_application['company']:
+            return reverse('grant-applications:select-company', args=(self.object.pk,))
+        return reverse('grant-applications:manual-company-details', args=(self.object.pk,))
 
 
 class ContactDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,

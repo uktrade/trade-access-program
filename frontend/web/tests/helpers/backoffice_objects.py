@@ -29,6 +29,13 @@ FAKE_GRANT_APPLICATION = {
             }
         }
     },
+    'company_type': None,
+    'company_name': None,
+    'company_postcode': None,
+    'time_trading_in_uk': None,
+    'manual_registration_number': None,
+    'manual_vat_number': None,
+    'website': None,
     'number_of_employees': 'fewer-than-10',
     'is_turnover_greater_than': True,
     'applicant_full_name': 'A',
@@ -58,7 +65,6 @@ FAKE_GRANT_APPLICATION = {
     'export_experience_description': 'A description',
     'export_strategy': 'A strategy',
     'interest_in_event_description': 'A description',
-
     'is_in_contact_with_tcp': False,
     'tcp_name': 'A Name',
     'tcp_email': 'tcp@test.com',
@@ -73,14 +79,6 @@ FAKE_GRANT_APPLICATION = {
         'grant_application': '993c394c-dd5d-413c-bd70-1ba4f1e2b050'
     }
 }
-
-FAKE_FLATTENED_GRANT_APPLICATION = FAKE_GRANT_APPLICATION.copy()
-FAKE_FLATTENED_GRANT_APPLICATION['event'] = 'Event 1'
-FAKE_FLATTENED_GRANT_APPLICATION['company'] = 'Company 1'
-FAKE_FLATTENED_GRANT_APPLICATION['duns_number'] = 1
-FAKE_FLATTENED_GRANT_APPLICATION['sector'] = 'Sector 1'
-FAKE_FLATTENED_GRANT_APPLICATION['grant_management_process'] = \
-    '98d123ef-4218-4485-8285-c3c064f73893'
 
 FAKE_STATE_AID = {
     'id': '37a6898f-3c16-4fdf-8454-ff86c16c6454',

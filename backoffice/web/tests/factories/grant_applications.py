@@ -14,6 +14,13 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     is_already_committed_to_event = True
     search_term = factory.Sequence(lambda n: f'search_term-{n}')
     company = factory.SubFactory('web.tests.factories.companies.CompanyFactory')
+    company_type = GrantApplication.CompanyType.LIMITED_COMPANY
+    company_name = 'A Name'
+    company_postcode = 'ZZ0 1ZZ'
+    time_trading_in_uk = GrantApplication.TimeTradingInUk.TWO_TO_FIVE_YEARS
+    manual_registration_number = '012345678'
+    manual_vat_number = '012345678'
+    website = 'https://www.test.com'
     number_of_employees = GrantApplication.NumberOfEmployees.HAS_FEWER_THAN_10
     is_turnover_greater_than = True
     applicant_full_name = factory.Sequence(lambda n: f'name-{n}')

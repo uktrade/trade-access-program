@@ -12,7 +12,8 @@ from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     BackofficeService, BackofficeServiceException, get_sector_select_choices,
     get_trade_event_filter_choices, get_trade_event_filter_by_month_choices,
-    generate_company_select_options, generate_trade_event_select_options
+    generate_company_select_options, generate_trade_event_select_options,
+    validate_registration_number, validate_vat_number
 )
 
 
@@ -217,6 +218,82 @@ class SelectCompanyForm(forms.ModelForm):
             except BackofficeServiceException:
                 raise forms.ValidationError(FORM_MSGS['resubmit'])
         return cleaned_data
+
+
+class ManualCompanyDetailsForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = [
+            'company_type', 'company_name', 'company_postcode', 'time_trading_in_uk',
+            'manual_registration_number', 'manual_vat_number', 'website'
+        ]
+
+    class CompanyType(TextChoices):
+        LIMITED_COMPANY = 'limited company', _('Limited company')
+        PARTNERSHIP = 'partnership', _('Partnership')
+        SOLE_TRADER = 'sole trader', _('Sole trader')
+        OTHER = 'other', _('Other e.g. charity, university, publicly funded body')
+
+    class TimeTradingInUk(TextChoices):
+        LESS_THAN_1_YEAR = 'less than 1 year', _('Less than 1 year')
+        TWO_TO_FIVE_YEARS = '2 to 5 years', _('2 to 5 years')
+        SIX_TO_TEN_YEARS = '6 to 10 years', _('6 to 10 years')
+        MORE_THAN_10_YEARS = 'more than 10 years', _('More than 10 years')
+
+    company_type = forms.ChoiceField(
+        label=_('Please select your business type'),
+        choices=CompanyType.choices,
+        widget=widgets.RadioSelect()
+    )
+    company_name = forms.CharField(
+        label=_('Full business name'),
+        help_text=_("For example 'Your Business Limited'"),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input'}
+        )
+    )
+    company_postcode = forms.CharField(
+        label=_('Postcode'),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input govuk-input--width-10 govuk-!-display-inline'}
+        )
+    )
+    time_trading_in_uk = forms.ChoiceField(
+        label=_('How long has the business been trading in the UK?'),
+        choices=TimeTradingInUk.choices,
+        widget=widgets.RadioSelect()
+    )
+    manual_registration_number = forms.CharField(
+        required=False,
+        empty_value=None,
+        label=_('Company number'),
+        validators=[validate_registration_number],
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input govuk-input--width-10'}
+        )
+    )
+    manual_vat_number = forms.CharField(
+        required=False,
+        empty_value=None,
+        label=_('VAT number'),
+        validators=[validate_vat_number],
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input govuk-input--width-10'}
+        )
+    )
+    website = forms.URLField(
+        required=False,
+        empty_value=None,
+        label=_('Business website address'),
+        help_text=_('For example www.yourbusiness.co.uk'),
+        widget=forms.URLInput(
+            attrs={
+                'class': 'govuk-input',
+                'type': 'text'
+            }
+        )
+    )
 
 
 class CompanyDetailsForm(forms.ModelForm):

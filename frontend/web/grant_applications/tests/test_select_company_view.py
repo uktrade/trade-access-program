@@ -151,8 +151,12 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         m_update_grant_application.assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
             company=FAKE_COMPANY['id'],
-            # # Set manual company details to None in case they have previously been set
-            is_based_in_uk=None,
-            number_of_employees=None,
-            is_turnover_greater_than=None
+            # Set manual company details to None in case they have previously been set
+            company_type=None,
+            company_name=None,
+            company_postcode=None,
+            time_trading_in_uk=None,
+            manual_registration_number=None,
+            manual_vat_number=None,
+            website=None
         )

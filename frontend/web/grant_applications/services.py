@@ -7,9 +7,11 @@ from urllib.parse import urljoin, urlparse
 
 import requests
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.urls import reverse
 from django.utils.dateparse import parse_date
+from django.utils.translation import gettext_lazy as _
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
@@ -262,8 +264,22 @@ def generate_company_select_options(companies):
     return select_options
 
 
-def _looks_like_registration_number(search_term):
-    return bool(re.match('(SC|NI|[0-9]{2})[0-9]{6}', search_term))
+def _looks_like_registration_number(value):
+    return bool(re.match(r'(SC|NI|[0-9]{2})[0-9]{6}', value))
+
+
+def validate_registration_number(value, msg='Invalid registration_number.'):
+    if not _looks_like_registration_number(value):
+        raise ValidationError(_(msg))
+
+
+def _looks_like_vat_number(value):
+    return bool(re.match(r'([0-9]{9}([0-9]{3})?|[A-Z]{2}[0-9]{3})', value))
+
+
+def validate_vat_number(value, msg='Invalid vat_number.'):
+    if not _looks_like_vat_number(value):
+        raise ValidationError(_(msg))
 
 
 def get_companies_from_search_term(search_term):
