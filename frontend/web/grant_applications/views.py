@@ -696,14 +696,3 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
 
 class ConfirmationView(StaticContextMixin, TemplateView):
     template_name = 'grant_applications/confirmation.html'
-    static_context = {
-        'page': {
-            'panel_title': _('Application complete'),
-            'panel_ref_text': _('Your reference number'),
-            'confirmation_email_text': _('We have sent you a confirmation email.'),
-            'next_steps_heading': _('What happens next'),
-            'next_steps_line_1': _("We've sent your application to the Trade Access Program team."),
-            'next_steps_line_2': _('They will contact you either to confirm your registration, or '
-                                   'to ask for more information.'),
-        }
-    }
