@@ -601,13 +601,13 @@ class TradeEventDetailsForm(FormatLabelMixin, forms.ModelForm):
         )
     )
     is_intending_to_exhibit_as_tcp_stand = forms.TypedChoiceField(
+        label=_('Are you intending to exhibit as part of a TCP organised stand?'),
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_('Are you intending to exhibit as part of a TCP organised stand?')
+        widget=widgets.RadioSelect()
     )
     stand_trade_name = forms.CharField(
-        label=_('Are you intending to exhibit as part of a TCP organised stand?'),
+        label=_('What trade name will be used on your stand?'),
         widget=forms.TextInput(
             attrs={'class': 'govuk-input'}
         )
