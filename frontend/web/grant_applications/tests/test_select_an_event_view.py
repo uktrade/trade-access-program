@@ -72,12 +72,12 @@ class TestSelectAnEventView(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         mocks[0].assert_any_call(page=2, page_size=self.page_size)
 
-    def test_get_request_event_initial_is_not_backoffice_event_if_exists(self, *mocks):
+    def test_get_request_event_initial_is_backoffice_event_if_exists(self, *mocks):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')
         selected_event = soup.find(attrs={'class': 'govuk-radios__input'}, checked=True)
-        self.assertIsNone(selected_event)
+        self.assertEqual(selected_event.attrs['value'], FAKE_GRANT_APPLICATION['event']['id'])
 
     def test_get_on_list_events_backoffice_exception(self, *mocks):
         mocks[0].side_effect = BackofficeServiceException

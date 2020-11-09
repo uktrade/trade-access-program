@@ -15,6 +15,8 @@ from django.utils.translation import gettext_lazy as _
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
+from web.core.services import SummaryListHelper
+
 logger = logging.getLogger(__name__)
 
 
@@ -294,34 +296,6 @@ def get_companies_from_search_term(search_term):
     return BackofficeService().request_factory('search_companies', raise_exception=False, **params)
 
 
-def _serialize_field(value):
-    if value is True:
-        return 'Yes'
-    elif value is False:
-        return 'No'
-    return value
-
-
-def generate_grant_application_summary(application_data, form_class, form_kwargs, url=None):
-    data_form = form_class(data=application_data, **form_kwargs)
-
-    summary = []
-
-    for field_name in data_form.fields:
-        row = {
-            'key': str(data_form[field_name].label),
-            'value': _serialize_field(application_data.get(field_name)) or 'Not Applicable',
-        }
-        if url:
-            row['action'] = {
-                'text': 'Change',
-                'url': url,
-            }
-        summary.append(row)
-
-    return summary
-
-
 def get_state_aid_summary_table(grant_application_link, state_aid_items):
     if not state_aid_items:
         return {
@@ -355,3 +329,260 @@ def get_state_aid_summary_table(grant_application_link, state_aid_items):
         ])
 
     return table
+
+
+class ApplicationReviewService:
+
+    def __init__(self, grant_application_link, application_data):
+        self.grant_application_link = grant_application_link
+        self.application_data = application_data
+        self.summary_list_helper = SummaryListHelper()
+
+    @staticmethod
+    def _serialize_field(value):
+        if value is None:
+            raise ValueError()
+        elif value is True:
+            return 'Yes'
+        elif value is False:
+            return 'No'
+        return value
+
+    def _make_row(self, url, key, value=None, field_name=None):
+        if value is None:
+            value = self._serialize_field(self.application_data[field_name])
+        return self.summary_list_helper.make_row(key=str(key), value=value, url=url)
+
+    def _make_rows(self, fields, url):
+        rows = []
+
+        for field_name, field in fields.items():
+            if field_name not in self.application_data or not field.label:
+                continue
+            rows.append(self._make_row(url=url, key=field.label, field_name=field_name))
+
+        return rows
+
+    def generic_summary_list(self, heading, fields, url):
+        rows = self._make_rows(fields=fields, url=url)
+        if rows:
+            return self.summary_list_helper.make_summary_list(heading=heading, rows=rows)
+
+    def select_an_event_summary_list(self, heading, fields, url):
+        event = self.application_data['event']
+        rows = [
+            self._make_row(
+                key=fields['event'].label,
+                url=url + f"?filter_by_name={event['name']}",
+                value='\n'.join([
+                    event['name'],
+                    event['tcp'],
+                    event['sector'],
+                    event['sub_sector'],
+                    f"{event['city']}, {event['country']}",
+                    f"{event['start_date']} to {event['end_date']}",
+                ])
+            )
+        ]
+        return self.summary_list_helper.make_summary_list(heading=heading, rows=rows)
+
+    def event_commitment_summary_list(self, heading, fields, url):
+        label = fields['is_already_committed_to_event'].label.format(
+            event_name=self.application_data['event']['name']
+        )
+        fields['is_already_committed_to_event'].label = label
+        return self.generic_summary_list(heading, fields, url)
+
+    def select_company_summary_list(self, heading, fields, url):
+        company = self.application_data['company']
+
+        if company is None:
+            # User did not select a company and instead entered their details manually.
+            return
+
+        row = self._make_row(
+            url=url + f"?search_term={company['registration_number']}",
+            key='Business',
+            value='\n'.join([
+                company['name'],
+                company['registration_number'],
+                company['last_dnb_get_company_response']['company_address'],
+            ])
+        )
+        return self.summary_list_helper.make_summary_list(heading=heading, rows=[row])
+
+    def manual_company_details_summary_list(self, heading, fields, url):
+        if self.application_data['company_type'] is None:
+            # Manual company details is a conditional view. Return None if no data was entered
+            return
+        return self.generic_summary_list(heading, fields, url)
+
+    def company_trading_details_summary_list(self, heading, fields, url):
+        rows = [
+            self._make_row(
+                url=url,
+                key='Annual turnover for the last 3 fiscal years',
+                value='\n'.join([
+                    f"Last year - {self.application_data['previous_years_turnover_1']}",
+                    f"Year 2 - {self.application_data['previous_years_turnover_2']}",
+                    f"Year 3 - {self.application_data['previous_years_turnover_3']}"
+                ])
+            ),
+            self._make_row(
+                url=url,
+                key='Annual turnover generated from exports',
+                value='\n'.join([
+                    f"Last year - {self.application_data['previous_years_turnover_1']}",
+                    f"Year 2 - {self.application_data['previous_years_turnover_2']}",
+                    f"Year 3 - {self.application_data['previous_years_turnover_3']}"
+                ])
+            ),
+            self._make_row(
+                url=url,
+                key=fields['other_business_names'].label,
+                field_name='other_business_names'
+            ),
+            self._make_row(
+                url=url,
+                key=fields['sector'].label,
+                value=self.application_data['sector']['full_name']
+            ),
+            self._make_row(
+                url=url,
+                key=fields['products_and_services_description'].label,
+                field_name='products_and_services_description'
+            ),
+            self._make_row(
+                url=url,
+                key=fields['products_and_services_competitors'].label,
+                field_name='products_and_services_competitors'
+            )
+        ]
+        return self.summary_list_helper.make_summary_list(heading=heading, rows=rows)
+
+    def export_experience_summary_list(self, heading, fields, url):
+        rows = [
+            self._make_row(
+                url=url,
+                key=fields['has_exported_before'].label,
+                field_name='has_exported_before'
+            )
+        ]
+        if self.application_data['has_exported_before'] is False:
+            rows.append(
+                self._make_row(
+                    url=url,
+                    key=fields['has_product_or_service_for_export'].label,
+                    field_name='has_product_or_service_for_export'
+                )
+            )
+        return self.summary_list_helper.make_summary_list(heading=heading, rows=rows)
+
+    def export_details_summary_list(self, heading, fields, url):
+        if self.application_data['has_exported_before'] is False:
+            # Export details is a conditional view. Return None if no data was entered
+            return
+        rows = [
+            self._make_row(
+                url=url,
+                key=fields['has_exported_in_last_12_months'].label,
+                field_name='has_exported_in_last_12_months'
+            ),
+            self._make_row(
+                url=url,
+                key=fields['export_regions'].label,
+                value='\n'.join([
+                    dict(fields['export_regions'].choices)[c]
+                    for c in self.application_data['export_regions']
+                ])
+            ),
+            self._make_row(
+                url=url,
+                key=fields['markets_intending_on_exporting_to'].label,
+                value='\n'.join([
+                    dict(fields['markets_intending_on_exporting_to'].choices)[c]
+                    for c in self.application_data['markets_intending_on_exporting_to']
+                ])
+            ),
+            self._make_row(
+                url=url,
+                key=fields['is_in_contact_with_dit_trade_advisor'].label,
+                field_name='is_in_contact_with_dit_trade_advisor'
+            ),
+            self._make_row(
+                url=url,
+                key=fields['export_experience_description'].label,
+                field_name='export_experience_description'
+            ),
+            self._make_row(
+                url=url,
+                key=fields['export_strategy'].label,
+                field_name='export_strategy'
+            )
+        ]
+        return self.summary_list_helper.make_summary_list(heading=heading, rows=rows)
+
+    def trade_event_details_summary_list(self, heading, fields, url):
+        interest_in_event_description_label = fields['interest_in_event_description'].label.format(
+            event_name=self.application_data['event']['name']
+        )
+        rows = [
+            self._make_row(
+                url=url,
+                key=interest_in_event_description_label,
+                field_name='interest_in_event_description'
+            )
+        ]
+
+        if self.application_data['is_in_contact_with_tcp']:
+            rows.append(self._make_row(
+                url=url,
+                key=fields['is_in_contact_with_tcp'].label,
+                value='\n'.join([
+                    self.application_data['tcp_name'],
+                    self.application_data['tcp_email'],
+                    self.application_data['tcp_mobile_number'],
+                ])
+            ))
+        else:
+            rows.append(self._make_row(
+                url=url,
+                key=fields['is_in_contact_with_tcp'].label,
+                field_name='is_in_contact_with_tcp'
+            ))
+
+        rows += [
+            self._make_row(
+                url=url,
+                key=fields['is_intending_to_exhibit_as_tcp_stand'].label,
+                field_name='is_intending_to_exhibit_as_tcp_stand'
+            ),
+            self._make_row(
+                url=url,
+                key=fields['stand_trade_name'].label,
+                field_name='stand_trade_name'
+            ),
+            self._make_row(
+                url=url,
+                key=fields['trade_show_experience_description'].label,
+                field_name='trade_show_experience_description'
+            ),
+            self._make_row(
+                url=url,
+                key=fields['additional_guidance'].label,
+                field_name='additional_guidance'
+            ),
+        ]
+
+        return self.summary_list_helper.make_summary_list(heading=heading, rows=rows)
+
+    def state_aid_summary_summary_list(self, heading, fields, url):
+        state_aids = BackofficeService().list_state_aids(
+            grant_application=self.grant_application_link.backoffice_grant_application_id
+        )
+        row = self._make_row(
+            url=url,
+            key='Total aid added',
+            value=f"£{sum([sa['amount'] for sa in state_aids])}"
+        )
+        return self.summary_list_helper.make_summary_list(heading=heading, rows=[row])

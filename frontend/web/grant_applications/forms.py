@@ -94,7 +94,7 @@ class SelectAnEventForm(forms.ModelForm):
             'event'
         ]
 
-    def __init__(self, trade_events, *args, **kwargs):
+    def __init__(self, trade_events=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['filter_by_month'].choices = get_trade_event_filter_by_month_choices()
         self.fields['filter_by_country'].choices = get_trade_event_filter_choices('country')
@@ -179,7 +179,7 @@ class SearchCompanyForm(forms.ModelForm):
 
 class SelectCompanyForm(forms.ModelForm):
 
-    def __init__(self, companies, *args, **kwargs):
+    def __init__(self, companies=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.companies = companies
         company_options = generate_company_select_options(companies)

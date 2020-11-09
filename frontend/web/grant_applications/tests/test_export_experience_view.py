@@ -34,7 +34,14 @@ class TestExportExperienceView(BaseTestCase):
         mocks[0].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
             has_exported_before=False,
-            has_product_or_service_for_export=True
+            has_product_or_service_for_export=True,
+            # we expect this screen to clear the export details if has_exported_before is False
+            has_exported_in_last_12_months=None,
+            export_regions=None,
+            markets_intending_on_exporting_to=None,
+            is_in_contact_with_dit_trade_advisor=None,
+            export_experience_description=None,
+            export_strategy=None,
         )
 
     def test_post_redirect_to_export_details_on_true(self, *mocks):

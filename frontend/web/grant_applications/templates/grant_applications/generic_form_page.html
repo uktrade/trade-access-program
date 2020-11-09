@@ -11,8 +11,14 @@
 {% block content %}
 
 {% block headings %}
-  {% if page.caption %}<span class="govuk-caption-l">{{ page.caption }}</span>{% endif %}
-  <h2 class="govuk-heading-l">{{ page.heading|default:"Tradeshow access program" }}</h2>
+  <div class="govuk-grid-row">
+    <div class="govuk-grid-column-two-thirds">
+
+      {% if page.caption %}<span class="govuk-caption-l">{{ page.caption }}</span>{% endif %}
+      <h2 class="govuk-heading-l">{{ page.heading|default:"Tradeshow access program" }}</h2>
+
+    </div>
+  </div>
 {% endblock %}
 
 {% block forms %}

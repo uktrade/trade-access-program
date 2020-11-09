@@ -1,16 +1,18 @@
-FAKE_GRANT_APPLICATION = {
-    'id': '993c394c-dd5d-413c-bd70-1ba4f1e2b050',
-    'previous_applications': 1,
-    'event': {
-        'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg',
-        'name': 'Event 1',
-        'sector': 'Sector 1',
-        'start_date': '2020-12-12',
-        'end_date': '2020-12-14'
-    },
-    'is_already_committed_to_event': True,
-    'search_term': 'company-1',
-    'company': {
+FAKE_EVENT = {
+    'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg',
+    'name': 'Event 1',
+    'sector': 'Sector 1',
+    'sub_sector': 'Sub Sector 1',
+    'city': 'City 1',
+    'country': 'Country 1',
+    'start_date': '2020-12-12',
+    'end_date': '2020-12-14',
+    'display_name': 'Event 1 | Sector 1 | Country 1 | 2020-12-12',
+    'tcp': 'TCP 1',
+    'tcp_website': 'TCP Website 1',
+}
+
+FAKE_COMPANY = {
         'id': '0dc205e4-1f11-4a81-90a6-f7a733da055e',
         'duns_number': '1234',
         'registration_number': '5678',
@@ -28,7 +30,25 @@ FAKE_GRANT_APPLICATION = {
                 'registration_numbers': []
             }
         }
-    },
+    }
+
+FAKE_SECTOR = {
+    'id': 'e98cee83-9f4e-4ad2-8d10-7f25867b91b5',
+    'sector_code': 'SL0001',
+    'name': 'Sector 1',
+    'cluster_name': 'Sector 1 Cluster',
+    'full_name': 'Sector 1 Full Name',
+    'sub_sector_name': 'Sector 1 Sub Sector Name',
+    'sub_sub_sector_name': 'Sector 1 Sub Sub Sector Name'
+}
+
+FAKE_GRANT_APPLICATION = {
+    'id': '993c394c-dd5d-413c-bd70-1ba4f1e2b050',
+    'previous_applications': 1,
+    'event': FAKE_EVENT,
+    'is_already_committed_to_event': True,
+    'search_term': 'company-1',
+    'company': FAKE_COMPANY,
     'company_type': None,
     'company_name': None,
     'company_postcode': None,
@@ -48,11 +68,7 @@ FAKE_GRANT_APPLICATION = {
     'previous_years_export_turnover_1': 101,
     'previous_years_export_turnover_2': 102,
     'previous_years_export_turnover_3': 103,
-    'sector': {
-        'id': 'e98cee83-9f4e-4ad2-8d10-7f25867b91b5',
-        'name': 'Sector 1',
-        'full_name': 'Sector 1',
-    },
+    'sector': FAKE_SECTOR,
     'other_business_names': 'D',
     'products_and_services_description': 'E',
     'products_and_services_competitors': 'F',
@@ -96,13 +112,6 @@ FAKE_GRANT_MANAGEMENT_PROCESS = {
     'decision': None,
 }
 
-FAKE_COMPANY = {
-    'id': '0dc205e4-1f11-4a81-90a6-f7a733da055e',
-    'duns_number': '1234',
-    'registration_number': '5678',
-    'name': 'Company 1'
-}
-
 FAKE_SEARCH_COMPANIES = [{
     'id': '70c53a9c-eb5b-4547-9e26-967c719e1ba0',
     'company': None,
@@ -117,21 +126,6 @@ FAKE_SEARCH_COMPANIES = [{
     }
 }]
 
-
-FAKE_EVENT = {
-    'id': '235678a7-b3ff-4256-b6ae-ce7ddb4d18gg',
-    'name': 'Event 1',
-    'sector': 'Sector 1',
-    'sub_sector': 'Sub Sector 1',
-    'city': 'City 1',
-    'country': 'Country 1',
-    'start_date': '2020-12-12',
-    'end_date': '2020-12-14',
-    'display_name': 'Event 1 | Sector 1 | Country 1 | 2020-12-12',
-    'tcp': 'TCP 1',
-    'tcp_website': 'TCP Website 1',
-}
-
 FAKE_PAGINATED_LIST_EVENTS = {
   'count': 5,
   'next': 'https://host/api/trade-events/?page=4&page_size=1',
@@ -139,17 +133,6 @@ FAKE_PAGINATED_LIST_EVENTS = {
   'results': [FAKE_EVENT],
   'total_pages': 5
 }
-
-FAKE_SECTOR = {
-    'id': 'e98cee83-9f4e-4ad2-8d10-7f25867b91b5',
-    'sector_code': 'SL0001',
-    'name': 'Sector 1',
-    'cluster_name': 'Sector 1 Cluster',
-    'full_name': 'Sector 1 Full Name',
-    'sub_sector_name': 'Sector 1 Sub Sector Name',
-    'sub_sub_sector_name': 'Sector 1 Sub Sub Sector Name'
-}
-
 
 FAKE_TRADE_EVENT_AGGREGATES = {
     'total_trade_events': '4',

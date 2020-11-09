@@ -4,10 +4,9 @@ from django.views.generic import TemplateView
 from web.grant_applications.views import (
     SearchCompanyView, SelectCompanyView, ContactDetailsView, SelectAnEventView,
     PreviousApplicationsView, CompanyTradingDetailsView, ExportExperienceView, StateAidSummaryView,
-    ApplicationReviewView, ConfirmationView, EligibilityReviewView, FindAnEventView,
-    BeforeYouStartView, EventCommitmentView, CompanyDetailsView, ExportDetailsView,
-    TradeEventDetailsView, AddStateAidView, EditStateAidView, DeleteStateAidView,
-    DuplicateStateAidView, ManualCompanyDetailsView
+    ApplicationReviewView, FindAnEventView, BeforeYouStartView, EventCommitmentView,
+    CompanyDetailsView, ExportDetailsView, TradeEventDetailsView, AddStateAidView, EditStateAidView,
+    DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView
 )
 
 app_name = 'grant_applications'
@@ -53,9 +52,10 @@ urlpatterns = [
         DuplicateStateAidView.as_view(),
         name='duplicate-state-aid'
     ),
-    path('<pk>/confirmation/', ConfirmationView.as_view(), name='confirmation'),
-
-    # TODO: views below need changes (see design document 3.02)
-    path('<pk>/eligibility-review/', EligibilityReviewView.as_view(), name='eligibility-review'),
     path('<pk>/application-review/', ApplicationReviewView.as_view(), name='application-review'),
+    path(
+        '<pk>/confirmation/',
+        TemplateView.as_view(template_name='grant_applications/confirmation.html'),
+        name='confirmation'
+    )
 ]
