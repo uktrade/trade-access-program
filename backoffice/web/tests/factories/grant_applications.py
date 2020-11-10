@@ -56,7 +56,7 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     additional_guidance = 'Some addition guidance'
     application_summary = [{
         'heading': 'About you',
-        'summary': [{
+        'rows': [{
             'key': f'Question {n}',
             'value': f'Answer {n}',
             'action': {

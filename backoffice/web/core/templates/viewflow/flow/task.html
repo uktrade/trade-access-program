@@ -33,7 +33,7 @@
       {% endif %}
 
       {% for link in supporting_information.links %}
-        <a href="{{ link.url }}" class="brand-logo">{{ link.text }}</a>
+        <a href="{{ link.url }}" class="brand-logo">{{ link.text|default:link.url }}</a>
       {% endfor %}
 
       {% for table in supporting_information.tables %}

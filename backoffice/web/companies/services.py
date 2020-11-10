@@ -71,7 +71,9 @@ class CompaniesHouseClient:
 
     def __init__(self):
         self.base_url = settings.COMPANIES_HOUSE_URL
-        self.company_url = settings.COMPANIES_HOUSE_COMPANIES_URL
+        self.search_companies_url = urljoin(self.base_url, 'search/companies/')
+        self.company_url = urljoin(self.base_url, 'company/{registration_number}/')
+        self.filing_history_url = urljoin(self.company_url, 'filing-history/')
 
         self.session = requests.Session()
         self.session.auth = (settings.COMPANIES_HOUSE_API_KEY, "")
@@ -79,7 +81,7 @@ class CompaniesHouseClient:
         # Attach retry adapter
         retry_strategy = Retry(total=3, status_forcelist=[500], method_whitelist=['GET', 'POST'])
         retry_adapter = HTTPAdapter(max_retries=retry_strategy)
-        self.session.mount(self.base_url, retry_adapter)
+        self.session.mount(self.search_companies_url, retry_adapter)
         self.session.mount(self.company_url, retry_adapter)
 
         # Attach response hooks
@@ -94,4 +96,18 @@ class CompaniesHouseClient:
             raise CompaniesHouseApiException
 
     def search_companies(self, search_term):
-        return self.session.get(self.company_url, params={'q': search_term}).json()['items']
+        return self.session.get(
+            self.search_companies_url, params={'q': search_term}
+        ).json()['items']
+
+    def get_company(self, registration_number):
+        response = self.session.get(
+            self.company_url.format(registration_number=registration_number)
+        )
+        return response.json()
+
+    def get_filing_history(self, registration_number):
+        response = self.session.get(
+            self.filing_history_url.format(registration_number=registration_number)
+        )
+        return response.json()

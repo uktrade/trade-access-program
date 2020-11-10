@@ -1,7 +1,10 @@
 from unittest.mock import patch
 
 from django.urls import reverse
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
+from rest_framework.status import (
+    HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST
+)
 
 from web.grant_applications.models import GrantApplication, StateAid
 from web.grant_management.models import GrantManagementProcess
@@ -188,12 +191,20 @@ class GrantApplicationsApiTests(BaseAPITestCase):
         self.assertTrue(GrantApplication.objects.filter(company=company).exists())
 
     def test_grant_application_send_for_review(self, *mocks):
-        ga = GrantApplicationFactory()
+        ga = GrantApplicationFactory(application_summary=[])
         path = reverse('grant-applications:grant-applications-send-for-review', args=(ga.id,))
-        response = self.client.post(path)
+        response = self.client.post(path, data={'application_summary': 'A summary'})
         self.assertEqual(response.status_code, HTTP_200_OK)
         self.assertEqual(response.data['grant_management_process']['grant_application'], ga.id)
         self.assertTrue(GrantManagementProcess.objects.filter(grant_application=ga).exists())
+        self.assertEqual(response.data['application_summary'], 'A summary')
+
+    def test_grant_application_send_for_review_requires_application_summary(self, *mocks):
+        ga = GrantApplicationFactory()
+        path = reverse('grant-applications:grant-applications-send-for-review', args=(ga.id,))
+        response = self.client.post(path)
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['application_summary'][0].code, 'required')
 
 
 class StateAidApiTests(BaseAPITestCase):

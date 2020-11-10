@@ -123,9 +123,9 @@ class BackofficeService:
         return response.json()
 
     def send_grant_application_for_review(self, grant_application_id, application_summary):
-        response = self.session.post(
+        response = self.post(
             urljoin(self.grant_applications_url, f'{grant_application_id}/send-for-review/'),
-            json={'application_summary': application_summary}
+            data={'application_summary': application_summary}
         )
         return response.json()
 

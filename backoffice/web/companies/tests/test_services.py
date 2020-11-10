@@ -138,7 +138,7 @@ class CompaniesHouseClientTests(BaseAPITestCase):
     def test_search_companies(self):
         httpretty.register_uri(
             httpretty.GET,
-            self.ch_client.company_url,
+            self.ch_client.search_companies_url,
             status=200,
             body=json.dumps(self.search_response),
             match_querystring=False
@@ -147,9 +147,33 @@ class CompaniesHouseClientTests(BaseAPITestCase):
         self.assertListEqual(companies, self.search_response['items'])
 
     @httpretty.activate
+    def test_get_company(self):
+        httpretty.register_uri(
+            httpretty.GET,
+            self.ch_client.company_url.format(registration_number='1'),
+            status=200,
+            body=json.dumps({'id': 'company-1'}),
+            match_querystring=False
+        )
+        company = self.ch_client.get_company(registration_number=1)
+        self.assertDictEqual(company, {'id': 'company-1'})
+
+    @httpretty.activate
+    def test_get_filing_history(self):
+        httpretty.register_uri(
+            httpretty.GET,
+            self.ch_client.filing_history_url.format(registration_number='1'),
+            status=200,
+            body=json.dumps({'id': 'filing-history-1'}),
+            match_querystring=False
+        )
+        filing_history = self.ch_client.get_filing_history(registration_number=1)
+        self.assertDictEqual(filing_history, {'id': 'filing-history-1'})
+
+    @httpretty.activate
     def test_retry_on_500(self):
         httpretty.register_uri(
-            httpretty.GET, self.ch_client.company_url, match_querystring=False,
+            httpretty.GET, self.ch_client.search_companies_url, match_querystring=False,
             responses=[
                 httpretty.Response(status=500, body=''),
                 httpretty.Response(status=200, body=json.dumps(self.search_response))
@@ -163,7 +187,7 @@ class CompaniesHouseClientTests(BaseAPITestCase):
     def test_no_retry_on_400_and_exception_is_raised(self):
         httpretty.register_uri(
             httpretty.GET,
-            self.ch_client.company_url,
+            self.ch_client.search_companies_url,
             status=400,
             match_querystring=False
         )
