@@ -340,9 +340,7 @@ class ApplicationReviewService:
 
     @staticmethod
     def _serialize_field(value):
-        if value is None:
-            raise ValueError()
-        elif value is True:
+        if value is True:
             return 'Yes'
         elif value is False:
             return 'No'
