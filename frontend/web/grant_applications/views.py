@@ -4,11 +4,10 @@ from django.urls import reverse, resolve
 from django.utils import timezone
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import CreateView, UpdateView, TemplateView, RedirectView
+from django.views.generic import CreateView, UpdateView, RedirectView
 from django.views.generic.detail import SingleObjectMixin
 
 from web.core.forms import FORM_MSGS
-from web.core.utils import flatten_nested_dict
 from web.core.view_mixins import (
     StaticContextMixin, SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin
 )
@@ -21,8 +20,8 @@ from web.grant_applications.forms import (
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
-    generate_grant_application_summary, BackofficeServiceException, BackofficeService,
-    get_companies_from_search_term, get_state_aid_summary_table
+    BackofficeServiceException, BackofficeService, get_companies_from_search_term,
+    get_state_aid_summary_table, ApplicationReviewService
 )
 from web.grant_applications.view_mixins import (
     BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin
@@ -90,7 +89,8 @@ class FindAnEventView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMi
                 'filter_by_country': self.request.POST['filter_by_country'],
                 'filter_by_month': self.request.POST['filter_by_month'],
             }
-        return super().get_success_url() + f'?{urlencode(params)}'
+            return super().get_success_url() + f'?{urlencode(params)}'
+        return super().get_success_url()
 
     def get_context_data(self, **kwargs):
         kwargs = super().get_context_data(**kwargs)
@@ -120,15 +120,20 @@ class SelectAnEventView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
     events_page_size = 10
     grant_application_fields = ['event']
 
+    def get_initial(self):
+        initial = super().get_initial()
+        initial['filter_by_name'] = self.request.GET.get('filter_by_name')
+        initial['filter_by_country'] = self.request.GET.get('filter_by_country')
+        initial['filter_by_sector'] = self.request.GET.get('filter_by_sector')
+        initial['filter_by_month'] = self.request.GET.get('filter_by_month')
+        if hasattr(self, 'backoffice_grant_application') \
+                and self.backoffice_grant_application['event']:
+            initial['event'] = self.backoffice_grant_application['event']['id']
+        return initial
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs['trade_events'] = self.trade_events
-        kwargs['initial'].update({
-            'filter_by_name': self.request.GET.get('filter_by_name'),
-            'filter_by_country': self.request.GET.get('filter_by_country'),
-            'filter_by_sector': self.request.GET.get('filter_by_sector'),
-            'filter_by_month': self.request.GET.get('filter_by_month'),
-        })
         return kwargs
 
     def get_pagination_total_pages(self):
@@ -374,6 +379,14 @@ class ExportExperienceView(BackContextMixin, StaticContextMixin, BackofficeMixin
             return reverse('grant-applications:export-details', args=(self.object.pk,))
         return reverse('grant-applications:trade-event-details', args=(self.object.pk,))
 
+    def form_valid(self, form):
+        if not form.cleaned_data['has_exported_before']:
+            # Set ExportDetails form fields to None
+            return super().form_valid(
+                form, extra_grant_application_data={f: None for f in ExportDetailsForm.Meta.fields}
+            )
+        return super().form_valid(form)
+
 
 class ExportDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
@@ -422,10 +435,10 @@ class StateAidSummaryView(BackContextMixin, StaticContextMixin, SuccessUrlObject
     form_class = EmptyGrantApplicationLinkForm
     template_name = 'grant_applications/state_aid_summary.html'
     back_url_name = 'grant-applications:export-experience'
-    success_url_name = 'grant_applications:confirmation'
+    success_url_name = 'grant_applications:application-review'
     static_context = {
         'page': {
-            'heading':  _('State aid restrictions')
+            'heading':  _('State aid')
         }
     }
 
@@ -538,79 +551,6 @@ class EditStateAidView(StateAidItemMixin, UpdateView):
         return super().post(request, *args, **kwargs)
 
 
-class EligibilityReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                            InitialDataMixin, BackofficeMixin, ConfirmationRedirectMixin,
-                            UpdateView):
-    model = GrantApplicationLink
-    form_class = EmptyGrantApplicationLinkForm
-    template_name = 'grant_applications/eligibility_review.html'
-    back_url_name = 'grant-applications:company-details'
-    success_url_name = 'grant_applications:application-review'
-    static_context = {
-        'page': {
-            'heading':  _('Confirm your answers')
-        }
-    }
-
-    def company_summary_list(self):
-        dnb = self.backoffice_grant_application['company']['last_dnb_get_company_response']
-        return {
-            'heading': _('Your company details'),
-            'summary': [
-                {
-                    'key': _('Company'),
-                    'value': '\n'.join([
-                        self.backoffice_grant_application['company']['name'],
-                        self.backoffice_grant_application['company']['registration_number'],
-                        dnb['company_address'],
-                    ]),
-                    'action': {
-                        'url': reverse('grant-applications:search-company', args=(self.object.pk,))
-                    }
-                }
-            ]
-        }
-
-    def previous_apps_summary_list(self):
-        summary = generate_grant_application_summary(
-            application_data={},
-            form_class=PreviousApplicationsView.form_class,
-            form_kwargs={},
-            url=reverse('grant-applications:previous-applications', args=(self.object.pk,))
-        )
-        return {
-            'heading': _('Previous TAP grants'),
-            'summary': summary
-        }
-
-    def event_summary_list(self):
-        return {
-            'heading': _('Event details'),
-            'summary': [
-                {
-                    'key': _('Event'),
-                    'value': '\n'.join([
-                        self.backoffice_grant_application['event']['name'],
-                        self.backoffice_grant_application['event']['sector'],
-                        f"{self.backoffice_grant_application['event']['start_date']} to "
-                        f"{self.backoffice_grant_application['event']['end_date']}"
-                    ]),
-                    'action': {
-                        'url': reverse('grant-applications:select-an-event', args=(self.object.pk,))
-                    }
-                }
-            ]
-        }
-
-    def get_context_data(self, **kwargs):
-        kwargs['summary_lists'] = [
-            self.company_summary_list(),
-            self.previous_apps_summary_list(),
-            self.event_summary_list(),
-        ]
-        return super().get_context_data(**kwargs)
-
-
 class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
                             BackofficeMixin, ConfirmationRedirectMixin, UpdateView):
     model = GrantApplicationLink
@@ -624,44 +564,41 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
         }
     }
     sections = [
-        {'view_class': PreviousApplicationsView},
-        {'view_class': SelectAnEventView, 'form_kwargs': {'trade_events': None}},
-        {'view_class': SelectCompanyView, 'form_kwargs': {'companies': None}},
-        {'view_class': ContactDetailsView},
-        {'view_class': TradeEventDetailsView},
-        {'view_class': CompanyTradingDetailsView},
-        {'view_class': ExportExperienceView},
-        {'view_class': StateAidSummaryView},
+        {'url_name': 'grant-applications:previous-applications'},
+        {'url_name': 'grant-applications:select-an-event'},
+        {'url_name': 'grant-applications:event-commitment'},
+        {'url_name': 'grant-applications:select-company'},
+        {'url_name': 'grant-applications:manual-company-details'},
+        {'url_name': 'grant-applications:company-details'},
+        {'url_name': 'grant-applications:contact-details'},
+        {'url_name': 'grant-applications:company-trading-details'},
+        {'url_name': 'grant-applications:export-experience'},
+        {'url_name': 'grant-applications:export-details'},
+        {'url_name': 'grant-applications:trade-event-details'},
+        {'url_name': 'grant-applications:state-aid-summary'},
     ]
 
     def generate_application_summary(self):
+        service = ApplicationReviewService(
+            grant_application_link=self.object,
+            application_data=self.backoffice_grant_application
+        )
+
         application_summary = []
 
-        url = BeforeYouStartView(object=self.object).get_success_url()
-
-        for view in self.sections:
-            application_data = self.backoffice_grant_application.copy()
-            flatten_map = {
-                'event': 'event.name',
-                'sector': 'sector.full_name',
-                'duns_number': 'company.duns_number',
-                'company': 'company.name',
-            }
-            for k, m in flatten_map.items():
-                application_data[k] = flatten_nested_dict(application_data, key_path=m)
-
-            summary = generate_grant_application_summary(
-                application_data=application_data,
-                form_class=view['view_class'].form_class,
-                form_kwargs=view.get('form_kwargs', {}),
+        for section in self.sections:
+            url = reverse(section['url_name'], args=(self.object.pk,))
+            view_class = resolve(url).func.view_class
+            form = view_class.form_class(data=self.backoffice_grant_application)
+            method_name = f"{section['url_name'].split(':')[-1].replace('-', '_')}_summary_list"
+            method = getattr(service, method_name, service.generic_summary_list)
+            summary_list = method(
+                heading=str(view_class.static_context['page']['heading']),
+                fields=form.fields,
                 url=url
             )
-            if summary:
-                application_summary.append({
-                    'heading': str(view['view_class'].static_context['page']['heading']),
-                    'summary': summary
-                })
-            url = view['view_class'](object=self.object).get_success_url()
+            if summary_list:
+                application_summary.append(summary_list)
 
         return application_summary
 
@@ -670,29 +607,16 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
         self.request.session['application_summary'] = kwargs['application_summary']
         return super().get_context_data(**kwargs)
 
-    def try_send_grant_application_for_review(self, form):
+    def form_valid(self, form):
         try:
             self.backoffice_service.send_grant_application_for_review(
                 str(self.object.backoffice_grant_application_id),
                 application_summary=self.request.session['application_summary']
             )
         except BackofficeServiceException:
-            msg = forms.ValidationError('An unexpected error occurred. Please resubmit the form.')
+            msg = forms.ValidationError(FORM_MSGS['resubmit'])
             form.add_error(None, msg)
+            return super().form_invalid(form)
         else:
             self.object.sent_for_review = True
-
-        return form
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        form = self.get_form()
-        self.try_send_grant_application_for_review(form)
-        if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
-
-
-class ConfirmationView(StaticContextMixin, TemplateView):
-    template_name = 'grant_applications/confirmation.html'
+        return super().form_valid(form)

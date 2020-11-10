@@ -19,7 +19,7 @@
   <tbody class="govuk-table__body">
     <tr class="govuk-table__row">
       {% if row.header %}
-      <th scope="row" class="govuk-table__header">{{ row.header }}</th>
+      <th scope="row" class="govuk-table__header">{{ row.header|safe }}</th>
       {% endif %}
       {% for cell in row %}
       <td class="govuk-table__cell" style="white-space: nowrap; text-overflow:ellipsis; overflow: hidden; max-width:1px;">

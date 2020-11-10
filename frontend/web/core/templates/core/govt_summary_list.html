@@ -1,17 +1,17 @@
-<dl class="{{ class|default:'govuk-summary-list' }}">
+<dl class="{{ class|default:'govuk-summary-list' }}" id="{{ id_summary_list|default:'id_summary_list' }}">
 
   {% if summary_list.heading %}
-  <h2 class="govuk-heading-m">{{ summary_list.heading }}</h2>
+  <h2 class="govuk-heading" id="id_summary_list_heading">{{ summary_list.heading }}</h2>
   {% endif %}
 
-  {% for row in summary_list.summary %}
-    <div class="govuk-summary-list__row">
-      <dt class="govuk-summary-list__key {{ override_classes }}">{{ row.key }}</dt>
-      <dd class="govuk-summary-list__value {{ override_classes }}">{{ row.value|linebreaks }}</dd>
+  {% for row in summary_list.rows %}
+    <div class="govuk-summary-list__row" id="id_summary_list_row_{{ forloop.counter0 }}">
+      <dt class="govuk-summary-list__key {{ override_classes }}" id="id_summary_list_key_{{ forloop.counter0 }}">{{ row.key|safe }}</dt>
+      <dd class="govuk-summary-list__value {{ override_classes }}" id="id_summary_list_value_{{ forloop.counter0 }}">{{ row.value|linebreaks }}</dd>
       {% if row.action %}
-      <dd class="govuk-summary-list__actions {{ override_classes }}">
-        <a class="govuk-link govuk-link--no-visited-state" href="{{ row.action.url }}">
-          {{ row.action.text|default:"Change" }}<span class="govuk-visually-hidden"> {{ row.key }}</span>
+      <dd class="govuk-summary-list__actions {{ override_classes }}" id="id_summary_list_actions_{{ forloop.counter0 }}">
+        <a class="govuk-link govuk-link--no-visited-state" href="{{ row.action.url }}" id="id_summary_list_action_link_{{ forloop.counter0 }}">
+          {{ row.action.text|default:"Change" }}<span class="govuk-visually-hidden"> {{ row.key|safe }}</span>
         </a>
       </dd>
       {% endif %}

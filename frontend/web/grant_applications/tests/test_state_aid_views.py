@@ -62,7 +62,7 @@ class TestStateAidSummaryView(BaseTestCase):
         mocks[0].assert_not_called()
         self.assertRedirects(
             response,
-            reverse('grant-applications:confirmation', args=(self.gal.pk,)),
+            reverse('grant-applications:application-review', args=(self.gal.pk,)),
             fetch_redirect_response=False
         )
 

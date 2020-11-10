@@ -15,13 +15,14 @@ class BackContextMixin:
     back_text = None
     back_url = None
 
-    def get_context_data(self, **kwargs):
-        if hasattr(self, 'get_back_url'):
-            self.back_url = self.get_back_url()
-        elif hasattr(self, 'back_url_name') and self.object:
-            self.back_url = reverse(self.back_url_name, args=(self.object.pk,))
+    def get_back_url(self):
+        if hasattr(self, 'back_url_name') and self.object:
+            return reverse(self.back_url_name, args=(self.object.pk,))
         elif hasattr(self, 'back_url_name'):
-            self.back_url = reverse(self.back_url_name)
+            return reverse(self.back_url_name)
+
+    def get_context_data(self, **kwargs):
+        self.back_url = self.get_back_url()
 
         if self.back_url:
             kwargs['back'] = {
