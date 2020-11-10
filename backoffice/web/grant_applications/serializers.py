@@ -95,6 +95,14 @@ class GrantApplicationWriteSerializer(serializers.ModelSerializer):
             refresh_dnb_company_response_data(self.instance.company)
 
 
+class SendForReviewWriteSerializer(serializers.ModelSerializer):
+    application_summary = serializers.JSONField()
+
+    class Meta:
+        model = GrantApplication
+        fields = ['application_summary']
+
+
 class StateAidSerializer(serializers.ModelSerializer):
 
     class Meta:

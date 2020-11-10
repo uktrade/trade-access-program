@@ -1,15 +1,19 @@
 from django.utils.translation import gettext_lazy as _
 
-from web.companies.services import DnbServiceClient
+from web.companies.services import DnbServiceClient, CompaniesHouseClient
 from web.core.exceptions import DnbServiceClientException
 
 
 class SupportingInformationContent:
+    MSGS = {
+        'contact-admin': 'Please try again later or contact the site administrator.'
+    }
 
     def __init__(self, grant_application):
         super().__init__()
         self.grant_application = grant_application
         self.dnb_client = DnbServiceClient()
+        self.ch_client = CompaniesHouseClient()
         self._dnb_company_data = None
 
     @property
@@ -33,15 +37,16 @@ class SupportingInformationContent:
 
     @property
     def application_acknowledgement_content(self):
-        return {
-            'tables': [
-                {
-                    'class': 'striped',
-                    'headers': [_('Question'), _('Answer')],
-                    'rows': self.grant_application.answers
-                }
-            ]
-        }
+        tables = []
+
+        for section in self.grant_application.application_summary:
+            tables.append({
+                'col_tags': ["style=width:50%", "style=width:50%"],
+                'headers': [section['heading'], ''],
+                'rows': [[row['key'], row['value']] for row in section['rows']]
+            })
+
+        return {'tables': tables}
 
     @property
     def employee_count_content(self):
@@ -67,8 +72,7 @@ class SupportingInformationContent:
             )])
         else:
             content['tables'][0]['rows'].append([_(
-                "Could not retrieve Dun & Bradstreet data. "
-                "Please try again later or contact the site administrator."
+                f"Could not retrieve Dun & Bradstreet data. {self.MSGS['contact-admin']}"
             )])
 
         return content
@@ -100,8 +104,7 @@ class SupportingInformationContent:
             )])
         else:
             content['tables'][1]['rows'].append([_(
-                "Could not retrieve Dun & Bradstreet data. "
-                "Please try again later or contact the site administrator."
+                f"Could not retrieve Dun & Bradstreet data. {self.MSGS['contact-admin']}"
             )])
 
         return content
@@ -111,7 +114,6 @@ class SupportingInformationContent:
         return {
             'links': [
                 {
-                    'text': 'https://www.gov.uk/guidance/tradeshow-access-programme#eligibility',
                     'url': 'https://www.gov.uk/guidance/tradeshow-access-programme#eligibility',
                 }
             ]

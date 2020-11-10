@@ -1,18 +1,20 @@
 {% load i18n viewflow viewflow_frontend material_form material_frontend %}
 
 <table class="{{ table.class|default:'default' }}">
+  {% for col in table.col_tags %}<col {{ col }} >{% endfor %}
+
   <thead>
-    <tr class="flow-text">
-      {% for header in table.headers %}
+    <tr class="flow-text {{ table.headers.class }}">
+      {% for header in table.headers.values|default:table.headers %}
         <th>{{ header }}</th>
       {% endfor %}
     </tr>
   </thead>
   <tbody>
-    {% for row in table.rows %}
-      <tr>
-        {% for item in row %}
-          <td>{{ item }}</td>
+    {% for row in table.rows.values|default:table.rows %}
+      <tr class="{{ table.rows.class|default:'grey lighten-4' }}">
+        {% for cell in row %}
+          <td>{{ cell|linebreaksbr }}</td>
         {% endfor %}
       </tr>
     {% endfor %}

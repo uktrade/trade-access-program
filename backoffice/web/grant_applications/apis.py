@@ -4,7 +4,8 @@ from rest_framework.viewsets import ModelViewSet
 
 from web.grant_applications.models import GrantApplication, StateAid
 from web.grant_applications.serializers import (
-    GrantApplicationReadSerializer, GrantApplicationWriteSerializer, StateAidSerializer
+    GrantApplicationReadSerializer, GrantApplicationWriteSerializer, StateAidSerializer,
+    SendForReviewWriteSerializer
 )
 
 
@@ -19,9 +20,11 @@ class GrantApplicationsViewSet(ModelViewSet):
     @action(detail=True, methods=['POST'], url_path='send-for-review')
     def send_for_review(self, request, pk=None):
         instance = self.get_object()
+        serializer = SendForReviewWriteSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         instance.send_for_review()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        return Response(self.get_serializer(instance).data)
 
 
 class StateAidViewSet(ModelViewSet):

@@ -127,14 +127,10 @@ class GrantApplication(BaseMetaModel):
     application_summary = models.JSONField(default=list)
 
     def send_for_review(self):
-        return GrantManagementFlow.start.run(grant_application=self)
-
-    @property
-    def answers(self):
-        _answers = []
-        for summary in self.application_summary:
-            _answers += [[row['key'], row['value']] for row in summary['summary']]
-        return _answers
+        qs = GrantManagementFlow.process_class.objects.filter(grant_application=self)
+        if not qs.exists():
+            return GrantManagementFlow.start.run(grant_application=self)
+        return qs.get()
 
 
 class StateAid(BaseMetaModel):
