@@ -14,15 +14,16 @@ This repo houses the tradeshow access program (TAP) service
 make build
 ```
 
-### Run the service
+### Run all services 
 ```
 make up
 ```
 
 #### Browse at:
-- Grant application site: http://localhost.com
-- Django Admin site: http://localhost.com/admin
-- Grant management site: http://localhost.com/workflow
+- Grant application site: http://localhost:8000
+- Frontend admin site: http://localhost:8000/admin/
+- Grant management site: http://localhost:8001/workflow/
+- Backoffice admin site: http://localhost:8001/admin/
 
 ## Development
 Development has been done to attempt to be OS agnostic. All functionality _should_ be 
@@ -31,9 +32,17 @@ available via docker and docker-compose entry points.
 ### Debugging
 #### Run with port access.
 This allows you to drop into a debug breakpoint with: `pdb`, `ipdb` or similar
+
+##### Backoffice
 ```
-docker-compose up -d db
-docker-compose run --use-aliases --service-ports web
+make run-background-services
+make run-backoffice-debug
+```   
+
+##### Frontend
+```
+make run-background-services
+make run-frontend-debug
 ```   
 
 #### Elevate user permissions
@@ -44,13 +53,15 @@ To do this first log into the [grant management site](http://localhost.com/workf
 using your single sign on (SSO) gov account. This will create your user record. Then you 
 can run the elevate command to grant your user the right permissions. 
 ```
+cd backoffice
 make elevate
 ```
 
 ### Seed database
 You can seed the database with some dummy data using:
 ```
-make seed-data
+cd backoffice
+make seed-db
 ``` 
 
 This will add a few dummy grant applications to your database which will be viewable in the

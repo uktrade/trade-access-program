@@ -54,14 +54,16 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     stand_trade_name = 'A Name'
     trade_show_experience_description = 'A description'
     additional_guidance = 'Some addition guidance'
-    application_summary = [{
-        'heading': 'About you',
-        'rows': [{
-            'key': f'Question {n}',
-            'value': f'Answer {n}',
-            'action': {
-                'text': f'Action {n}',
-                'url': f'/action-url-{n}',
-            }
-        }],
-    } for n in range(10)]
+    application_summary = [
+        {
+            'heading': f'Heading {heading}',
+            'rows': [{
+                'key': f'Question {row}',
+                'value': f'Answer {row}',
+                'action': {
+                    'text': f'Action {row}',
+                    'url': f'/action-url-{row}',
+                }
+            } for row in range(3)],
+        } for heading in range(3)
+    ]

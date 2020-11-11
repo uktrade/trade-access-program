@@ -3,7 +3,6 @@ import logging
 from django.core.management.base import BaseCommand
 
 from web.companies.models import Company
-from web.grant_applications.views import ApplicationReviewView
 from web.tests.factories.grant_applications import GrantApplicationFactory
 
 
@@ -23,16 +22,13 @@ class Command(BaseCommand):
 
         # Uses a real dnb-service duns_number here
         company, _ = Company.objects.get_or_create(
-            duns_number=239896579, name='GOOGLE UK LIMITED'
+            duns_number='239896579', registration_number='03977902', name='GOOGLE UK LIMITED'
         )
 
         gas = GrantApplicationFactory.create_batch(size=num, company=company)
 
         logging.disable(logging.WARNING)
         for ga in gas:
-            application_summary = ApplicationReviewView(object=ga).generate_application_summary(ga)
-            ga.application_summary = application_summary
-            ga.save()
             ga.send_for_review()
 
         self.stdout.write(self.style.SUCCESS(f"Successfully created {num} NEW grant applications."))
