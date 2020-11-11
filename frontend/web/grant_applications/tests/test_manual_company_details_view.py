@@ -29,13 +29,18 @@ class TestManualCompanyDetailsView(BaseTestCase):
         response = self.client.post(
             self.url,
             data={
-                'company_type': ManualCompanyDetailsForm.CompanyType.LIMITED_COMPANY,
-                'company_name': 'A Name',
-                'company_postcode': 'ZZ1 8ZZ',
-                'time_trading_in_uk': ManualCompanyDetailsForm.TimeTradingInUk.TWO_TO_FIVE_YEARS,
+                'manual_company_type': ManualCompanyDetailsForm.CompanyType.LIMITED_COMPANY,
+                'manual_company_name': 'A Name',
+                'manual_company_address_line_1': 'Line 1',
+                'manual_company_address_line_2': 'Line 2',
+                'manual_company_address_town': 'Town 1',
+                'manual_company_address_county': 'County 1',
+                'manual_company_address_postcode': 'ZZ1 8ZZ',
+                'manual_time_trading_in_uk':
+                    ManualCompanyDetailsForm.TimeTradingInUk.TWO_TO_FIVE_YEARS,
                 'manual_registration_number': '10000000',
                 'manual_vat_number': '123456789',
-                'website': 'https://www.test.com'
+                'manual_website': 'https://www.test.com'
             }
         )
         self.assertRedirects(
@@ -44,13 +49,17 @@ class TestManualCompanyDetailsView(BaseTestCase):
         )
         mocks[0].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
-            company_type=ManualCompanyDetailsForm.CompanyType.LIMITED_COMPANY.value,
-            company_name='A Name',
-            company_postcode='ZZ1 8ZZ',
-            time_trading_in_uk=ManualCompanyDetailsForm.TimeTradingInUk.TWO_TO_FIVE_YEARS.value,
+            manual_company_type=ManualCompanyDetailsForm.CompanyType.LIMITED_COMPANY.value,
+            manual_company_name='A Name',
+            manual_company_address_line_1='Line 1',
+            manual_company_address_line_2='Line 2',
+            manual_company_address_town='Town 1',
+            manual_company_address_county='County 1',
+            manual_company_address_postcode='ZZ1 8ZZ',
+            manual_time_trading_in_uk=ManualCompanyDetailsForm.TimeTradingInUk.TWO_TO_FIVE_YEARS,
             manual_registration_number='10000000',
             manual_vat_number='123456789',
-            website='https://www.test.com',
+            manual_website='https://www.test.com',
             company=None
         )
 
@@ -64,19 +73,29 @@ class TestManualCompanyDetailsView(BaseTestCase):
 
     def test_required_fields(self, *mocks):
         response = self.client.post(self.url)
-        self.assertFormError(response, 'form', 'company_type', self.form_msgs['required'])
-        self.assertFormError(response, 'form', 'company_name', self.form_msgs['required'])
-        self.assertFormError(response, 'form', 'company_postcode', self.form_msgs['required'])
-        self.assertFormError(response, 'form', 'time_trading_in_uk', self.form_msgs['required'])
+        msg = self.form_msgs['required']
+        self.assertFormError(response, 'form', 'manual_company_type', msg)
+        self.assertFormError(response, 'form', 'manual_company_name', msg)
+        self.assertFormError(response, 'form', 'manual_company_address_line_1', msg)
+        self.assertFormError(response, 'form', 'manual_company_address_line_2', msg)
+        self.assertFormError(response, 'form', 'manual_company_address_town', msg)
+        self.assertFormError(response, 'form', 'manual_company_address_county', msg)
+        self.assertFormError(response, 'form', 'manual_company_address_postcode', msg)
+        self.assertFormError(response, 'form', 'manual_time_trading_in_uk', msg)
 
     def test_optional_fields(self, *mocks):
         response = self.client.post(
             self.url,
             data={
-                'company_type': ManualCompanyDetailsForm.CompanyType.LIMITED_COMPANY,
-                'company_name': 'A Name',
-                'company_postcode': 'ZZ1 8ZZ',
-                'time_trading_in_uk': ManualCompanyDetailsForm.TimeTradingInUk.TWO_TO_FIVE_YEARS,
+                'manual_company_type': ManualCompanyDetailsForm.CompanyType.LIMITED_COMPANY,
+                'manual_company_name': 'A Name',
+                'manual_company_address_line_1': 'Line 1',
+                'manual_company_address_line_2': 'Line 2',
+                'manual_company_address_town': 'Town 1',
+                'manual_company_address_county': 'County 1',
+                'manual_company_address_postcode': 'ZZ1 8ZZ',
+                'manual_time_trading_in_uk':
+                    ManualCompanyDetailsForm.TimeTradingInUk.TWO_TO_FIVE_YEARS,
             }
         )
         self.assertRedirects(
@@ -85,12 +104,16 @@ class TestManualCompanyDetailsView(BaseTestCase):
         )
         mocks[0].assert_called_once_with(
             grant_application_id=str(self.gal.backoffice_grant_application_id),
-            company_type=ManualCompanyDetailsForm.CompanyType.LIMITED_COMPANY.value,
-            company_name='A Name',
-            company_postcode='ZZ1 8ZZ',
-            time_trading_in_uk=ManualCompanyDetailsForm.TimeTradingInUk.TWO_TO_FIVE_YEARS.value,
+            manual_company_type=ManualCompanyDetailsForm.CompanyType.LIMITED_COMPANY.value,
+            manual_company_name='A Name',
+            manual_company_address_line_1='Line 1',
+            manual_company_address_line_2='Line 2',
+            manual_company_address_town='Town 1',
+            manual_company_address_county='County 1',
+            manual_company_address_postcode='ZZ1 8ZZ',
+            manual_time_trading_in_uk=ManualCompanyDetailsForm.TimeTradingInUk.TWO_TO_FIVE_YEARS,
             manual_registration_number=None,
             manual_vat_number=None,
-            website=None,
+            manual_website=None,
             company=None
         )

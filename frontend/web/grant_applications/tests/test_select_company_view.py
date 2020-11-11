@@ -152,11 +152,15 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
             grant_application_id=str(self.gal.backoffice_grant_application_id),
             company=FAKE_COMPANY['id'],
             # Set manual company details to None in case they have previously been set
-            company_type=None,
-            company_name=None,
-            company_postcode=None,
-            time_trading_in_uk=None,
+            manual_company_type=None,
+            manual_company_name=None,
+            manual_company_address_line_1=None,
+            manual_company_address_line_2=None,
+            manual_company_address_town=None,
+            manual_company_address_county=None,
+            manual_company_address_postcode=None,
+            manual_time_trading_in_uk=None,
             manual_registration_number=None,
             manual_vat_number=None,
-            website=None
+            manual_website=None
         )

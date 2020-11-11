@@ -62,13 +62,17 @@ class TestApplicationReviewView(BaseTestCase):
     def test_summary_shows_correct_sections_on_manual_company_entry(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
         fake_grant_application['company'] = None
-        fake_grant_application['company_type'] = 'limited company'
-        fake_grant_application['company_name'] = 'A Name'
-        fake_grant_application['company_postcode'] = 'ZZ0 1ZZ'
-        fake_grant_application['time_trading_in_uk'] = '2 to 5 years'
+        fake_grant_application['manual_company_type'] = 'limited company'
+        fake_grant_application['manual_company_name'] = 'A Name'
+        fake_grant_application['manual_company_address_line_1'] = 'Line 1'
+        fake_grant_application['manual_company_address_line_2'] = 'Line 2'
+        fake_grant_application['manual_company_address_town'] = 'Town 1'
+        fake_grant_application['manual_company_address_county'] = 'County 1'
+        fake_grant_application['manual_company_address_postcode'] = 'ZZ0 1ZZ'
+        fake_grant_application['manual_time_trading_in_uk'] = '2 to 5 years'
         fake_grant_application['manual_registration_number'] = '12345678'
         fake_grant_application['manual_vat_number'] = '123456789'
-        fake_grant_application['website'] = 'www.test.com'
+        fake_grant_application['manual_website'] = 'www.test.com'
         mocks[4].return_value = fake_grant_application
 
         response = self.client.get(self.url)
@@ -94,7 +98,7 @@ class TestApplicationReviewView(BaseTestCase):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
         fake_grant_application['has_exported_before'] = True
         fake_grant_application['has_exported_in_last_12_months'] = True
-        fake_grant_application['export_regions'] = ['asia']
+        fake_grant_application['export_regions'] = ['africa']
         fake_grant_application['markets_intending_on_exporting_to'] = ['existing']
         fake_grant_application['is_in_contact_with_dit_trade_advisor'] = False
         fake_grant_application['export_experience_description'] = 'A description'

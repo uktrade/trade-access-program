@@ -59,6 +59,7 @@ class FindAnEventForm(forms.ModelForm):
             attrs={
                 'class': 'govuk-input govuk-grid-column-full',
                 'placeholder': 'Search...',
+                'optional_label_override': True
             }
         )
     )
@@ -66,21 +67,30 @@ class FindAnEventForm(forms.ModelForm):
         required=False,
         label=_('Sector'),
         widget=forms.Select(
-            attrs={'class': 'govuk-select govuk-grid-column-full'}
+            attrs={
+                'class': 'govuk-select govuk-grid-column-full',
+                'optional_label_override': True
+            }
         )
     )
     filter_by_country = forms.ChoiceField(
         required=False,
         label=_('Location'),
         widget=forms.Select(
-            attrs={'class': 'govuk-select govuk-grid-column-full'}
+            attrs={
+                'class': 'govuk-select govuk-grid-column-full',
+                'optional_label_override': True
+            }
         )
     )
     filter_by_month = forms.ChoiceField(
         required=False,
         label=_('Start date'),
         widget=forms.Select(
-            attrs={'class': 'govuk-select'}
+            attrs={
+                'class': 'govuk-select',
+                'optional_label_override': True
+            }
         )
     )
 
@@ -107,28 +117,40 @@ class SelectAnEventForm(forms.ModelForm):
         required=False,
         label=_('Event name'),
         widget=forms.TextInput(
-            attrs={'class': 'govuk-input govuk-grid-column-full'}
+            attrs={
+                'class': 'govuk-input govuk-grid-column-full',
+                'optional_label_override': True
+            }
         )
     )
     filter_by_sector = forms.ChoiceField(
         required=False,
         label=_('Sector'),
         widget=forms.Select(
-            attrs={'class': 'govuk-select govuk-grid-column-full'}
+            attrs={
+                'class': 'govuk-select govuk-grid-column-full',
+                'optional_label_override': True
+            }
         )
     )
     filter_by_country = forms.ChoiceField(
         required=False,
         label=_('Location'),
         widget=forms.Select(
-            attrs={'class': 'govuk-select govuk-grid-column-full'}
+            attrs={
+                'class': 'govuk-select govuk-grid-column-full',
+                'optional_label_override': True
+            }
         )
     )
     filter_by_month = forms.ChoiceField(
         required=False,
         label=_('Start date'),
         widget=forms.Select(
-            attrs={'class': 'govuk-select govuk-grid-column-full'}
+            attrs={
+                'class': 'govuk-select govuk-grid-column-full',
+                'optional_label_override': True
+            }
         )
     )
     event = forms.ChoiceField(
@@ -168,11 +190,14 @@ class SearchCompanyForm(forms.ModelForm):
         fields = ['search_term']
 
     search_term = forms.CharField(
-        label=_('Full business name'),
+        label=_('Full business name or company registration number'),
         min_length=2,
-        help_text=_("For example 'My Business Limited'"),
+        help_text=_("For example 'My Business' or '12345678'"),
         widget=forms.TextInput(
-            attrs={'class': 'govuk-input hmcts-search__input', 'placeholder': 'Search...'}
+            attrs={
+                'class': 'govuk-input hmcts-search__input',
+                'placeholder': 'Search...'
+            }
         )
     )
 
@@ -193,10 +218,14 @@ class SelectCompanyForm(forms.ModelForm):
     search_term = forms.CharField(
         required=False,
         min_length=2,
-        label=_('Full business name'),
-        help_text=_("For example 'My Business Limited'"),
+        label=_('Full business name or company registration number'),
+        help_text=_("For example 'My Business' or '12345678'"),
         widget=forms.TextInput(
-            attrs={'class': 'govuk-input hmcts-search__input', 'placeholder': 'Search...'}
+            attrs={
+                'class': 'govuk-input hmcts-search__input',
+                'placeholder': 'Search...',
+                'optional_label_override': True
+            }
         )
     )
     duns_number = forms.ChoiceField(label=_(''), widget=widgets.RadioSelect())
@@ -225,8 +254,11 @@ class ManualCompanyDetailsForm(forms.ModelForm):
     class Meta:
         model = GrantApplicationLink
         fields = [
-            'company_type', 'company_name', 'company_postcode', 'time_trading_in_uk',
-            'manual_registration_number', 'manual_vat_number', 'website'
+            'manual_company_type', 'manual_company_name', 'manual_company_address_line_1',
+            'manual_company_address_line_2', 'manual_company_address_town',
+            'manual_company_address_county', 'manual_company_address_postcode',
+            'manual_time_trading_in_uk', 'manual_registration_number', 'manual_vat_number',
+            'manual_website'
         ]
 
     class CompanyType(TextChoices):
@@ -241,25 +273,49 @@ class ManualCompanyDetailsForm(forms.ModelForm):
         SIX_TO_TEN_YEARS = '6 to 10 years', _('6 to 10 years')
         MORE_THAN_10_YEARS = 'more than 10 years', _('More than 10 years')
 
-    company_type = forms.ChoiceField(
+    manual_company_type = forms.ChoiceField(
         label=_('Please select your business type'),
         choices=CompanyType.choices,
         widget=widgets.RadioSelect()
     )
-    company_name = forms.CharField(
+    manual_company_name = forms.CharField(
         label=_('Full business name'),
         help_text=_("For example 'Your Business Limited'"),
         widget=forms.TextInput(
             attrs={'class': 'govuk-input'}
         )
     )
-    company_postcode = forms.CharField(
-        label=_('Postcode'),
+    manual_company_address_line_1 = forms.CharField(
+        label=_('Building and street'),
         widget=forms.TextInput(
-            attrs={'class': 'govuk-input govuk-input--width-10 govuk-!-display-inline'}
+            attrs={'class': 'govuk-input'}
         )
     )
-    time_trading_in_uk = forms.ChoiceField(
+    manual_company_address_line_2 = forms.CharField(
+        label=_(''),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input'}
+        )
+    )
+    manual_company_address_town = forms.CharField(
+        label=_('Town or City'),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+        )
+    )
+    manual_company_address_county = forms.CharField(
+        label=_('County'),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+        )
+    )
+    manual_company_address_postcode = forms.CharField(
+        label=_('Postcode'),
+        widget=forms.TextInput(
+            attrs={'class': 'govuk-input govuk-input--width-10'}
+        )
+    )
+    manual_time_trading_in_uk = forms.ChoiceField(
         label=_('How long has the business been trading in the UK?'),
         choices=TimeTradingInUk.choices,
         widget=widgets.RadioSelect()
@@ -282,7 +338,7 @@ class ManualCompanyDetailsForm(forms.ModelForm):
             attrs={'class': 'govuk-input govuk-input--width-10'}
         )
     )
-    website = forms.URLField(
+    manual_website = forms.URLField(
         required=False,
         empty_value=None,
         label=_('Business website address'),
@@ -391,20 +447,21 @@ class CompanyTradingDetailsForm(forms.ModelForm):
     previous_years_export_turnover_2 = CurrencyField(label=_('Year 2'))
     previous_years_export_turnover_3 = CurrencyField(label=_('Year 3'))
     sector = forms.ChoiceField(
-        label=_('Industry sector'),
+        label=_('Primary industry sector'),
         widget=forms.Select(attrs={'class': 'govuk-select'})
     )
-    other_business_names = forms.CharField(
+    other_business_names = MaxAllowedCharField(
         required=False,
         empty_value=None,
         label=_('Business names'),
         help_text=_(
-            'Add any brand or trading names used in addition to the registered company name'
+            'Add any brand or trading names used in addition to the registered business name'
         ),
-        widget=forms.TextInput(
+        widget=widgets.CharacterCountTextArea(
             attrs={
-                'class': 'govuk-input',
-                'optional': True
+                'class': 'govuk-textarea govuk-js-character-count',
+                'rows': 7,
+                'counter': 2000
             }
         )
     )
@@ -452,7 +509,11 @@ class ExportExperienceForm(forms.ModelForm):
         empty_value=None,
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
+        widget=widgets.RadioSelect(
+            attrs={
+                'optional_label_override': True
+            }
+        ),
         label=_(
             'Do you have a product or service suitable for, or that could be developed for, export?'
         )
@@ -479,42 +540,51 @@ class ExportDetailsForm(forms.ModelForm):
     class Meta:
         model = GrantApplicationLink
         fields = [
-            'has_exported_in_last_12_months', 'export_regions', 'markets_intending_on_exporting_to',
+            'export_regions', 'markets_intending_on_exporting_to', 'has_exported_in_last_12_months',
             'is_in_contact_with_dit_trade_advisor', 'export_experience_description',
             'export_strategy'
         ]
 
-    has_exported_in_last_12_months = forms.TypedChoiceField(
-        choices=settings.BOOLEAN_CHOICES,
-        coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
-        label=_('Has your business exported any products or services in the last 12 months?'),
-    )
     export_regions = forms.MultipleChoiceField(
         label=_('Which region(s) has your business exported to?'),
         choices=(
             ('africa', 'Africa'),
-            ('asia', 'Asia'),
-            ('australasia', 'Australasia'),
+            ('asia pacific', 'Asia-Pacific'),
+            ('china', 'China'),
+            ('eastern europe and central asia', 'Eastern Europe and Central Asia'),
             ('europe', 'Europe'),
+            ('latin america', 'Latin America'),
             ('middle east', 'Middle East'),
             ('north america', 'North America'),
-            ('south america', 'South America')
+            ('south america', 'South America'),
         ),
         widget=widgets.CheckboxSelectMultiple()
     )
     markets_intending_on_exporting_to = forms.MultipleChoiceField(
         label=_('Which markets are you intending to export to using the TAP grant?'),
         choices=(
-            ('existing', 'existing markets'),
-            ('new', 'new markets not exported to in the last 12 months')
+            ('existing', 'Continue or expand exports to existing markets'),
+            ('new', 'Begin exports to new markets')
         ),
         widget=widgets.CheckboxSelectMultiple()
+    )
+    has_exported_in_last_12_months = forms.TypedChoiceField(
+        choices=settings.BOOLEAN_CHOICES,
+        coerce=str_to_bool,
+        widget=widgets.RadioSelect(),
+        label=_('Has your business exported any products or services in the last 12 months?'),
     )
     is_in_contact_with_dit_trade_advisor = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
+        widget=widgets.RadioSelect(
+            attrs={
+                'details': {
+                    'summary_text': 'What is a DIT trade advisor?',
+                    'text': 'TODO',  # TODO: Content needed
+                }
+            }
+        ),
         label=_('Are you in contact with a DIT trade advisor?'),
     )
     export_experience_description = MaxAllowedCharField(
@@ -531,8 +601,8 @@ class ExportDetailsForm(forms.ModelForm):
     export_strategy = MaxAllowedCharField(
         label=_('Provide a brief summary of your export strategy'),
         help_text=_(
-            'Include short term (within the next 2 years) and longer term (2–5 years) objectives'
-            ' and any barriers to entry'
+            'Include short term (within the next 2 years) and longer term (2–5 years) objectives '
+            'and any barriers to entry'
         ),
         max_length=2000,
         widget=widgets.CharacterCountTextArea(

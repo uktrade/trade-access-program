@@ -30,13 +30,16 @@ class GrantApplication(BaseMetaModel):
                 return cls.HAS_250_OR_MORE
 
     class ExportRegions(models.TextChoices):
-        Africa = 'africa', 'Africa'
-        Asia = 'asia', 'Asia'
-        Australasia = 'australasia', 'Australasia'
-        Europe = 'europe', 'Europe'
-        MiddleEast = 'middle east', 'Middle East'
-        NorthAmerica = 'north america', 'North America'
-        SouthAmerica = 'south america', 'South America'
+        AFRICA = 'africa', 'Africa'
+        ASIA_PACIFIC = 'asia pacific', 'Asia-Pacific'
+        CHINA = 'china', 'China'
+        EASTERN_EUROPE_AND_CENTRAL_ASIA = \
+            'eastern europe and central asia', 'Eastern Europe and Central Asia'
+        EUROPE = 'europe', 'Europe'
+        LATIN_AMERICA = 'latin america', 'Latin America'
+        MIDDLE_EAST = 'middle east', 'Middle East'
+        NORTH_AMERICA = 'north america', 'North America'
+        SOUTH_AMERICA = 'south america', 'South America'
 
     class MarketsIntendingOnExportingTo(models.TextChoices):
         Existing = 'existing', 'existing markets'
@@ -61,10 +64,16 @@ class GrantApplication(BaseMetaModel):
     is_already_committed_to_event = models.BooleanField(null=True)
     search_term = models.CharField(max_length=500, null=True)
     company = models.ForeignKey('companies.Company', on_delete=PROTECT, null=True)
-    company_type = models.CharField(null=True, choices=CompanyType.choices, max_length=20)
-    company_name = models.CharField(null=True, max_length=500)
-    company_postcode = models.CharField(null=True, max_length=10)
-    time_trading_in_uk = models.CharField(null=True, choices=TimeTradingInUk.choices, max_length=20)
+    manual_company_type = models.CharField(null=True, choices=CompanyType.choices, max_length=20)
+    manual_company_name = models.CharField(null=True, max_length=500)
+    manual_company_address_line_1 = models.CharField(null=True, max_length=100)
+    manual_company_address_line_2 = models.CharField(null=True, max_length=100)
+    manual_company_address_town = models.CharField(null=True, max_length=100)
+    manual_company_address_county = models.CharField(null=True, max_length=100)
+    manual_company_address_postcode = models.CharField(null=True, max_length=10)
+    manual_time_trading_in_uk = models.CharField(
+        null=True, choices=TimeTradingInUk.choices, max_length=20
+    )
     manual_registration_number = models.CharField(
         null=True, validators=[RegexValidator(regex=r'(SC|NI|[0-9]{2})[0-9]{6}')], max_length=10
     )
@@ -72,7 +81,7 @@ class GrantApplication(BaseMetaModel):
         null=True, max_length=10,
         validators=[RegexValidator(regex=r'([0-9]{9}([0-9]{3})?|[A-Z]{2}[0-9]{3})')]
     )
-    website = models.URLField(null=True, max_length=500)
+    manual_website = models.URLField(null=True, max_length=500)
     number_of_employees = models.CharField(
         null=True, choices=NumberOfEmployees.choices, max_length=20
     )
