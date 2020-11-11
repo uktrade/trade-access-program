@@ -42,7 +42,7 @@ elevate:  ## Elevate a user account to admin (required because we use django-sta
 	$(MAKE) django-elevate_sso_user_permissions
 
 seed-db:  # Seed the database with some fake data
-	$(MAKE) django-seed_db
+	docker-compose run backoffice python manage.py seed_db && python manage.py loaddata sectors trade_events
 
 graph-models:  # Generate diagrams
 	$(MAKE) django-graph_models
