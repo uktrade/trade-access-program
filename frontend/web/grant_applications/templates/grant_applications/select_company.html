@@ -1,7 +1,11 @@
 {% extends 'grant_applications/generic_form_page.html' %}
 
 {% block before_govuk_form %}
+
+<p class="govuk-body">Enter your business name or company registration number and we’ll search for a match.</p>
+
 {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
+
 <div class="hmcts-search govuk-!-margin-bottom-4">
   <form class="form" id="id_search_form" method="GET" novalidate>
     {% include "core/govt_uk_form_field.html" with field=form.search_term %}
@@ -12,17 +16,21 @@
 {% endblock %}
 
 {% block govuk_form %}
-{% with number_of_matches=form.duns_number|length %}
-  <p class="govuk-body">We found <strong>{{ number_of_matches }}</strong> {% if number_of_matches == 1 %}match{% else %}matches{% endif %}</p>
-{% endwith %}
+{% if number_of_matches > 0 %}
+  <p class="govuk-body">We found <strong>{{ number_of_matches }}</strong> match{{ number_of_matches|pluralize:"es" }}</p>
 
-<form class="form" method="POST" novalidate>
-  {% csrf_token %}
-  {% include "core/govt_uk_form_field.html" with field=form.duns_number %}
-  {% include "core/govt_uk_form_button.html" with button_class=button_class button_name=button_name button_text=button_text %}
-</form>
-{% endblock %}
+  <form class="form" method="POST" novalidate>
+    {% csrf_token %}
+    {% include "core/govt_uk_form_field.html" with field=form.duns_number %}
+    {% include "core/govt_uk_form_button.html" with button_class=button_class button_name=button_name button_text=button_text %}
+  </form>
 
-{% block after_govuk_form %}
   <span class="govuk-caption-m">If your business isn’t listed you can <a id="id_details_not_listed" href="{% url 'grant-applications:manual-company-details' pk=grantapplicationlink.pk %}" class="govuk-link">enter the details manually</a></span>
+{% else %}
+  <p class="govuk-body govuk-!-font-weight-bold">We found no matches</p>
+  <p class="govuk-body">We found no matching businesses for your search.</p>
+  <p class="govuk-body">Please try checking the spelling of your business name or <a id="id_details_not_listed" href="{% url 'grant-applications:manual-company-details' pk=grantapplicationlink.pk %}" class="govuk-link">enter the details manually</a></p>
+{% endif %}
+
 {% endblock %}
+

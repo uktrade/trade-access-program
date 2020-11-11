@@ -255,13 +255,19 @@ def generate_company_select_options(companies):
     if not companies:
         return {'choices': [], 'hints': []}
 
+    address_fields = ['address_line_1', 'address_line_2', 'address_postcode', 'address_town']
     select_options = defaultdict(list)
 
     for c in companies:
         select_options['choices'].append(
             (c['dnb_data']['duns_number'], c['dnb_data']['primary_name'])
         )
-        select_options['hints'].append(c['registration_number'])
+
+        hints = [v for k, v in c['dnb_data'].items() if k in address_fields and v]
+        if c['registration_number']:
+            hints.insert(0, c['registration_number'])
+
+        select_options['hints'].append('\n'.join(hints))
 
     return select_options
 
@@ -410,7 +416,7 @@ class ApplicationReviewService:
         return self.summary_list_helper.make_summary_list(heading=heading, rows=[row])
 
     def manual_company_details_summary_list(self, heading, fields, url):
-        if self.application_data['company_type'] is None:
+        if self.application_data['manual_company_type'] is None:
             # Manual company details is a conditional view. Return None if no data was entered
             return
         return self.generic_summary_list(heading, fields, url)

@@ -250,6 +250,10 @@ class SelectCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
 
         return kwargs
 
+    def get_context_data(self, **kwargs):
+        kwargs['number_of_matches'] = len(self.companies or [])
+        return super().get_context_data(**kwargs)
+
     def get_initial(self):
         initial = super().get_initial()
         initial['search_term'] = self.request.GET.get('search_term')

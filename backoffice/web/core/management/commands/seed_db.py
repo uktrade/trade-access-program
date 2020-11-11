@@ -3,7 +3,9 @@ import logging
 from django.core.management.base import BaseCommand
 
 from web.companies.models import Company
+from web.sectors.models import Sector
 from web.tests.factories.grant_applications import GrantApplicationFactory
+from web.trade_events.models import Event
 
 
 class Command(BaseCommand):
@@ -20,12 +22,15 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         num = options['number_of_grant_applications']
 
-        # Uses a real dnb-service duns_number here
         company, _ = Company.objects.get_or_create(
+            # Uses a real dnb-service duns_number here
             duns_number='239896579', registration_number='03977902', name='GOOGLE UK LIMITED'
         )
-
-        gas = GrantApplicationFactory.create_batch(size=num, company=company)
+        random_event = Event.objects.first()
+        random_sector = Sector.objects.first()
+        gas = GrantApplicationFactory.create_batch(
+            size=num, company=company, event=random_event, sector=random_sector
+        )
 
         logging.disable(logging.WARNING)
         for ga in gas:

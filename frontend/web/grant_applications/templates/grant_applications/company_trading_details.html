@@ -9,10 +9,10 @@
   <fieldset class="govuk-fieldset">
     <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
       <h1 class="govuk-fieldset__heading">
-        Enter your annual turnover for each of the last 3 fiscal years:
+        Enter your annual turnover for each of the last 3 fiscal years
       </h1>
     </legend>
-    <span class="govuk-hint">For example, 25000</span>
+    <span class="govuk-hint">For example, 25000. If you have no turnover for a given year please enter 0</span>
     {% include "core/govt_uk_form_field.html" with field=form.previous_years_turnover_1 class='govuk-form-group govuk-!-margin-bottom-3' %}
     {% include "core/govt_uk_form_field.html" with field=form.previous_years_turnover_2 class='govuk-form-group govuk-!-margin-bottom-3' %}
     {% include "core/govt_uk_form_field.html" with field=form.previous_years_turnover_3 %}
@@ -22,10 +22,10 @@
   <fieldset class="govuk-fieldset">
     <legend class="govuk-fieldset__legend govuk-fieldset__legend--s">
       <h1 class="govuk-fieldset__heading">
-        Confirm your annual turnover generated from exports for each of the last 3 fiscal years:
+        Confirm your annual turnover generated from exports for each of the last 3 fiscal years
       </h1>
     </legend>
-    <span class="govuk-hint">For example, 25000</span>
+    <span class="govuk-hint">For example, 25000. If you have no turnover for a given year please enter 0</span>
     {% include "core/govt_uk_form_field.html" with field=form.previous_years_export_turnover_1 class='govuk-form-group govuk-!-margin-bottom-3' %}
     {% include "core/govt_uk_form_field.html" with field=form.previous_years_export_turnover_2 class='govuk-form-group govuk-!-margin-bottom-3' %}
     {% include "core/govt_uk_form_field.html" with field=form.previous_years_export_turnover_3 %}
