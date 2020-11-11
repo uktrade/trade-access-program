@@ -6,7 +6,7 @@ from web.core.abstract_models import BaseMetaModel
 
 class Company(BaseMetaModel):
     duns_number = models.CharField(unique=True, max_length=20)
-    registration_number = models.CharField(unique=True, max_length=20)
+    registration_number = models.CharField(null=True, unique=True, max_length=20)
     name = models.CharField(max_length=500)
 
     class Meta:
