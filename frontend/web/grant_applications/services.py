@@ -404,14 +404,16 @@ class ApplicationReviewService:
             # User did not select a company and instead entered their details manually.
             return
 
+        values = [
+            company['name'],
+            company['last_dnb_get_company_response']['company_address'],
+        ]
+        if company['registration_number']:
+            values.insert(1, company['registration_number'])
         row = self._make_row(
-            url=url + f"?search_term={company['registration_number']}",
+            url=url + f"?search_term={company['registration_number'] or company['name']}",
             key='Business',
-            value='\n'.join([
-                company['name'],
-                company['registration_number'],
-                company['last_dnb_get_company_response']['company_address'],
-            ])
+            value='\n'.join(values)
         )
         return self.summary_list_helper.make_summary_list(heading=heading, rows=[row])
 
