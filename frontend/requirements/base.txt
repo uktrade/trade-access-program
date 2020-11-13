@@ -13,18 +13,25 @@ django-environ==0.4.5     # via -r requirements/base.in
 django-filter==2.3.0      # via -r requirements/base.in
 django-phonenumber-field==5.0.0  # via -r requirements/base.in
 django-sass-processor==0.8.2  # via -r requirements/base.in
-django==3.1.1             # via -r requirements/base.in, django-filter, django-phonenumber-field
+django-sesame==2.1        # via -r requirements/base.in
+django==3.1.1             # via -r requirements/base.in, django-filter, django-phonenumber-field, django-sesame
+docopt==0.6.2             # via notifications-python-client
+future==0.18.2            # via notifications-python-client
 gunicorn==20.0.4          # via -r requirements/base.in
 idna==2.10                # via requests
 libsass==0.20.1           # via -r requirements/base.in
+monotonic==1.5            # via notifications-python-client
+notifications-python-client==5.7.0  # via -r requirements/base.in
 phonenumbers==8.12.10     # via -r requirements/base.in
 psycopg2==2.8.6           # via -r requirements/base.in
+pyjwt==1.7.1              # via notifications-python-client
 pytz==2020.1              # via django
 rcssmin==1.0.6            # via django-compressor
-requests==2.24.0          # via -r requirements/base.in
+requests==2.24.0          # via -r requirements/base.in, notifications-python-client
 rjsmin==1.1.0             # via django-compressor
 six==1.15.0               # via django-compressor, libsass
 sqlparse==0.3.1           # via django
+ua==0.0.1                 # via -r requirements/base.in
 urllib3==1.25.9           # via requests
 whitenoise==5.2.0         # via -r requirements/base.in
 

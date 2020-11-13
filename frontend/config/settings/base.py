@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.0/ref/settings/
 """
-
+import datetime
 import os
 import environ
 
@@ -37,6 +37,7 @@ VCAP_APPLICATION = env.json('VCAP_APPLICATION', default={})
 
 TAP_APPS = [
     'web.core',
+    'web.users',
     'web.grant_applications',
 ]
 
@@ -58,8 +59,13 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'sesame.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+AUTHENTICATION_BACKENDS = [
+    'sesame.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -150,3 +156,14 @@ SASS_PROCESSOR_INCLUDE_DIRS = [
 BOOLEAN_CHOICES = [(True, 'Yes'), (False, 'No')]
 
 BACKOFFICE_API_URL = env('BACKOFFICE_API_URL', default=None)
+
+AUTH_USER_MODEL = 'users.User'
+
+# https://github.com/aaugustin/django-sesame#use-cases
+LOGIN_URL = '/users/login/'
+
+SESAME_TOKEN_NAME = 'login_token'
+SESAME_MAX_AGE = datetime.timedelta(minutes=10)
+
+NOTIFY_API_KEY = env('NOTIFY_API_KEY', default='')
+NOTIFY_ENABLED = False

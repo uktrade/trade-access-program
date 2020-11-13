@@ -1,0 +1,8 @@
+{% extends "core/govt_uk_form_page.html" %}
+
+{% block before_govuk_form %}
+{% if magic_link_sent %}
+  <p class="govuk-body" id="id_magic_link_sent">Sent email to {{ form.email.value }}</p>
+  <p class="govuk-body">If you have not received it please get in touch with the TAP team.</p>
+{% endif %}
+{% endblock %}

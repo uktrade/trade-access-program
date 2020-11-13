@@ -7,6 +7,7 @@ FORM_MSGS = {
     'invalid-combination': 'The form contains an invalid combination of fields.',
     'invalid-date': 'Enter a valid date.',
     'invalid-choice': 'Select a valid choice. {} is not one of the available choices.',
+    'invalid-email': 'Enter a valid email address.',
     'resubmit': 'An unexpected error occurred. Please resubmit the form.',
     'positive': 'Ensure this value is greater than or equal to 0.',
     '2dp': 'Ensure that there are no more than 2 decimal places.',

@@ -1,5 +1,7 @@
 from config.settings.base import *
 
+NOTIFY_ENABLED = True
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

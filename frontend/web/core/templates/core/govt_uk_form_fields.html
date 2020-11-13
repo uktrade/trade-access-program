@@ -1,5 +1,3 @@
 {% for field in form %}
-  {% if not field.is_hidden %}
-    {% include "core/govt_uk_form_field.html" with field=field %}
-  {% endif %}
+{% include "core/govt_uk_form_field.html" with field=field %}
 {% endfor %}

@@ -180,7 +180,6 @@ AUTHBROKER_SCOPES = 'read write'
 
 AUTHENTICATION_BACKENDS = [
     'web.core.backends.CustomAuthbrokerBackend',
-    'django.contrib.auth.backends.ModelBackend',
 ]
 
 LOGIN_URL = reverse_lazy('index')

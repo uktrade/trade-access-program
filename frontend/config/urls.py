@@ -26,18 +26,17 @@ urlpatterns = [
     # The govuk-frontend stylesheet requires a specific assets location
     # eg. node_modules/govuk-frontend/govuk/helpers/_font-faces.scss
     path(
-        "assets/<path:asset_path>",
+        'assets/<path:asset_path>',
         RedirectView.as_view(url='/static/govuk-frontend/govuk/assets/%(asset_path)s'),
     ),
     path(
-        "hmcts-assets/<path:asset_path>",
+        'hmcts-assets/<path:asset_path>',
         RedirectView.as_view(url='/static/@hmcts/frontend/assets/%(asset_path)s'),
     ),
 
-    path('admin/', admin.site.urls),
-
     # Templates
     path('', RedirectView.as_view(url='grant-applications/')),
+    path('users/', include('web.users.urls', namespace='users')),
     path('grant-applications/', include('web.grant_applications.urls', namespace='grant-applications')),
 ]
 
@@ -45,4 +44,5 @@ if settings.DEBUG:
     import debug_toolbar
     urlpatterns = [
         url('^__debug__/', include(debug_toolbar.urls)),
+        path('admin/', admin.site.urls),
     ] + urlpatterns
