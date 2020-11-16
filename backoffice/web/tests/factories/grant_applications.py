@@ -9,9 +9,18 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = GrantApplication
 
+
+class InactiveGrantApplicationFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = GrantApplication
+
+    previous_applications = 6
+
+
+class CompletedGrantApplicationFactory(GrantApplicationFactory):
     previous_applications = 1
     event = factory.SubFactory('web.tests.factories.events.EventFactory')
-    is_already_committed_to_event = True
+    is_already_committed_to_event = False
     search_term = factory.Sequence(lambda n: f'search_term-{n}')
     company = factory.SubFactory('web.tests.factories.companies.CompanyFactory')
     manual_company_type = GrantApplication.CompanyType.LIMITED_COMPANY
@@ -26,7 +35,7 @@ class GrantApplicationFactory(factory.django.DjangoModelFactory):
     manual_vat_number = '012345678'
     manual_website = 'https://www.test.com'
     number_of_employees = GrantApplication.NumberOfEmployees.HAS_FEWER_THAN_10
-    is_turnover_greater_than = True
+    is_turnover_greater_than = False
     applicant_full_name = factory.Sequence(lambda n: f'name-{n}')
     applicant_email = factory.Sequence(lambda n: f'test{n}@test.com')
     applicant_mobile_number = factory.Sequence(lambda n: f'+44{n:011}')

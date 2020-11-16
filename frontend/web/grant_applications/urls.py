@@ -57,5 +57,10 @@ urlpatterns = [
         '<pk>/confirmation/',
         TemplateView.as_view(template_name='grant_applications/confirmation.html'),
         name='confirmation'
-    )
+    ),
+    path(
+        'ineligible/',
+        TemplateView.as_view(template_name='grant_applications/ineligible.html'),
+        name='ineligible'
+    ),
 ]

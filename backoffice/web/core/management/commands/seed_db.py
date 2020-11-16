@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 
 from web.companies.models import Company
 from web.sectors.models import Sector
-from web.tests.factories.grant_applications import GrantApplicationFactory
+from web.tests.factories.grant_applications import CompletedGrantApplicationFactory
 from web.trade_events.models import Event
 
 
@@ -28,7 +28,7 @@ class Command(BaseCommand):
         )
         random_event = Event.objects.first()
         random_sector = Sector.objects.first()
-        gas = GrantApplicationFactory.create_batch(
+        gas = CompletedGrantApplicationFactory.create_batch(
             size=num, company=company, event=random_event, sector=random_sector
         )
 

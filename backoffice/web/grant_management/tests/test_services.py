@@ -4,7 +4,7 @@ from web.companies.services import DnbServiceClient
 from web.core.exceptions import DnbServiceClientException
 from web.grant_management.services import SupportingInformationContent
 from web.tests.factories.companies import DnbGetCompanyResponseFactory
-from web.tests.factories.grant_applications import GrantApplicationFactory
+from web.tests.factories.grant_applications import CompletedGrantApplicationFactory
 from web.tests.helpers import BaseTestCase
 
 
@@ -12,7 +12,7 @@ class TestGrantManagementSupportingInformation(BaseTestCase):
 
     def setUp(self):
         super().setUp()
-        self.ga = GrantApplicationFactory(company__dnb_get_company_responses=None)
+        self.ga = CompletedGrantApplicationFactory(company__dnb_get_company_responses=None)
         self.si_content = SupportingInformationContent(self.ga)
 
     @patch.object(DnbServiceClient, 'get_company', side_effect=DnbServiceClientException)

@@ -1,0 +1,20 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h2 class="govuk-heading-l">You are not eligible for a Tradeshow Access Programme (TAP) grant</h2>
+    <p class="govuk-body">We’re sorry but based on the information you’ve provided your business is ineligible for a TAP grant.</p>
+
+
+    <h2 class="govuk-heading-m">Next steps</h2>
+    <ul class="govuk-list govuk-list--bullet">
+      <li><a class="govuk-link" href="{% url 'grant-applications:index' %}">Start a new TAP grant application</a></li>
+      <li><a class="govuk-link" href="#">Contact your local DIT trade advisor for further information</a></li>
+    </ul>
+
+  </div>
+</div>
+
+{% endblock %}

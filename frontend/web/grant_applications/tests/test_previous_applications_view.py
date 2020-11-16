@@ -38,12 +38,38 @@ class TestPreviousApplicationsView(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, PreviousApplicationsView.template_name)
 
+    def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
+        self.gal.sent_for_review = True
+        self.gal.save()
+        response = self.client.get(self.url)
+        self.assertRedirects(
+            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
+        )
+
+    def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
+    def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
     def test_post_updates_backoffice_grant_application(self, *mocks):
         response = self.client.post(
             self.url,
             data={'previous_applications': FAKE_GRANT_APPLICATION['previous_applications']}
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            expected_url=reverse('grant-applications:find-an-event', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
         mocks[0].assert_called_once_with(
             grant_application_id=self.gal.backoffice_grant_application_id,
             previous_applications=FAKE_GRANT_APPLICATION['previous_applications']
@@ -81,13 +107,17 @@ class TestPreviousApplicationsView(BaseTestCase):
         )
         self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])
 
-    def test_post_success_if_get_ga_backoffice_exception(self, *mocks):
+    def test_post_form_error_if_get_ga_backoffice_exception(self, *mocks):
         mocks[1].side_effect = BackofficeServiceException
         response = self.client.post(
             self.url,
             data={'previous_applications': FAKE_GRANT_APPLICATION['previous_applications']}
         )
-        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:find-an-event', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
         mocks[0].assert_called_once_with(
             grant_application_id=self.gal.backoffice_grant_application_id,
             previous_applications=FAKE_GRANT_APPLICATION['previous_applications']

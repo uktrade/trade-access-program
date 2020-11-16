@@ -15,6 +15,9 @@ up:  ## Run all services in docker-compose.yml
 run-backoffice-debug:  ## Run frontend in debug mode
 	docker-compose run --use-aliases --service-ports backoffice
 
+run-background-services:  ## Start all helper services in the background
+	docker-compose up -d backoffice_db
+
 down:  ## Shut down all services in docker-compose.yml
 	docker-compose down --remove-orphans
 

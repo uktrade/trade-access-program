@@ -30,3 +30,25 @@ class TestGrantApplicationModel(BaseTestCase):
             GrantApplication.NumberOfEmployees.get_choice_by_number(1000),
             GrantApplication.NumberOfEmployees.HAS_250_OR_MORE
         )
+
+    def test_new_grant_application_is_active(self, *mocks):
+        ga = GrantApplicationFactory()
+        self.assertTrue(ga.is_active)
+
+    def test_grant_application_is_inactive_with_6_previous_applications(self, *mocks):
+        ga = GrantApplicationFactory(previous_applications=6)
+        self.assertFalse(ga.is_active)
+
+    def test_grant_application_is_inactive_if_already_committed(self, *mocks):
+        ga = GrantApplicationFactory(is_already_committed_to_event=True)
+        self.assertFalse(ga.is_active)
+
+    def test_grant_application_is_inactive_with_number_of_employees(self, *mocks):
+        ga = GrantApplicationFactory(
+            number_of_employees=GrantApplication.NumberOfEmployees.HAS_250_OR_MORE
+        )
+        self.assertFalse(ga.is_active)
+
+    def test_grant_application_is_inactive_with_high_turnover(self, *mocks):
+        ga = GrantApplicationFactory(is_turnover_greater_than=True)
+        self.assertFalse(ga.is_active)
