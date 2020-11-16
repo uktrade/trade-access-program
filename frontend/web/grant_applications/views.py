@@ -639,6 +639,4 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
             msg = forms.ValidationError(FORM_MSGS['resubmit'])
             form.add_error(None, msg)
             return super().form_invalid(form)
-        else:
-            self.object.sent_for_review = True
         return super().form_valid(form)

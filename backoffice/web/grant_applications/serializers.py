@@ -74,6 +74,7 @@ class GrantManagementProcessSerializer(serializers.ModelSerializer):
 
 class GrantApplicationReadSerializer(serializers.ModelSerializer):
     is_active = serializers.ReadOnlyField()
+    sent_for_review = serializers.ReadOnlyField()
     company = CompanySerializer()
     event = EventSerializer()
     sector = SectorSerializer()
@@ -86,6 +87,7 @@ class GrantApplicationReadSerializer(serializers.ModelSerializer):
 
 class GrantApplicationWriteSerializer(serializers.ModelSerializer):
     is_active = serializers.ReadOnlyField()
+    sent_for_review = serializers.ReadOnlyField()
 
     class Meta:
         model = GrantApplication

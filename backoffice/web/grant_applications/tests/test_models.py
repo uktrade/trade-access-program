@@ -8,10 +8,15 @@ from web.tests.helpers import BaseTestCase
 @patch('web.grant_management.flows.NotifyService')
 class TestGrantApplicationModel(BaseTestCase):
 
+    def test_new_grant_application_sent_for_review_is_false(self, *mocks):
+        ga = GrantApplicationFactory()
+        self.assertFalse(ga.sent_for_review)
+
     def test_send_for_review_starts_flow_process(self, *mocks):
         ga = GrantApplicationFactory()
         ga.send_for_review()
         self.assertTrue(hasattr(ga, 'grant_management_process'))
+        self.assertTrue(ga.sent_for_review)
 
     def test_number_of_employees_choices(self, *mocks):
         self.assertEqual(

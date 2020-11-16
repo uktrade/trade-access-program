@@ -56,7 +56,7 @@ class ConfirmationRedirectMixin:
 
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)
-        if self.object.sent_for_review:
+        if self.backoffice_grant_application.get('sent_for_review', False):
             return HttpResponseRedirect(
                 reverse('grant_applications:confirmation', args=(self.object.pk,))
             )

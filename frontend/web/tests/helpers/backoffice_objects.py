@@ -94,11 +94,7 @@ FAKE_GRANT_APPLICATION = {
     'stand_trade_name': 'A Name',
     'trade_show_experience_description': 'A description',
     'additional_guidance': 'Some additional guidance',
-    'grant_management_process': {
-        'id': '98d123ef-4218-4485-8285-c3c064f73893',
-        'status': 'NEW',
-        'grant_application': '993c394c-dd5d-413c-bd70-1ba4f1e2b050'
-    }
+    'sent_for_review': False
 }
 
 FAKE_STATE_AID = {

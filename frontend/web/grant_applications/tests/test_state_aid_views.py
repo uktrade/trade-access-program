@@ -67,8 +67,9 @@ class TestStateAidSummaryView(BaseTestCase):
         )
 
     def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
-        self.gal.sent_for_review = True
-        self.gal.save()
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['sent_for_review'] = True
+        mocks[1].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(
             response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
@@ -179,8 +180,9 @@ class TestAddStateAidView(BaseTestCase):
         self.assertFormError(response, 'form', 'date_received', self.form_msgs['required'])
 
     def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
-        self.gal.sent_for_review = True
-        self.gal.save()
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['sent_for_review'] = True
+        mocks[1].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(
             response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
@@ -244,8 +246,9 @@ class TestEditStateAidView(BaseTestCase):
         self.assertFormError(response, 'form', 'amount', self.form_msgs['number'])
 
     def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
-        self.gal.sent_for_review = True
-        self.gal.save()
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['sent_for_review'] = True
+        mocks[1].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(
             response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
@@ -297,8 +300,9 @@ class TestDeleteStateAidView(BaseTestCase):
         mocks[1].assert_called_once_with(state_aid_id=FAKE_STATE_AID['id'])
 
     def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
-        self.gal.sent_for_review = True
-        self.gal.save()
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['sent_for_review'] = True
+        mocks[0].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(
             response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
@@ -373,8 +377,9 @@ class TestDuplicateStateAidView(BaseTestCase):
         )
 
     def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
-        self.gal.sent_for_review = True
-        self.gal.save()
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['sent_for_review'] = True
+        mocks[0].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(
             response, reverse('grant-applications:confirmation', args=(self.gal.pk,))

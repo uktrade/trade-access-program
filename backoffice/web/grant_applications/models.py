@@ -153,6 +153,10 @@ class GrantApplication(BaseMetaModel):
             return False
         return True
 
+    @property
+    def sent_for_review(self):
+        return hasattr(self, 'grant_management_process')
+
 
 class StateAid(BaseMetaModel):
     authority = models.CharField(max_length=500)

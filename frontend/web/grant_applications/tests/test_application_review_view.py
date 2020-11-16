@@ -4,12 +4,11 @@ from bs4 import BeautifulSoup
 from django.urls import reverse, resolve
 
 from web.grant_applications.forms import ExportExperienceForm
-from web.grant_applications.services import BackofficeServiceException, BackofficeService
+from web.grant_applications.services import BackofficeService, BackofficeServiceException
 from web.grant_applications.views import (
-    ApplicationReviewView, PreviousApplicationsView, SelectAnEventView, ManualCompanyDetailsView,
-    CompanyDetailsView, EventCommitmentView, ContactDetailsView, ExportExperienceView,
-    StateAidSummaryView, TradeEventDetailsView, CompanyTradingDetailsView, SelectCompanyView,
-    ExportDetailsView
+    PreviousApplicationsView, SelectAnEventView, ManualCompanyDetailsView, CompanyDetailsView,
+    EventCommitmentView, ContactDetailsView, ExportExperienceView, StateAidSummaryView,
+    TradeEventDetailsView, CompanyTradingDetailsView, SelectCompanyView, ExportDetailsView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
@@ -170,31 +169,26 @@ class TestApplicationReviewView(BaseTestCase):
             response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
         )
 
-    def test_sent_for_review(self, *mocks):
+    def test_send_grant_application_for_review(self, *mocks):
         self.client.get(self.url)
         self.client.post(self.url)
         self.gal.refresh_from_db()
-        self.assertTrue(self.gal.sent_for_review)
         self.assertIn('application_summary', self.client.session)
         mocks[5].assert_called_once_with(
             str(self.gal.backoffice_grant_application_id),
             application_summary=self.client.session['application_summary']
         )
 
-    def test_sent_for_review_not_set_on_backoffice_error(self, *mocks):
+    def test_backoffice_exception_on_send_grant_application_for_review(self, *mocks):
         mocks[5].side_effect = BackofficeServiceException
         self.client.get(self.url)
-        response = self.client.post(self.url, follow=True)
+        response = self.client.post(self.url)
         self.assertFormError(response, 'form', None, self.form_msgs['resubmit'])
-        self.gal.refresh_from_db()
-        self.assertFalse(self.gal.sent_for_review)
-
-        response = self.client.get(self.url)
-        self.assertTemplateUsed(response, ApplicationReviewView.template_name)
 
     def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
-        self.gal.sent_for_review = True
-        self.gal.save()
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['sent_for_review'] = True
+        mocks[4].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(
             response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
