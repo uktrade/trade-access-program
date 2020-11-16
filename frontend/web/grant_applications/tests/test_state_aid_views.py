@@ -89,6 +89,18 @@ class TestStateAidSummaryView(BaseTestCase):
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
+    def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, StateAidSummaryView.template_name)
+
 
 @patch.object(BackofficeService, 'get_state_aid', return_value=FAKE_STATE_AID)
 @patch.object(BackofficeService, 'update_state_aid', return_value=FAKE_STATE_AID)
@@ -202,6 +214,18 @@ class TestAddStateAidView(BaseTestCase):
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
+    def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, AddStateAidView.template_name)
+
 
 @patch.object(BackofficeService, 'list_state_aids', return_value=[FAKE_STATE_AID])
 @patch.object(BackofficeService, 'get_state_aid', return_value=FAKE_STATE_AID)
@@ -268,6 +292,18 @@ class TestEditStateAidView(BaseTestCase):
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
+    def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, EditStateAidView.template_name)
+
 
 @patch.object(BackofficeService, 'delete_state_aid')
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
@@ -321,6 +357,21 @@ class TestDeleteStateAidView(BaseTestCase):
         mocks[0].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
+    def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+
+        response = self.client.get(self.url)
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:state-aid-summary', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
 
 
 @patch.object(BackofficeService, 'get_state_aid', return_value=FAKE_STATE_AID)
@@ -398,3 +449,18 @@ class TestDuplicateStateAidView(BaseTestCase):
         mocks[0].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
+    def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+
+        response = self.client.get(self.url)
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:state-aid-summary', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )

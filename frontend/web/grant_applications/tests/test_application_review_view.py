@@ -8,7 +8,8 @@ from web.grant_applications.services import BackofficeService, BackofficeService
 from web.grant_applications.views import (
     PreviousApplicationsView, SelectAnEventView, ManualCompanyDetailsView, CompanyDetailsView,
     EventCommitmentView, ContactDetailsView, ExportExperienceView, StateAidSummaryView,
-    TradeEventDetailsView, CompanyTradingDetailsView, SelectCompanyView, ExportDetailsView
+    TradeEventDetailsView, CompanyTradingDetailsView, SelectCompanyView, ExportDetailsView,
+    ApplicationReviewView
 )
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.backoffice_objects import (
@@ -159,6 +160,11 @@ class TestApplicationReviewView(BaseTestCase):
             ExportExperienceForm.base_fields['has_product_or_service_for_export'].label
         )
 
+    def test_has_viewed_review_page_is_set_to_true_on_get(self, *mocks):
+        self.client.get(self.url)
+        self.gal.refresh_from_db()
+        self.assertTrue(self.gal.has_viewed_review_page)
+
     def test_post_redirects(self, *mocks):
         self.client.get(self.url)
         response = self.client.post(self.url)
@@ -207,3 +213,15 @@ class TestApplicationReviewView(BaseTestCase):
         mocks[4].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
+    def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[4].return_value = fake_grant_application
+
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, ApplicationReviewView.template_name)

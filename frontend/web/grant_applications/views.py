@@ -640,3 +640,10 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
             form.add_error(None, msg)
             return super().form_invalid(form)
         return super().form_valid(form)
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        response = super().get(request, *args, **kwargs)
+        self.object.has_viewed_review_page = True
+        self.object.save()
+        return response
