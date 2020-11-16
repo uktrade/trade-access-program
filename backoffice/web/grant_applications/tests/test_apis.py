@@ -110,6 +110,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
                 'trade_show_experience_description': ga.trade_show_experience_description,
                 'additional_guidance': ga.additional_guidance,
                 'application_summary': ga.application_summary,
+                'sent_for_review': ga.sent_for_review,
             }
         )
 
