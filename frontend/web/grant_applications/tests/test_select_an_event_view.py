@@ -132,6 +132,18 @@ class TestSelectAnEventView(BaseTestCase):
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
+    def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, SelectAnEventView.template_name)
+
     def test_event_is_saved_on_form_continue_button(self, *mocks):
         response = self.client.post(self.url, data={'event': FAKE_EVENT['id']})
         self.assertEqual(response.status_code, 302)
