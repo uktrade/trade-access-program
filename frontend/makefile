@@ -15,6 +15,9 @@ up:  ## Run all services in docker-compose.yml
 run-frontend-debug:  ## Run frontend in debug mode
 	docker-compose run --use-aliases --service-ports frontend
 
+run-background-services:  ## Start all helper services in the background
+	docker-compose up -d frontend_db
+
 build:  ## Build all services in docker-compose.yml
 	docker-compose build
 

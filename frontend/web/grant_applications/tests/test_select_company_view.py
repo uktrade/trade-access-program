@@ -164,3 +164,25 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
             manual_vat_number=None,
             manual_website=None
         )
+
+    def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
+        self.gal.sent_for_review = True
+        self.gal.save()
+        response = self.client.get(self.url, data={'search_term': 'hello'})
+        self.assertRedirects(
+            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
+        )
+
+    def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[3].return_value = fake_grant_application
+        response = self.client.get(self.url, data={'search_term': 'hello'})
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
+    def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[3].return_value = fake_grant_application
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))

@@ -141,6 +141,18 @@ class GrantApplication(BaseMetaModel):
             return GrantManagementFlow.start.run(grant_application=self)
         return qs.get()
 
+    @property
+    def is_active(self):
+        if self.previous_applications and self.previous_applications >= 6:
+            return False
+        if self.is_already_committed_to_event is True:
+            return False
+        if self.number_of_employees == self.NumberOfEmployees.HAS_250_OR_MORE:
+            return False
+        if self.is_turnover_greater_than is True:
+            return False
+        return True
+
 
 class StateAid(BaseMetaModel):
     authority = models.CharField(max_length=500)

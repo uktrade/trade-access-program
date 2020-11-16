@@ -66,6 +66,28 @@ class TestStateAidSummaryView(BaseTestCase):
             fetch_redirect_response=False
         )
 
+    def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
+        self.gal.sent_for_review = True
+        self.gal.save()
+        response = self.client.get(self.url)
+        self.assertRedirects(
+            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
+        )
+
+    def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
+    def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
 
 @patch.object(BackofficeService, 'get_state_aid', return_value=FAKE_STATE_AID)
 @patch.object(BackofficeService, 'update_state_aid', return_value=FAKE_STATE_AID)
@@ -156,6 +178,28 @@ class TestAddStateAidView(BaseTestCase):
         )
         self.assertFormError(response, 'form', 'date_received', self.form_msgs['required'])
 
+    def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
+        self.gal.sent_for_review = True
+        self.gal.save()
+        response = self.client.get(self.url)
+        self.assertRedirects(
+            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
+        )
+
+    def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
+    def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
 
 @patch.object(BackofficeService, 'list_state_aids', return_value=[FAKE_STATE_AID])
 @patch.object(BackofficeService, 'get_state_aid', return_value=FAKE_STATE_AID)
@@ -199,6 +243,28 @@ class TestEditStateAidView(BaseTestCase):
         response = self.client.post(self.url, data={'amount': 'bad-value'})
         self.assertFormError(response, 'form', 'amount', self.form_msgs['number'])
 
+    def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
+        self.gal.sent_for_review = True
+        self.gal.save()
+        response = self.client.get(self.url)
+        self.assertRedirects(
+            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
+        )
+
+    def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
+    def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[1].return_value = fake_grant_application
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
 
 @patch.object(BackofficeService, 'delete_state_aid')
 @patch.object(BackofficeService, 'get_grant_application', return_value=FAKE_GRANT_APPLICATION)
@@ -229,6 +295,28 @@ class TestDeleteStateAidView(BaseTestCase):
             fetch_redirect_response=False
         )
         mocks[1].assert_called_once_with(state_aid_id=FAKE_STATE_AID['id'])
+
+    def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
+        self.gal.sent_for_review = True
+        self.gal.save()
+        response = self.client.get(self.url)
+        self.assertRedirects(
+            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
+        )
+
+    def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[0].return_value = fake_grant_application
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
+    def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[0].return_value = fake_grant_application
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
 
 @patch.object(BackofficeService, 'get_state_aid', return_value=FAKE_STATE_AID)
@@ -283,3 +371,25 @@ class TestDuplicateStateAidView(BaseTestCase):
             description=FAKE_STATE_AID['description'],
             date_received=FAKE_STATE_AID['date_received']
         )
+
+    def test_get_redirects_to_confirmation_if_application_already_sent_for_review(self, *mocks):
+        self.gal.sent_for_review = True
+        self.gal.save()
+        response = self.client.get(self.url)
+        self.assertRedirects(
+            response, reverse('grant-applications:confirmation', args=(self.gal.pk,))
+        )
+
+    def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[0].return_value = fake_grant_application
+        response = self.client.get(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))
+
+    def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['is_active'] = False
+        mocks[0].return_value = fake_grant_application
+        response = self.client.post(self.url)
+        self.assertRedirects(response, reverse('grant-applications:ineligible'))

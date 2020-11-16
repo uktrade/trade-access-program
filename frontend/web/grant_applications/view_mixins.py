@@ -55,9 +55,33 @@ class InitialDataMixin:
 class ConfirmationRedirectMixin:
 
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
+        response = super().get(request, *args, **kwargs)
         if self.object.sent_for_review:
             return HttpResponseRedirect(
                 reverse('grant_applications:confirmation', args=(self.object.pk,))
             )
-        return self.render_to_response(self.get_context_data())
+        return response
+
+
+class IneligibleRedirectMixin:
+
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        if not self.backoffice_grant_application.get('is_active', True):
+            return HttpResponseRedirect(reverse('grant_applications:ineligible'))
+        return response
+
+    def post(self, request, *args, **kwargs):
+        self.get_object()
+
+        # First check if application data already set is ineligible
+        if not self.backoffice_grant_application.get('is_active', True):
+            return HttpResponseRedirect(reverse('grant_applications:ineligible'))
+
+        response = super().post(request, *args, **kwargs)
+
+        # After update is done check if application is now set to ineligible
+        if not self.backoffice_grant_application.get('is_active', True):
+            return HttpResponseRedirect(reverse('grant_applications:ineligible'))
+
+        return response

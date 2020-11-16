@@ -24,7 +24,7 @@ from web.grant_applications.services import (
     get_state_aid_summary_table, ApplicationReviewService
 )
 from web.grant_applications.view_mixins import (
-    BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin
+    BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin
 )
 
 
@@ -52,7 +52,7 @@ class BeforeYouStartView(BackContextMixin, StaticContextMixin, SuccessUrlObjectP
 
 class PreviousApplicationsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
                                BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                               UpdateView):
+                               IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = PreviousApplicationsForm
     template_name = 'grant_applications/previous_applications.html'
@@ -69,7 +69,8 @@ class PreviousApplicationsView(BackContextMixin, StaticContextMixin, SuccessUrlO
 
 
 class FindAnEventView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                      BackofficeMixin, ConfirmationRedirectMixin, UpdateView):
+                      BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                      UpdateView):
     model = GrantApplicationLink
     form_class = FindAnEventForm
     template_name = 'grant_applications/find_an_event.html'
@@ -105,7 +106,8 @@ class FindAnEventView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMi
 
 
 class SelectAnEventView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, ConfirmationRedirectMixin, PaginationMixin, UpdateView):
+                        BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                        PaginationMixin, UpdateView):
     model = GrantApplicationLink
     form_class = SelectAnEventForm
     template_name = 'grant_applications/select_an_event.html'
@@ -184,7 +186,8 @@ class SelectAnEventView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
 
 
 class EventCommitmentView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                          BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
+                          BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                          IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = EventCommitmentForm
     template_name = 'grant_applications/event_commitment.html'
@@ -206,7 +209,8 @@ class EventCommitmentView(BackContextMixin, StaticContextMixin, SuccessUrlObject
 
 
 class SearchCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
+                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                        IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = SearchCompanyForm
     template_name = 'grant_applications/search_company.html'
@@ -227,7 +231,8 @@ class SearchCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
 
 
 class SelectCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, ConfirmationRedirectMixin, UpdateView):
+                        BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                        UpdateView):
     model = GrantApplicationLink
     form_class = SelectCompanyForm
     template_name = 'grant_applications/select_company.html'
@@ -292,7 +297,7 @@ class SelectCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
 
 class ManualCompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
                                BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                               UpdateView):
+                               IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = ManualCompanyDetailsForm
     template_name = 'grant_applications/manual_company_details.html'
@@ -310,7 +315,8 @@ class ManualCompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlO
 
 
 class CompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
+                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                         IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = CompanyDetailsForm
     template_name = 'grant_applications/company_details.html'
@@ -328,7 +334,8 @@ class CompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectP
 
 
 class ContactDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
+                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                         IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = ContactDetailsForm
     template_name = 'grant_applications/contact_details.html'
@@ -343,7 +350,7 @@ class ContactDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectP
 
 class CompanyTradingDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
                                 BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                                UpdateView):
+                                IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = CompanyTradingDetailsForm
     template_name = 'grant_applications/company_trading_details.html'
@@ -363,7 +370,7 @@ class CompanyTradingDetailsView(BackContextMixin, StaticContextMixin, SuccessUrl
 
 
 class ExportExperienceView(BackContextMixin, StaticContextMixin, BackofficeMixin, InitialDataMixin,
-                           ConfirmationRedirectMixin, UpdateView):
+                           ConfirmationRedirectMixin, IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = ExportExperienceForm
     template_name = 'grant_applications/export_experience.html'
@@ -393,7 +400,8 @@ class ExportExperienceView(BackContextMixin, StaticContextMixin, BackofficeMixin
 
 
 class ExportDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, UpdateView):
+                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+                        IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = ExportDetailsForm
     template_name = 'grant_applications/export_details.html'
@@ -408,7 +416,7 @@ class ExportDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
 
 class TradeEventDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
                             BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                            UpdateView):
+                            IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = TradeEventDetailsForm
     template_name = 'grant_applications/trade_event_details.html'
@@ -434,7 +442,8 @@ class TradeEventDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObje
 
 
 class StateAidSummaryView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                          BackofficeMixin, ConfirmationRedirectMixin, UpdateView):
+                          BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                          UpdateView):
     model = GrantApplicationLink
     form_class = EmptyGrantApplicationLinkForm
     template_name = 'grant_applications/state_aid_summary.html'
@@ -457,38 +466,46 @@ class StateAidSummaryView(BackContextMixin, StaticContextMixin, SuccessUrlObject
         return super().get_context_data(**kwargs)
 
 
-class DeleteStateAidView(BackofficeMixin, SingleObjectMixin, RedirectView):
+class DeleteStateAidView(BackofficeMixin, SingleObjectMixin, ConfirmationRedirectMixin,
+                         IneligibleRedirectMixin, RedirectView):
     model = GrantApplicationLink
     pattern_name = 'grant-applications:state-aid-summary'
 
     def get_redirect_url(self, *args, **kwargs):
-        object = self.get_object()
         try:
             self.backoffice_service.delete_state_aid(state_aid_id=kwargs['state_aid_pk'])
         except BackofficeServiceException:
             pass
-        return super().get_redirect_url(pk=object.pk)
+        return super().get_redirect_url(pk=self.object.pk)
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().get(request, *args, **kwargs)
 
 
-class DuplicateStateAidView(BackofficeMixin, SingleObjectMixin, RedirectView):
+class DuplicateStateAidView(BackofficeMixin, SingleObjectMixin, ConfirmationRedirectMixin,
+                            IneligibleRedirectMixin, RedirectView):
     model = GrantApplicationLink
     pattern_name = 'grant-applications:state-aid-summary'
 
     def get_redirect_url(self, *args, **kwargs):
-        object = self.get_object()
         try:
             state_aid = self.backoffice_service.get_state_aid(state_aid_id=kwargs['state_aid_pk'])
             self.backoffice_service.create_state_aid(
-                grant_application=object.backoffice_grant_application_id,
+                grant_application=self.object.backoffice_grant_application_id,
                 **{k: v for k, v in state_aid.items() if k in AddStateAidForm.Meta.fields}
             )
         except BackofficeServiceException:
             pass
-        return super().get_redirect_url(pk=object.pk)
+        return super().get_redirect_url(pk=self.object.pk)
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().get(request, *args, **kwargs)
 
 
 class StateAidItemMixin(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, ConfirmationRedirectMixin):
+                        BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin):
     model = GrantApplicationLink
     template_name = 'grant_applications/state_aid_item.html'
     back_url_name = 'grant-applications:state-aid-summary'
@@ -556,7 +573,8 @@ class EditStateAidView(StateAidItemMixin, UpdateView):
 
 
 class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                            BackofficeMixin, ConfirmationRedirectMixin, UpdateView):
+                            BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                            UpdateView):
     model = GrantApplicationLink
     form_class = EmptyGrantApplicationLinkForm
     template_name = 'grant_applications/application_review.html'

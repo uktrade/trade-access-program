@@ -2,15 +2,16 @@ from unittest.mock import patch
 
 from django.urls import reverse
 from rest_framework.status import (
-    HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT,
-    HTTP_400_BAD_REQUEST
+    HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
 )
 
 from web.grant_applications.models import GrantApplication, StateAid
 from web.grant_management.models import GrantManagementProcess
 from web.tests.factories.companies import CompanyFactory
 from web.tests.factories.events import EventFactory
-from web.tests.factories.grant_applications import GrantApplicationFactory
+from web.tests.factories.grant_applications import (
+    CompletedGrantApplicationFactory, GrantApplicationFactory, InactiveGrantApplicationFactory
+)
 from web.tests.factories.grant_management import GrantManagementProcessFactory
 from web.tests.factories.state_aid import StateAidFactory
 from web.tests.helpers import BaseAPITestCase
@@ -21,7 +22,7 @@ from web.tests.helpers import BaseAPITestCase
 class GrantApplicationsApiTests(BaseAPITestCase):
 
     def test_get_grant_application_detail(self, *mocks):
-        ga = GrantApplicationFactory()
+        ga = CompletedGrantApplicationFactory()
         path = reverse('grant-applications:grant-applications-detail', args=(ga.id,))
         response = self.client.get(path)
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
@@ -29,6 +30,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
             response,
             data_contains={
                 'id': ga.id_str,
+                'is_active': ga.is_active,
                 'previous_applications': ga.previous_applications,
                 'event': {
                     'id': ga.event.id_str,
@@ -112,7 +114,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
         )
 
     def test_list_grant_applications(self, *mocks):
-        gas = GrantApplicationFactory.create_batch(size=3)
+        gas = CompletedGrantApplicationFactory.create_batch(size=3)
         path = reverse('grant-applications:grant-applications-list')
         response = self.client.get(path=path)
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
@@ -174,11 +176,19 @@ class GrantApplicationsApiTests(BaseAPITestCase):
 
     def test_update_grant_application(self, *mocks):
         event = EventFactory()
-        ga = GrantApplicationFactory()
+        ga = CompletedGrantApplicationFactory()
         path = reverse('grant-applications:grant-applications-detail', args=(ga.id,))
         response = self.client.patch(path, {'event': event.id})
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assert_response_data_contains(response, data_contains={'event': event.id})
+
+    def test_cannot_update_inactive_grant_application(self, *mocks):
+        ga = InactiveGrantApplicationFactory()
+        self.assertFalse(ga.is_active)
+        path = reverse('grant-applications:grant-applications-detail', args=(ga.id,))
+        response = self.client.patch(path, {'is_already_committed_to_event': False})
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['non_field_errors'][0].code, 'invalid')
 
     def test_create_new_grant_application_with_existing_company(self, *mocks):
         path = reverse('grant-applications:grant-applications-list')
@@ -195,7 +205,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
         self.assertTrue(GrantApplication.objects.filter(company=company).exists())
 
     def test_grant_application_send_for_review(self, *mocks):
-        ga = GrantApplicationFactory(application_summary=[])
+        ga = CompletedGrantApplicationFactory(application_summary=[])
         path = reverse('grant-applications:grant-applications-send-for-review', args=(ga.id,))
         response = self.client.post(path, data={'application_summary': 'A summary'})
         self.assertEqual(response.status_code, HTTP_200_OK)
@@ -204,7 +214,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
         self.assertEqual(response.data['application_summary'], 'A summary')
 
     def test_grant_application_send_for_review_requires_application_summary(self, *mocks):
-        ga = GrantApplicationFactory()
+        ga = CompletedGrantApplicationFactory()
         path = reverse('grant-applications:grant-applications-send-for-review', args=(ga.id,))
         response = self.client.post(path)
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
@@ -215,7 +225,7 @@ class StateAidApiTests(BaseAPITestCase):
 
     def setUp(self):
         super().setUp()
-        self.ga = GrantApplicationFactory()
+        self.ga = CompletedGrantApplicationFactory()
 
     def test_get_grant_application_detail(self, *mocks):
         state_aid = StateAidFactory(grant_application=self.ga)
