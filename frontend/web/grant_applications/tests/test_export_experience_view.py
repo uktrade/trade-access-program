@@ -40,6 +40,9 @@ class TestExportExperienceView(BaseTestCase):
             export_regions=None,
             markets_intending_on_exporting_to=None,
             is_in_contact_with_dit_trade_advisor=None,
+            ita_name=None,
+            ita_email=None,
+            ita_mobile_number=None,
             export_experience_description=None,
             export_strategy=None,
         )

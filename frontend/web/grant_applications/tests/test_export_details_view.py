@@ -30,6 +30,9 @@ class TestExportDetailsView(BaseTestCase):
                 'export_regions': ['africa', 'north america'],
                 'markets_intending_on_exporting_to': ['existing', 'new'],
                 'is_in_contact_with_dit_trade_advisor': True,
+                'ita_name': 'A Person',
+                'ita_email': 'tcp@test.com',
+                'ita_mobile_number': '07777777777',
                 'export_experience_description': 'A description',
                 'export_strategy': 'A strategy'
             }
@@ -41,6 +44,9 @@ class TestExportDetailsView(BaseTestCase):
             export_regions=['africa', 'north america'],
             markets_intending_on_exporting_to=['existing', 'new'],
             is_in_contact_with_dit_trade_advisor=True,
+            ita_name='A Person',
+            ita_email='tcp@test.com',
+            ita_mobile_number='+447777777777',
             export_experience_description='A description',
             export_strategy='A strategy'
         )
@@ -55,6 +61,84 @@ class TestExportDetailsView(BaseTestCase):
         self.assertFormError(response, 'form', 'is_in_contact_with_dit_trade_advisor', msg)
         self.assertFormError(response, 'form', 'export_experience_description', msg)
         self.assertFormError(response, 'form', 'export_strategy', msg)
+
+    def test_conditionally_required_field_errors(self, *mocks):
+        response = self.client.post(
+            self.url,
+            data={
+                'is_in_contact_with_dit_trade_advisor': True
+            }
+        )
+        msg = self.form_msgs['required']
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(response, 'form', 'ita_name', msg)
+        self.assertFormError(response, 'form', 'ita_email', msg)
+        self.assertFormError(response, 'form', 'ita_mobile_number', msg)
+
+    def test_conditionally_optional_fields_not_present(self, *mocks):
+        response = self.client.post(
+            self.url,
+            data={
+                'has_exported_in_last_12_months': True,
+                'export_regions': ['africa', 'north america'],
+                'markets_intending_on_exporting_to': ['existing', 'new'],
+                'is_in_contact_with_dit_trade_advisor': False,
+                'export_experience_description': 'A description',
+                'export_strategy': 'A strategy'
+            }
+        )
+        mocks[0].assert_called_once_with(
+            grant_application_id=str(self.gal.backoffice_grant_application_id),
+            has_exported_in_last_12_months=True,
+            export_regions=['africa', 'north america'],
+            markets_intending_on_exporting_to=['existing', 'new'],
+            is_in_contact_with_dit_trade_advisor=False,
+            export_experience_description='A description',
+            export_strategy='A strategy',
+            # Optional fields all explicitly set to None to overwrite any previously set value
+            ita_name=None,
+            ita_email=None,
+            ita_mobile_number=None,
+        )
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:trade-event-details', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
+
+    def test_conditionally_optional_fields_present(self, *mocks):
+        response = self.client.post(
+            self.url,
+            data={
+                'has_exported_in_last_12_months': True,
+                'export_regions': ['africa', 'north america'],
+                'markets_intending_on_exporting_to': ['existing', 'new'],
+                'is_in_contact_with_dit_trade_advisor': False,
+                'ita_name': 'A Person',
+                'ita_email': 'tcp@test.com',
+                'ita_mobile_number': '07777777777',
+                'export_experience_description': 'A description',
+                'export_strategy': 'A strategy'
+            }
+        )
+        mocks[0].assert_called_once_with(
+            grant_application_id=str(self.gal.backoffice_grant_application_id),
+            has_exported_in_last_12_months=True,
+            export_regions=['africa', 'north america'],
+            markets_intending_on_exporting_to=['existing', 'new'],
+            is_in_contact_with_dit_trade_advisor=False,
+            export_experience_description='A description',
+            export_strategy='A strategy',
+            # Optional fields all explicitly set to None to overwrite any previously set value
+            ita_name=None,
+            ita_email=None,
+            ita_mobile_number=None,
+        )
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:trade-event-details', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
 
     def test_multiple_choice_fields_mixed_valid_invalid_choices(self, *mocks):
         response = self.client.post(
@@ -113,7 +197,7 @@ class TestExportDetailsView(BaseTestCase):
                 'has_exported_in_last_12_months': True,
                 'export_regions': ['africa', 'north america'],
                 'markets_intending_on_exporting_to': ['existing', 'new'],
-                'is_in_contact_with_dit_trade_advisor': True,
+                'is_in_contact_with_dit_trade_advisor': False,
                 'export_experience_description': 'A description',
                 'export_strategy': 'A strategy'
             }
