@@ -1,1 +1,57 @@
 {% extends 'grant_applications/generic_form_page.html' %}
+
+{% block govuk_form %}
+<form class="form" method="POST" novalidate>
+  {% csrf_token %}
+  {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
+
+  {% include "core/govt_uk_form_field.html" with field=form.export_regions %}
+  {% include "core/govt_uk_form_field.html" with field=form.markets_intending_on_exporting_to %}
+  {% include "core/govt_uk_form_field.html" with field=form.has_exported_in_last_12_months %}
+
+  <div class="govuk-form-group{% if form.is_in_contact_with_dit_trade_advisor.errors %} govuk-form-group--error{% endif %}">
+    {% include "core/govt_uk_form_field_label.html" with field=form.is_in_contact_with_dit_trade_advisor %}
+    {% include "core/govt_uk_form_field_hint.html" with field=form.is_in_contact_with_dit_trade_advisor %}
+    {% include "core/govt_uk_form_field_errors.html" with field=form.is_in_contact_with_dit_trade_advisor %}
+
+    <fieldset class="govuk-fieldset">
+      <div class="govuk-radios govuk-radios--conditional" data-module="govuk-radios">
+
+        <div class="govuk-radios__item">
+          {% ifequal form.is_in_contact_with_dit_trade_advisor.value|cut:"'" form.is_in_contact_with_dit_trade_advisor.subwidgets.0.data.value|cut:"'" %}
+            <input class="govuk-radios__input" id="id_is_in_contact_with_dit_trade_advisor_01" name="is_in_contact_with_dit_trade_advisor" type="radio" value="True" data-aria-controls="tcp_details-conditional" checked>
+          {% else %}
+            <input class="govuk-radios__input" id="id_is_in_contact_with_dit_trade_advisor_02" name="is_in_contact_with_dit_trade_advisor" type="radio" value="True" data-aria-controls="tcp_details-conditional">
+          {% endifequal %}
+          <label class="govuk-label govuk-radios__label" for="id_is_in_contact_with_dit_trade_advisor_0">
+            {{ form.is_in_contact_with_dit_trade_advisor.subwidgets.0.choice_label }}
+          </label>
+        </div>
+
+        <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="tcp_details-conditional">
+          {% include "core/govt_uk_form_field.html" with field=form.ita_name %}
+          {% include "core/govt_uk_form_field.html" with field=form.ita_email %}
+          {% include "core/govt_uk_form_field.html" with field=form.ita_mobile_number %}
+        </div>
+
+        <div class="govuk-radios__item">
+          {% ifequal form.is_in_contact_with_dit_trade_advisor.value|cut:"'" form.is_in_contact_with_dit_trade_advisor.subwidgets.1.data.value|cut:"'" %}
+            <input class="govuk-radios__input" id="id_is_in_contact_with_dit_trade_advisor_11" name="is_in_contact_with_dit_trade_advisor" type="radio" value="False" checked>
+          {% else %}
+            <input class="govuk-radios__input" id="id_is_in_contact_with_dit_trade_advisor_12" name="is_in_contact_with_dit_trade_advisor" type="radio" value="False">
+          {% endifequal %}
+          <label class="govuk-label govuk-radios__label" for="id_is_in_contact_with_dit_trade_advisor_1">
+            {{ form.is_in_contact_with_dit_trade_advisor.subwidgets.1.choice_label }}
+          </label>
+        </div>
+
+      </div>
+    </fieldset>
+  </div>
+
+  {% include "core/govt_uk_form_field.html" with field=form.export_experience_description %}
+  {% include "core/govt_uk_form_field.html" with field=form.export_strategy %}
+
+  {% include "core/govt_uk_form_button.html" with button_class=button_class button_name=button_name button_text=button_text %}
+</form>
+{% endblock %}

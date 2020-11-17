@@ -122,6 +122,9 @@ class GrantApplication(BaseMetaModel):
         models.CharField(max_length=10, choices=MarketsIntendingOnExportingTo.choices), null=True
     )
     is_in_contact_with_dit_trade_advisor = models.BooleanField(null=True)
+    ita_name = models.CharField(null=True, max_length=500)
+    ita_email = models.EmailField(null=True)
+    ita_mobile_number = PhoneNumberField(null=True, region='GB')
     export_experience_description = models.TextField(null=True)
     export_strategy = models.TextField(null=True)
     interest_in_event_description = models.TextField(null=True)

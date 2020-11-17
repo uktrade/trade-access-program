@@ -541,8 +541,8 @@ class ExportDetailsForm(forms.ModelForm):
         model = GrantApplicationLink
         fields = [
             'export_regions', 'markets_intending_on_exporting_to', 'has_exported_in_last_12_months',
-            'is_in_contact_with_dit_trade_advisor', 'export_experience_description',
-            'export_strategy'
+            'is_in_contact_with_dit_trade_advisor', 'ita_name', 'ita_email', 'ita_mobile_number',
+            'export_experience_description', 'export_strategy'
         ]
 
     export_regions = forms.MultipleChoiceField(
@@ -587,6 +587,41 @@ class ExportDetailsForm(forms.ModelForm):
         ),
         label=_('Are you in contact with a DIT trade advisor?'),
     )
+    ita_name = forms.CharField(
+        required=False,
+        empty_value=None,
+        label=_('DIT trade advisor contact name'),
+        widget=forms.TextInput(
+            attrs={
+                'class': 'govuk-input govuk-!-width-two-thirds',
+                'optional_label_override': True
+            }
+        )
+    )
+    ita_email = forms.CharField(
+        required=False,
+        empty_value=None,
+        label=_('DIT trade advisor email address'),
+        widget=forms.TextInput(
+            attrs={
+                'class': 'govuk-input govuk-!-width-two-thirds',
+                'type': 'email',
+                'optional_label_override': True
+            }
+        )
+    )
+    ita_mobile_number = PhoneNumberField(
+        required=False,
+        empty_value=None,
+        label=_('DIT trade advisor mobile number'),
+        region='GB',
+        widget=forms.TextInput(
+            attrs={
+                'class': 'govuk-input govuk-input--width-10',
+                'optional_label_override': True
+            }
+        )
+    )
     export_experience_description = MaxAllowedCharField(
         label=_('Describe your experience of exporting including successes and challenges'),
         max_length=2000,
@@ -613,6 +648,32 @@ class ExportDetailsForm(forms.ModelForm):
             }
         )
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        is_in_contact_with_dit_trade_advisor = cleaned_data.get(
+            'is_in_contact_with_dit_trade_advisor'
+        )
+        ita_name = cleaned_data.get('ita_name')
+        ita_email = cleaned_data.get('ita_email')
+        ita_mobile_number = cleaned_data.get('ita_mobile_number')
+
+        if is_in_contact_with_dit_trade_advisor is True:
+            if not ita_name and 'ita_name' not in self.errors:
+                self.add_error('ita_name', forms.ValidationError(FORM_MSGS['required']))
+            if not ita_email and 'ita_email' not in self.errors:
+                self.add_error('ita_email', forms.ValidationError(FORM_MSGS['required']))
+            if not ita_mobile_number and 'ita_mobile_number' not in self.errors:
+                self.add_error('ita_mobile_number', forms.ValidationError(FORM_MSGS['required']))
+        elif is_in_contact_with_dit_trade_advisor is False:
+            cleaned_data['ita_name'] = None
+            cleaned_data['ita_email'] = None
+            cleaned_data['ita_mobile_number'] = None
+
+        if 'ita_mobile_number' in cleaned_data and cleaned_data['ita_mobile_number']:
+            cleaned_data['ita_mobile_number'] = cleaned_data['ita_mobile_number'].as_e164
+
+        return cleaned_data
 
 
 class TradeEventDetailsForm(FormatLabelMixin, forms.ModelForm):

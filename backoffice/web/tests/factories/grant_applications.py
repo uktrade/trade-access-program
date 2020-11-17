@@ -56,6 +56,9 @@ class CompletedGrantApplicationFactory(GrantApplicationFactory):
     export_regions = ['africa', 'north america']
     markets_intending_on_exporting_to = ['existing', 'new']
     is_in_contact_with_dit_trade_advisor = True
+    ita_name = 'A TCP name'
+    ita_email = 'tcp@test.com'
+    ita_mobile_number = '+447777777777'
     export_experience_description = 'A description'
     export_strategy = 'A strategy'
     interest_in_event_description = 'A description'
