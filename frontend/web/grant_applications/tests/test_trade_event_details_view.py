@@ -180,21 +180,21 @@ class TestTradeEventDetailsView(BaseTestCase):
 
     def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
 
         self.gal.has_viewed_review_page = True
@@ -203,3 +203,26 @@ class TestTradeEventDetailsView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, TradeEventDetailsView.template_name)
+
+    def test_post_redirects_to_review_page_if_application_review_page_has_been_viewed(self, *mocks):
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+        response = self.client.post(
+            self.url,
+            data={
+                'interest_in_event_description': 'A description',
+                'is_in_contact_with_tcp': False,
+                'tcp_name': 'A Person',
+                'tcp_email': 'tcp@test.com',
+                'tcp_mobile_number': '07777777777',
+                'is_intending_to_exhibit_as_tcp_stand': True,
+                'stand_trade_name': 'A name',
+                'trade_show_experience_description': 'Some experience',
+                'additional_guidance': 'Some additional guidance'
+            }
+        )
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:application-review', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )

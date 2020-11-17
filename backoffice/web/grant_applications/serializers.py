@@ -73,7 +73,7 @@ class GrantManagementProcessSerializer(serializers.ModelSerializer):
 
 
 class GrantApplicationReadSerializer(serializers.ModelSerializer):
-    is_active = serializers.ReadOnlyField()
+    is_eligible = serializers.ReadOnlyField()
     sent_for_review = serializers.ReadOnlyField()
     company = CompanySerializer()
     event = EventSerializer()
@@ -86,17 +86,12 @@ class GrantApplicationReadSerializer(serializers.ModelSerializer):
 
 
 class GrantApplicationWriteSerializer(serializers.ModelSerializer):
-    is_active = serializers.ReadOnlyField()
+    is_eligible = serializers.ReadOnlyField()
     sent_for_review = serializers.ReadOnlyField()
 
     class Meta:
         model = GrantApplication
         fields = '__all__'
-
-    def validate(self, attrs):
-        if self.instance and not self.instance.is_active:
-            raise serializers.ValidationError('Grant application is inactive.')
-        return super().validate(attrs)
 
     def save(self, **kwargs):
         super(GrantApplicationWriteSerializer, self).save()

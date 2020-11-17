@@ -172,21 +172,21 @@ class TestCompanyTradingDetailsView(BaseTestCase):
 
     def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[2].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[2].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[2].return_value = fake_grant_application
 
         self.gal.has_viewed_review_page = True
@@ -195,3 +195,26 @@ class TestCompanyTradingDetailsView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, CompanyTradingDetailsView.template_name)
+
+    def test_post_redirects_to_review_page_if_application_review_page_has_been_viewed(self, *mocks):
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+        response = self.client.post(
+            self.url,
+            data={
+                'previous_years_turnover_1': '1.23',
+                'previous_years_turnover_2': '1.23',
+                'previous_years_turnover_3': '0',
+                'previous_years_export_turnover_1': '1.23',
+                'previous_years_export_turnover_2': '1.23',
+                'previous_years_export_turnover_3': '0',
+                'sector': FAKE_SECTOR['id'],
+                'products_and_services_description': 'A description',
+                'products_and_services_competitors': 'A description'
+            }
+        )
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:application-review', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )

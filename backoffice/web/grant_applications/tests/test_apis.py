@@ -10,7 +10,7 @@ from web.grant_management.models import GrantManagementProcess
 from web.tests.factories.companies import CompanyFactory
 from web.tests.factories.events import EventFactory
 from web.tests.factories.grant_applications import (
-    CompletedGrantApplicationFactory, GrantApplicationFactory, InactiveGrantApplicationFactory
+    CompletedGrantApplicationFactory, GrantApplicationFactory
 )
 from web.tests.factories.grant_management import GrantManagementProcessFactory
 from web.tests.factories.state_aid import StateAidFactory
@@ -30,7 +30,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
             response,
             data_contains={
                 'id': ga.id_str,
-                'is_active': ga.is_active,
+                'is_eligible': ga.is_eligible,
                 'previous_applications': ga.previous_applications,
                 'event': {
                     'id': ga.event.id_str,
@@ -182,14 +182,6 @@ class GrantApplicationsApiTests(BaseAPITestCase):
         response = self.client.patch(path, {'event': event.id})
         self.assertEqual(response.status_code, HTTP_200_OK, msg=response.data)
         self.assert_response_data_contains(response, data_contains={'event': event.id})
-
-    def test_cannot_update_inactive_grant_application(self, *mocks):
-        ga = InactiveGrantApplicationFactory()
-        self.assertFalse(ga.is_active)
-        path = reverse('grant-applications:grant-applications-detail', args=(ga.id,))
-        response = self.client.patch(path, {'is_already_committed_to_event': False})
-        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['non_field_errors'][0].code, 'invalid')
 
     def test_create_new_grant_application_with_existing_company(self, *mocks):
         path = reverse('grant-applications:grant-applications-list')

@@ -68,7 +68,7 @@ class IneligibleRedirectMixin:
     def _is_eligible(self):
         if self.object.has_viewed_review_page:
             return True
-        elif not self.backoffice_grant_application.get('is_active', True):
+        elif not self.backoffice_grant_application.get('is_eligible', True):
             return False
         return True
 

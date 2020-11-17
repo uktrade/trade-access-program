@@ -46,16 +46,16 @@ class TestApplicationReviewView(BaseTestCase):
         self.assertListEqual(
             [h.text for h in headings],
             [
-                PreviousApplicationsView.static_context['page']['heading'],
-                SelectAnEventView.static_context['page']['heading'],
-                EventCommitmentView.static_context['page']['heading'],
-                SelectCompanyView.static_context['page']['heading'],
-                CompanyDetailsView.static_context['page']['heading'],
-                ContactDetailsView.static_context['page']['heading'],
-                CompanyTradingDetailsView.static_context['page']['heading'],
-                ExportExperienceView.static_context['page']['heading'],
-                TradeEventDetailsView.static_context['page']['heading'],
-                StateAidSummaryView.static_context['page']['heading'],
+                PreviousApplicationsView.extra_context['page']['heading'],
+                SelectAnEventView.extra_context['page']['heading'],
+                EventCommitmentView.extra_context['page']['heading'],
+                SelectCompanyView.extra_context['page']['heading'],
+                CompanyDetailsView.extra_context['page']['heading'],
+                ContactDetailsView.extra_context['page']['heading'],
+                CompanyTradingDetailsView.extra_context['page']['heading'],
+                ExportExperienceView.extra_context['page']['heading'],
+                TradeEventDetailsView.extra_context['page']['heading'],
+                StateAidSummaryView.extra_context['page']['heading'],
             ]
         )
 
@@ -81,16 +81,16 @@ class TestApplicationReviewView(BaseTestCase):
         self.assertListEqual(
             [h.text for h in headings],
             [
-                PreviousApplicationsView.static_context['page']['heading'],
-                SelectAnEventView.static_context['page']['heading'],
-                EventCommitmentView.static_context['page']['heading'],
-                ManualCompanyDetailsView.static_context['page']['heading'],
-                CompanyDetailsView.static_context['page']['heading'],
-                ContactDetailsView.static_context['page']['heading'],
-                CompanyTradingDetailsView.static_context['page']['heading'],
-                ExportExperienceView.static_context['page']['heading'],
-                TradeEventDetailsView.static_context['page']['heading'],
-                StateAidSummaryView.static_context['page']['heading'],
+                PreviousApplicationsView.extra_context['page']['heading'],
+                SelectAnEventView.extra_context['page']['heading'],
+                EventCommitmentView.extra_context['page']['heading'],
+                ManualCompanyDetailsView.extra_context['page']['heading'],
+                CompanyDetailsView.extra_context['page']['heading'],
+                ContactDetailsView.extra_context['page']['heading'],
+                CompanyTradingDetailsView.extra_context['page']['heading'],
+                ExportExperienceView.extra_context['page']['heading'],
+                TradeEventDetailsView.extra_context['page']['heading'],
+                StateAidSummaryView.extra_context['page']['heading'],
             ]
         )
 
@@ -111,17 +111,17 @@ class TestApplicationReviewView(BaseTestCase):
         self.assertListEqual(
             [h.text for h in headings],
             [
-                PreviousApplicationsView.static_context['page']['heading'],
-                SelectAnEventView.static_context['page']['heading'],
-                EventCommitmentView.static_context['page']['heading'],
-                SelectCompanyView.static_context['page']['heading'],
-                CompanyDetailsView.static_context['page']['heading'],
-                ContactDetailsView.static_context['page']['heading'],
-                CompanyTradingDetailsView.static_context['page']['heading'],
-                ExportExperienceView.static_context['page']['heading'],
-                ExportDetailsView.static_context['page']['heading'],
-                TradeEventDetailsView.static_context['page']['heading'],
-                StateAidSummaryView.static_context['page']['heading'],
+                PreviousApplicationsView.extra_context['page']['heading'],
+                SelectAnEventView.extra_context['page']['heading'],
+                EventCommitmentView.extra_context['page']['heading'],
+                SelectCompanyView.extra_context['page']['heading'],
+                CompanyDetailsView.extra_context['page']['heading'],
+                ContactDetailsView.extra_context['page']['heading'],
+                CompanyTradingDetailsView.extra_context['page']['heading'],
+                ExportExperienceView.extra_context['page']['heading'],
+                ExportDetailsView.extra_context['page']['heading'],
+                TradeEventDetailsView.extra_context['page']['heading'],
+                StateAidSummaryView.extra_context['page']['heading'],
             ]
         )
 
@@ -202,21 +202,21 @@ class TestApplicationReviewView(BaseTestCase):
 
     def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[4].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[4].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[4].return_value = fake_grant_application
 
         self.gal.has_viewed_review_page = True
