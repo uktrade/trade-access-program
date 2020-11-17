@@ -96,21 +96,21 @@ class TestSearchCompanyView(BaseTestCase):
 
     def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[3].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[3].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
 
         self.gal.has_viewed_review_page = True
@@ -119,3 +119,15 @@ class TestSearchCompanyView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, SearchCompanyView.template_name)
+
+    def test_post_redirects_to_select_company_page_if_review_page_has_been_viewed(self, *mocks):
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+        response = self.client.post(self.url, data={'search_term': 'company-1'})
+        self.assertRedirects(
+            response,
+            expected_url=reverse(
+                'grant-applications:select-company', args=(self.gal.pk,)
+            ) + '?search_term=company-1',
+            fetch_redirect_response=False
+        )

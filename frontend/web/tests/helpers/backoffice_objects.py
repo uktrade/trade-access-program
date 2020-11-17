@@ -44,7 +44,7 @@ FAKE_SECTOR = {
 
 FAKE_GRANT_APPLICATION = {
     'id': '993c394c-dd5d-413c-bd70-1ba4f1e2b050',
-    'is_active': True,
+    'is_eligible': True,
     'previous_applications': 1,
     'event': FAKE_EVENT,
     'is_already_committed_to_event': True,

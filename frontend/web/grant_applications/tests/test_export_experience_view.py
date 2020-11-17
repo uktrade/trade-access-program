@@ -126,21 +126,21 @@ class TestExportExperienceView(BaseTestCase):
 
     def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
 
         self.gal.has_viewed_review_page = True
@@ -149,3 +149,46 @@ class TestExportExperienceView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, ExportExperienceView.template_name)
+
+    def test_post_redirects_to_review_page_if_application_review_page_has_been_viewed(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['has_exported_before'] = False
+        mocks[0].return_value = fake_grant_application
+        mocks[1].return_value = fake_grant_application
+
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+
+        response = self.client.post(
+            self.url,
+            data={
+                'has_exported_before': False,
+                'has_product_or_service_for_export': True,
+            }
+        )
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:application-review', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
+
+    def test_post_redirects_to_export_page_if_application_review_page_has_been_viewed(self, *mocks):
+        fake_grant_application = FAKE_GRANT_APPLICATION.copy()
+        fake_grant_application['has_exported_before'] = True
+        mocks[0].return_value = fake_grant_application
+        mocks[1].return_value = fake_grant_application
+
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+
+        response = self.client.post(
+            self.url,
+            data={
+                'has_exported_before': True,
+            }
+        )
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:export-details', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )

@@ -48,21 +48,21 @@ class TestEventCommitmentView(BaseTestCase):
 
     def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
 
         self.gal.has_viewed_review_page = True
@@ -71,6 +71,16 @@ class TestEventCommitmentView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, EventCommitmentView.template_name)
+
+    def test_post_redirects_to_review_page_if_application_review_page_has_been_viewed(self, *mocks):
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+        response = self.client.post(self.url, data={'is_already_committed_to_event': True})
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:application-review', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
 
     def test_post_data_is_saved(self, *mocks):
         self.client.post(self.url, data={'is_already_committed_to_event': True})

@@ -3,14 +3,6 @@ from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 
 
-class StaticContextMixin:
-    static_context = {}
-
-    def get_context_data(self, **kwargs):
-        kwargs.update(self.static_context)
-        return super().get_context_data(**kwargs)
-
-
 class BackContextMixin:
     back_text = None
     back_url = None
@@ -34,8 +26,11 @@ class BackContextMixin:
 
 
 class SuccessUrlObjectPkMixin:
+    success_url_name = None
 
     def get_success_url(self):
+        if self.object.has_viewed_review_page:
+            return reverse('grant-applications:application-review', args=(self.object.pk,))
         return reverse(self.success_url_name, args=(self.object.pk,))
 
 

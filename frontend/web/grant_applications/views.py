@@ -8,9 +8,7 @@ from django.views.generic import CreateView, UpdateView, RedirectView
 from django.views.generic.detail import SingleObjectMixin
 
 from web.core.forms import FORM_MSGS
-from web.core.view_mixins import (
-    StaticContextMixin, SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin
-)
+from web.core.view_mixins import SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, SelectAnEventForm, PreviousApplicationsForm,
     CompanyTradingDetailsForm, ExportExperienceForm, FindAnEventForm,
@@ -28,13 +26,13 @@ from web.grant_applications.view_mixins import (
 )
 
 
-class BeforeYouStartView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin, CreateView):
+class BeforeYouStartView(BackContextMixin, SuccessUrlObjectPkMixin, CreateView):
     model = GrantApplicationLink
     form_class = EmptyGrantApplicationLinkForm
     template_name = 'grant_applications/before_you_start.html'
     back_url_name = 'grant-applications:index'
     success_url_name = 'grant_applications:previous-applications'
-    static_context = {
+    extra_context = {
         'page': {
             'heading': _('What you will need')
         }
@@ -50,15 +48,15 @@ class BeforeYouStartView(BackContextMixin, StaticContextMixin, SuccessUrlObjectP
         return super().form_valid(form)
 
 
-class PreviousApplicationsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                               BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                               IneligibleRedirectMixin, UpdateView):
+class PreviousApplicationsView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                               InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                               UpdateView):
     model = GrantApplicationLink
     form_class = PreviousApplicationsForm
     template_name = 'grant_applications/previous_applications.html'
     back_url_name = 'grant-applications:before-you-start'
     success_url_name = 'grant_applications:find-an-event'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Previous TAP grants')
         }
@@ -68,30 +66,30 @@ class PreviousApplicationsView(BackContextMixin, StaticContextMixin, SuccessUrlO
         return reverse(self.back_url_name)
 
 
-class FindAnEventView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                      BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
-                      UpdateView):
+class FindAnEventView(BackContextMixin, BackofficeMixin, ConfirmationRedirectMixin,
+                      IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = FindAnEventForm
     template_name = 'grant_applications/find_an_event.html'
     back_url_name = 'grant-applications:previous-applications'
     success_url_name = 'grant_applications:select-an-event'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Find an event')
         }
     }
 
     def get_success_url(self, **params):
+        url = reverse(self.success_url_name, args=(self.object.pk,))
         if hasattr(self, 'request'):
             params = {
-                'filter_by_name': self.request.POST['filter_by_name'],
-                'filter_by_sector': self.request.POST['filter_by_sector'],
-                'filter_by_country': self.request.POST['filter_by_country'],
-                'filter_by_month': self.request.POST['filter_by_month'],
+                'filter_by_name': self.request.POST.get('filter_by_name', ''),
+                'filter_by_sector': self.request.POST.get('filter_by_sector', ''),
+                'filter_by_country': self.request.POST.get('filter_by_country', ''),
+                'filter_by_month': self.request.POST.get('filter_by_month', ''),
             }
-            return super().get_success_url() + f'?{urlencode(params)}'
-        return super().get_success_url()
+            return f'{url}?{urlencode(params)}'
+        return url
 
     def get_context_data(self, **kwargs):
         kwargs = super().get_context_data(**kwargs)
@@ -105,15 +103,15 @@ class FindAnEventView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMi
         return kwargs
 
 
-class SelectAnEventView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
-                        PaginationMixin, UpdateView):
+class SelectAnEventView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                        ConfirmationRedirectMixin, IneligibleRedirectMixin, PaginationMixin,
+                        UpdateView):
     model = GrantApplicationLink
     form_class = SelectAnEventForm
     template_name = 'grant_applications/select_an_event.html'
     back_url_name = 'grant-applications:find-an-event'
     success_url_name = 'grant_applications:event-commitment'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Select an event')
         },
@@ -185,15 +183,15 @@ class SelectAnEventView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
         return super().post(request, *args, **kwargs)
 
 
-class EventCommitmentView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                          BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                          IneligibleRedirectMixin, UpdateView):
+class EventCommitmentView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                          InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                          UpdateView):
     model = GrantApplicationLink
     form_class = EventCommitmentForm
     template_name = 'grant_applications/event_commitment.html'
     back_url_name = 'grant-applications:select-an-event'
     success_url_name = 'grant_applications:search-company'
-    static_context = {
+    extra_context = {
         'page': {
             'heading': _('Event commitment')
         }
@@ -208,15 +206,13 @@ class EventCommitmentView(BackContextMixin, StaticContextMixin, SuccessUrlObject
         return context
 
 
-class SearchCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                        IneligibleRedirectMixin, UpdateView):
+class SearchCompanyView(BackContextMixin, BackofficeMixin, InitialDataMixin,
+                        ConfirmationRedirectMixin, IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = SearchCompanyForm
     template_name = 'grant_applications/search_company.html'
     back_url_name = 'grant-applications:event-commitment'
-    success_url_name = 'grant-applications:select-company'
-    static_context = {
+    extra_context = {
         'page': {
             'heading': _('Find your business')
         },
@@ -224,21 +220,20 @@ class SearchCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
     }
 
     def get_success_url(self):
-        query = ''
+        url = reverse('grant-applications:select-company', args=(self.object.pk,))
         if hasattr(self, 'request'):
-            query = f"?search_term={self.request.POST['search_term']}"
-        return super().get_success_url() + query
+            return f"{url}?search_term={self.request.POST['search_term']}"
+        return url
 
 
-class SelectCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
-                        UpdateView):
+class SelectCompanyView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                        ConfirmationRedirectMixin, IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = SelectCompanyForm
     template_name = 'grant_applications/select_company.html'
     back_url_name = 'grant-applications:search-company'
     success_url_name = 'grant-applications:company-details'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Find your business')
         },
@@ -295,15 +290,15 @@ class SelectCompanyView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPk
         return super().post(request, *args, **kwargs)
 
 
-class ManualCompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                               BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                               IneligibleRedirectMixin, UpdateView):
+class ManualCompanyDetailsView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                               InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                               UpdateView):
     model = GrantApplicationLink
     form_class = ManualCompanyDetailsForm
     template_name = 'grant_applications/manual_company_details.html'
     back_url_name = 'grant-applications:select-company'
     success_url_name = 'grant-applications:company-details'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Business details')
         }
@@ -314,14 +309,14 @@ class ManualCompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlO
         return super().form_valid(form, extra_grant_application_data={'company': None})
 
 
-class CompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                         IneligibleRedirectMixin, UpdateView):
+class CompanyDetailsView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                         InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                         UpdateView):
     model = GrantApplicationLink
     form_class = CompanyDetailsForm
     template_name = 'grant_applications/company_details.html'
     success_url_name = 'grant-applications:contact-details'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Business size and turnover')
         }
@@ -333,30 +328,30 @@ class CompanyDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectP
         return reverse('grant-applications:manual-company-details', args=(self.object.pk,))
 
 
-class ContactDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                         BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                         IneligibleRedirectMixin, UpdateView):
+class ContactDetailsView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                         InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                         UpdateView):
     model = GrantApplicationLink
     form_class = ContactDetailsForm
     template_name = 'grant_applications/contact_details.html'
     back_url_name = 'grant-applications:company-details'
     success_url_name = 'grant_applications:company-trading-details'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Business contact details')
         }
     }
 
 
-class CompanyTradingDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                                BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
+class CompanyTradingDetailsView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                                InitialDataMixin, ConfirmationRedirectMixin,
                                 IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = CompanyTradingDetailsForm
     template_name = 'grant_applications/company_trading_details.html'
     back_url_name = 'grant-applications:contact-details'
     success_url_name = 'grant_applications:export-experience'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Business trading details')
         }
@@ -369,25 +364,25 @@ class CompanyTradingDetailsView(BackContextMixin, StaticContextMixin, SuccessUrl
         return initial
 
 
-class ExportExperienceView(BackContextMixin, StaticContextMixin, BackofficeMixin, InitialDataMixin,
+class ExportExperienceView(BackContextMixin, BackofficeMixin, InitialDataMixin,
                            ConfirmationRedirectMixin, IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = ExportExperienceForm
     template_name = 'grant_applications/export_experience.html'
     back_url_name = 'grant-applications:company-trading-details'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Export experience')
         }
     }
 
     def get_success_url(self):
-        if not hasattr(self, 'backoffice_grant_application'):
-            self.backoffice_grant_application = BackofficeService().get_grant_application(
-                self.object.backoffice_grant_application_id
-            )
         if self.backoffice_grant_application['has_exported_before']:
             return reverse('grant-applications:export-details', args=(self.object.pk,))
+
+        if self.object.has_viewed_review_page:
+            return reverse('grant-applications:application-review', args=(self.object.pk,))
+
         return reverse('grant-applications:trade-event-details', args=(self.object.pk,))
 
     def form_valid(self, form):
@@ -399,29 +394,29 @@ class ExportExperienceView(BackContextMixin, StaticContextMixin, BackofficeMixin
         return super().form_valid(form)
 
 
-class ExportDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                        IneligibleRedirectMixin, UpdateView):
+class ExportDetailsView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                        InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                        UpdateView):
     model = GrantApplicationLink
     form_class = ExportDetailsForm
     template_name = 'grant_applications/export_details.html'
     back_url_name = 'grant-applications:export-experience'
     success_url_name = 'grant_applications:trade-event-details'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Export details')
         }
     }
 
 
-class TradeEventDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                            BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin,
-                            IneligibleRedirectMixin, UpdateView):
+class TradeEventDetailsView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                            InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
+                            UpdateView):
     model = GrantApplicationLink
     form_class = TradeEventDetailsForm
     template_name = 'grant_applications/trade_event_details.html'
     success_url_name = 'grant_applications:state-aid-summary'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Trade show experience')
         }
@@ -441,15 +436,14 @@ class TradeEventDetailsView(BackContextMixin, StaticContextMixin, SuccessUrlObje
         return context
 
 
-class StateAidSummaryView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                          BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
-                          UpdateView):
+class StateAidSummaryView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
+                          ConfirmationRedirectMixin, IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = EmptyGrantApplicationLinkForm
     template_name = 'grant_applications/state_aid_summary.html'
     back_url_name = 'grant-applications:export-experience'
     success_url_name = 'grant_applications:application-review'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('State aid')
         }
@@ -504,18 +498,20 @@ class DuplicateStateAidView(BackofficeMixin, SingleObjectMixin, ConfirmationRedi
         return super().get(request, *args, **kwargs)
 
 
-class StateAidItemMixin(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                        BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin):
+class StateAidItemMixin(BackContextMixin, BackofficeMixin, ConfirmationRedirectMixin,
+                        IneligibleRedirectMixin):
     model = GrantApplicationLink
     template_name = 'grant_applications/state_aid_item.html'
     back_url_name = 'grant-applications:state-aid-summary'
-    success_url_name = 'grant_applications:state-aid-summary'
     grant_application_fields = []
+
+    def get_success_url(self):
+        return reverse('grant_applications:state-aid-summary', args=(self.object.pk,))
 
 
 class AddStateAidView(StateAidItemMixin, UpdateView):
     form_class = AddStateAidForm
-    static_context = {
+    extra_context = {
         'page': {
             'heading': _('Add state aid')
         }
@@ -536,7 +532,7 @@ class AddStateAidView(StateAidItemMixin, UpdateView):
 
 class EditStateAidView(StateAidItemMixin, UpdateView):
     form_class = EditStateAidForm
-    static_context = {
+    extra_context = {
         'page': {
             'heading': _('Edit state aid')
         }
@@ -572,15 +568,13 @@ class EditStateAidView(StateAidItemMixin, UpdateView):
         return super().post(request, *args, **kwargs)
 
 
-class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObjectPkMixin,
-                            BackofficeMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
-                            UpdateView):
+class ApplicationReviewView(BackContextMixin, BackofficeMixin, ConfirmationRedirectMixin,
+                            IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = EmptyGrantApplicationLinkForm
     template_name = 'grant_applications/application_review.html'
     back_url_name = 'grant-applications:state-aid-summary'
-    success_url_name = 'grant_applications:confirmation'
-    static_context = {
+    extra_context = {
         'page': {
             'heading':  _('Check your answers before you submit your application')
         }
@@ -600,6 +594,9 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
         {'url_name': 'grant-applications:state-aid-summary'},
     ]
 
+    def get_success_url(self):
+        return reverse('grant-applications:confirmation', args=(self.object.pk,))
+
     def generate_application_summary(self):
         service = ApplicationReviewService(
             grant_application_link=self.object,
@@ -615,7 +612,7 @@ class ApplicationReviewView(BackContextMixin, StaticContextMixin, SuccessUrlObje
             method_name = f"{section['url_name'].split(':')[-1].replace('-', '_')}_summary_list"
             method = getattr(service, method_name, service.generic_summary_list)
             summary_list = method(
-                heading=str(view_class.static_context['page']['heading']),
+                heading=str(view_class.extra_context['page']['heading']),
                 fields=form.fields,
                 url=url
             )

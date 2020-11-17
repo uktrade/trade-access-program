@@ -142,7 +142,7 @@ class GrantApplication(BaseMetaModel):
         return qs.get()
 
     @property
-    def is_active(self):
+    def is_eligible(self):
         if self.previous_applications and self.previous_applications >= 6:
             return False
         if self.is_already_committed_to_event is True:

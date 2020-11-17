@@ -77,21 +77,21 @@ class TestStateAidSummaryView(BaseTestCase):
 
     def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
 
         self.gal.has_viewed_review_page = True
@@ -100,6 +100,16 @@ class TestStateAidSummaryView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, StateAidSummaryView.template_name)
+
+    def test_post_redirects_to_review_page_if_application_review_page_has_been_viewed(self, *mocks):
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+        response = self.client.post(self.url)
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:application-review', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
 
 
 @patch.object(BackofficeService, 'get_state_aid', return_value=FAKE_STATE_AID)
@@ -202,21 +212,21 @@ class TestAddStateAidView(BaseTestCase):
 
     def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
 
         self.gal.has_viewed_review_page = True
@@ -225,6 +235,26 @@ class TestAddStateAidView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, AddStateAidView.template_name)
+
+    def test_post_redirects_to_state_aid_summary_page_if_review_page_has_been_viewed(self, *mocks):
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+        response = self.client.post(
+            self.url,
+            data={
+                'authority': 'An authority',
+                'date_received_0': '01',
+                'date_received_1': '05',
+                'date_received_2': '2020',
+                'amount': 2000,
+                'description': 'A description',
+            }
+        )
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:state-aid-summary', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
 
 
 @patch.object(BackofficeService, 'list_state_aids', return_value=[FAKE_STATE_AID])
@@ -280,21 +310,21 @@ class TestEditStateAidView(BaseTestCase):
 
     def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
 
         self.gal.has_viewed_review_page = True
@@ -303,6 +333,16 @@ class TestEditStateAidView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, EditStateAidView.template_name)
+
+    def test_post_redirects_to_state_aid_summary_page_if_review_page_has_been_viewed(self, *mocks):
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
+        response = self.client.post(self.url, data={'amount': 2000})
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:state-aid-summary', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
 
 
 @patch.object(BackofficeService, 'delete_state_aid')
@@ -346,26 +386,36 @@ class TestDeleteStateAidView(BaseTestCase):
 
     def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[0].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[0].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
 
         self.gal.has_viewed_review_page = True
         self.gal.save()
 
+        response = self.client.get(self.url)
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:state-aid-summary', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
+
+    def test_redirects_to_state_aid_summary_page_if_review_page_has_been_viewed(self, *mocks):
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
         response = self.client.get(self.url)
         self.assertRedirects(
             response,
@@ -438,26 +488,36 @@ class TestDuplicateStateAidView(BaseTestCase):
 
     def test_get_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[0].return_value = fake_grant_application
         response = self.client.get(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_post_redirects_to_ineligible_if_application_is_not_active(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[0].return_value = fake_grant_application
         response = self.client.post(self.url)
         self.assertRedirects(response, reverse('grant-applications:ineligible'))
 
     def test_get_does_not_redirect_to_ineligible_if_review_page_has_been_viewed(self, *mocks):
         fake_grant_application = FAKE_GRANT_APPLICATION.copy()
-        fake_grant_application['is_active'] = False
+        fake_grant_application['is_eligible'] = False
         mocks[1].return_value = fake_grant_application
 
         self.gal.has_viewed_review_page = True
         self.gal.save()
 
+        response = self.client.get(self.url)
+        self.assertRedirects(
+            response,
+            reverse('grant-applications:state-aid-summary', args=(self.gal.pk,)),
+            fetch_redirect_response=False
+        )
+
+    def test_post_redirects_to_review_page_if_application_review_page_has_been_viewed(self, *mocks):
+        self.gal.has_viewed_review_page = True
+        self.gal.save()
         response = self.client.get(self.url)
         self.assertRedirects(
             response,
