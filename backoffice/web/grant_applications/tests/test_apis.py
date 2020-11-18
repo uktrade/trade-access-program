@@ -205,7 +205,7 @@ class GrantApplicationsApiTests(BaseAPITestCase):
         path = reverse('grant-applications:grant-applications-send-for-review', args=(ga.id,))
         response = self.client.post(path, data={'application_summary': 'A summary'})
         self.assertEqual(response.status_code, HTTP_200_OK)
-        self.assertEqual(response.data['grant_management_process']['grant_application'], ga.id)
+        self.assertIsNotNone(response.data['grant_management_process'])
         self.assertTrue(GrantManagementProcess.objects.filter(grant_application=ga).exists())
         self.assertEqual(response.data['application_summary'], 'A summary')
 

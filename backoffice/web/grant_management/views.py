@@ -1,26 +1,38 @@
 from viewflow.flow.views import UpdateProcessView
 
+from web.grant_management.forms import (
+    VerifyPreviousApplicationsForm, VerifyEventCommitmentForm,
+    VerifyBusinessEntityForm, VerifyStateAidForm
+)
 from web.grant_management.mixins import SupportingInformationMixin
 
 
-class ApplicationAcknowledgementView(SupportingInformationMixin, UpdateProcessView):
+class VerifyPreviousApplicationsView(SupportingInformationMixin, UpdateProcessView):
+    form_class = VerifyPreviousApplicationsForm
 
     def get_supporting_information(self):
-        return self.supporting_information.application_acknowledgement_content
+        return self.supporting_information.verify_previous_applications_content
 
 
-class VerifyEmployeeCountView(SupportingInformationMixin, UpdateProcessView):
-    fields = ['employee_count_is_verified']
-
-    def get_supporting_information(self):
-        return self.supporting_information.employee_count_content
-
-
-class VerifyTurnoverView(SupportingInformationMixin, UpdateProcessView):
-    fields = ['turnover_is_verified']
+class VerifyEventCommitmentView(SupportingInformationMixin, UpdateProcessView):
+    form_class = VerifyEventCommitmentForm
 
     def get_supporting_information(self):
-        return self.supporting_information.turnover_content
+        return self.supporting_information.verify_event_commitment_content
+
+
+class VerifyBusinessEntityView(SupportingInformationMixin, UpdateProcessView):
+    form_class = VerifyBusinessEntityForm
+
+    def get_supporting_information(self):
+        return self.supporting_information.verify_business_entity_content
+
+
+class VerifyStateAidView(SupportingInformationMixin, UpdateProcessView):
+    form_class = VerifyStateAidForm
+
+    def get_supporting_information(self):
+        return self.supporting_information.verify_state_aid_content
 
 
 class DecisionView(SupportingInformationMixin, UpdateProcessView):

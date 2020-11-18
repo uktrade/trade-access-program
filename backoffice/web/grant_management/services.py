@@ -49,65 +49,112 @@ class SupportingInformationContent:
         return {'tables': tables}
 
     @property
-    def employee_count_content(self):
-        content = {
+    def verify_previous_applications_content(self):
+        return {
             'tables': [
                 {
-                    'headers': [_('Evidence')],
+                    'headers': [_('Eligibility criteria')],
                     'rows': [
-                        [_(f"The applicant indicated that the company has "
-                           f"{self.grant_application.number_of_employees} employees.")],
+                        [_('Businesses can have up to 6 TAP grants in total.')]
+                    ]
+                },
+                {
+                    'headers': [_('Application answers')],
+                    'rows': [
+                        [_(f"The applicant indicated that the business has has "
+                           f"{self.grant_application.previous_applications} previous TAP grants.")]
                     ]
                 }
             ]
         }
 
+    @property
+    def verify_event_commitment_content(self):
+        has = 'has' if self.grant_application.is_already_committed_to_event else 'has not'
+        return {
+            'tables': [
+                {
+                    'headers': [_('Eligibility criteria')],
+                    'rows': [
+                        [_('Businesses cannot have committed to the event before applying for a '
+                           'TAP grant.')]
+                    ]
+                },
+                {
+                    'headers': [_('Application answers')],
+                    'rows': [
+                        [_(f"The applicant indicated that the business {has} already committed to "
+                           f"the event.")]
+                    ]
+                }
+            ]
+        }
+
+    @property
+    def verify_business_entity_content(self):
+        content = {
+            'tables': [
+                {
+                    'headers': [_('Eligibility criteria')],
+                    'rows': [
+                        [_('Businesses should have less that 250 employees.')],
+                        [_('Annual Turnover should be between £83,000 and £5 million.')]
+                    ]
+                },
+                {
+                    'headers': [_('Application answers')],
+                    'rows': [
+                        [_(f"The applicant indicated that the company has "
+                           f"{self.grant_application.number_of_employees} employees.")],
+                        [_(f"The applicant indicated that the company has a turnover of "
+                           f"£{self.grant_application.previous_years_turnover_1}.")]
+                    ]
+                },
+                {
+                    'headers': [_('Dun and Bradstreet')],
+                    'rows': []
+                }
+            ]
+        }
+
         if self.dnb_company_data:
+            # Include Dun & Bradstreet data for number_of_employees
             e_or_r = 'reports'
             if self.dnb_company_data['is_employees_number_estimated']:
                 e_or_r = 'estimates'
-            content['tables'][0]['rows'].append([_(
+            content['tables'][2]['rows'].append([_(
                 f"Dun & Bradstreet {e_or_r} that this company has "
                 f"{self.dnb_company_data['employee_number']} employees."
             )])
+
+            # Include Dun & Bradstreet data for annual_sales (turnover)
+            content['tables'][2]['rows'].append([_(
+                f"Dun & Bradstreet reports that this company has a turnover of "
+                f"£{int(self.dnb_company_data['annual_sales'])}."
+            )])
         else:
-            content['tables'][0]['rows'].append([_(
+            content['tables'][2]['rows'].append([_(
                 f"Could not retrieve Dun & Bradstreet data. {self.MSGS['contact-admin']}"
             )])
 
         return content
 
     @property
-    def turnover_content(self):
-        content = {
+    def verify_state_aid_content(self):
+        rows = [
+            [s['authority'], s['amount'], s['description'], s['date_received']]
+            for s in self.grant_application.stateaid_set.all()
+        ]
+        if not rows:
+            rows = [['—', '—', '—', '—']]
+        return {
             'tables': [
                 {
-                    'headers': [_('Eligibility')],
-                    'rows': [
-                        [_('Annual Turnover should be between £83,000 and £5 million.')]
-                    ]
+                    'headers': ['Authority', 'Amount', 'Description', 'Date received'],
+                    'rows': rows
                 },
-                {
-                    'headers': [_('Evidence')],
-                    'rows': [
-                        [_(f"The applicant indicated that the company has a turnover of "
-                           f"£{self.grant_application.previous_years_turnover_1}.")]
-                    ]
-                }
             ]
         }
-
-        if self.dnb_company_data:
-            content['tables'][1]['rows'].append([_(
-                f"Dun & Bradstreet reports that this company has a turnover of "
-                f"£{int(self.dnb_company_data['annual_sales'])}."
-            )])
-        else:
-            content['tables'][1]['rows'].append([_(
-                f"Could not retrieve Dun & Bradstreet data. {self.MSGS['contact-admin']}"
-            )])
-
-        return content
 
     @property
     def decision_content(self):

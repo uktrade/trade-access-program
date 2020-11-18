@@ -67,8 +67,7 @@ class GrantManagementProcessSerializer(serializers.ModelSerializer):
     class Meta:
         model = GrantManagementProcess
         fields = [
-            'id', 'status', 'finished', 'employee_count_is_verified', 'turnover_is_verified',
-            'decision', 'artifact_content_type', 'grant_application'
+            'id', 'status', 'finished', 'decision'
         ]
 
 

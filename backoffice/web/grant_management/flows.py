@@ -4,8 +4,10 @@ from viewflow.base import this, Flow
 
 from web.core.notify import NotifyService
 from web.grant_management.models import GrantManagementProcess
-from web.grant_management.views import ApplicationAcknowledgementView, VerifyEmployeeCountView, \
-    VerifyTurnoverView, DecisionView
+from web.grant_management.views import (
+    VerifyPreviousApplicationsView, VerifyEventCommitmentView, VerifyBusinessEntityView,
+    VerifyStateAidView, DecisionView
+)
 
 
 @frontend.register
@@ -19,20 +21,37 @@ class GrantManagementFlow(Flow):
 
     send_application_submitted_email = flow.Handler(
         this.send_application_submitted_email_callback
-    ).Next(this.application_acknowledgement)
+    ).Next(this.create_verify_tasks)
 
-    application_acknowledgement = flow.View(
-        ApplicationAcknowledgementView
-    ).Next(this.verify_employee_count)
+    # Verify Eligibility tasks
+    create_verify_tasks = (
+        flow.Split()
+        .Always(this.verify_previous_applications)
+        .Always(this.verify_event_commitment)
+        .Always(this.verify_business_entity)
+        .Always(this.verify_state_aid)
+        .Always(this.finish_verify_tasks)
+    )
 
-    verify_employee_count = flow.View(
-        VerifyEmployeeCountView
-    ).Next(this.verify_turnover)
+    verify_previous_applications = flow.View(
+        VerifyPreviousApplicationsView
+    ).Next(this.finish_verify_tasks)
 
-    verify_turnover = flow.View(
-        VerifyTurnoverView
-    ).Next(this.decision)
+    verify_event_commitment = flow.View(
+        VerifyEventCommitmentView
+    ).Next(this.finish_verify_tasks)
 
+    verify_business_entity = flow.View(
+        VerifyBusinessEntityView
+    ).Next(this.finish_verify_tasks)
+
+    verify_state_aid = flow.View(
+        VerifyStateAidView
+    ).Next(this.finish_verify_tasks)
+
+    finish_verify_tasks = flow.Join().Next(this.decision)
+
+    # Decision task
     decision = flow.View(
         DecisionView
     ).Next(this.send_decision_email)

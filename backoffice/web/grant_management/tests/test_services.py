@@ -15,22 +15,20 @@ class TestGrantManagementSupportingInformation(BaseTestCase):
         self.ga = CompletedGrantApplicationFactory(company__dnb_get_company_responses=None)
         self.si_content = SupportingInformationContent(self.ga)
 
-    @patch.object(DnbServiceClient, 'get_company', side_effect=DnbServiceClientException)
-    def test_employee_count_content_on_dnb_service_error(self, *mocks):
-        # Assert no dnb exception is caught and error is mentioned in content
-        self.assertIn('tables', self.si_content.employee_count_content)
-        self.assertIn(
-            'Could not retrieve Dun & Bradstreet data',
-            str(self.si_content.employee_count_content)
+    def test_application_acknowledgement_content(self):
+        self.assertIn('tables', self.si_content.application_acknowledgement_content)
+        self.assertEqual(
+            len(self.si_content.application_acknowledgement_content['tables']),
+            len(self.ga.application_summary)
         )
 
     @patch.object(DnbServiceClient, 'get_company', side_effect=DnbServiceClientException)
-    def test_turnover_content_on_dnb_service_error(self, *mocks):
+    def test_business_entity_content_on_dnb_service_error(self, *mocks):
         # Assert no dnb exception is caught and error is mentioned in content
-        self.assertIn('tables', self.si_content.turnover_content)
+        self.assertIn('tables', self.si_content.verify_business_entity_content)
         self.assertIn(
             'Could not retrieve Dun & Bradstreet data',
-            str(self.si_content.turnover_content)
+            str(self.si_content.verify_business_entity_content)
         )
 
     @patch.object(DnbServiceClient, 'get_company', return_value={'primary_name': 'company-1'})

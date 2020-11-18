@@ -110,9 +110,8 @@ FAKE_STATE_AID = {
 
 FAKE_GRANT_MANAGEMENT_PROCESS = {
     'id': 'bcccc6df-d144-4cac-af39-3c693588ab20',
-    'grant_application': '993c394c-dd5d-413c-bd70-1ba4f1e2b050',
-    'employee_count_is_verified': None,
-    'turnover_is_verified': None,
+    'status': 'NEW',
+    'finished': False,
     'decision': None,
 }
 
