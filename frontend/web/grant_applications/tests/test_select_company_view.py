@@ -1,4 +1,3 @@
-from unittest import skip
 from unittest.mock import patch
 
 from bs4 import BeautifulSoup
@@ -47,6 +46,19 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         self.assertTemplateUsed(response, SelectCompanyView.template_name)
         self.assertIn(FAKE_GRANT_APPLICATION['company']['name'], response.content.decode())
 
+    def test_html_number_of_matches(self, *mocks):
+        response = self.client.get(self.url, data={'search_term': 'company-1'})
+        self.assertEqual(response.status_code, 200)
+        html = BeautifulSoup(response.content, 'html.parser').find(id='id_matches_text')
+        self.assertEqual(html.text, 'We found 1 match')
+
+    def test_html_number_of_matches_pluralised(self, *mocks):
+        mocks[0].return_value = [FAKE_SEARCH_COMPANIES[0] for _ in range(3)]
+        response = self.client.get(self.url, data={'search_term': 'company-1'})
+        self.assertEqual(response.status_code, 200)
+        html = BeautifulSoup(response.content, 'html.parser').find(id='id_matches_text')
+        self.assertEqual(html.text, 'We found 3 matches')
+
     def test_get_with_primary_name_style_search_term(self, *mocks):
         self.client.get(self.url, data={'search_term': 'company-1'})
         mocks[0].assert_called_once_with(primary_name='company-1')
@@ -64,12 +76,12 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
             reverse('grant-applications:manual-company-details', args=(self.gal.pk,))
         )
 
-    @skip("TODO: confirm with design what to display when no company found.")
-    def test_get_template_when_no_company_found(self, *mocks):
+    def test_html_when_no_company_found(self, *mocks):
         mocks[0].return_value = []
         response = self.client.get(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
-        self.assertIn('TODO', response.content.decode())
+        html = BeautifulSoup(response.content, 'html.parser').find(id='id_matches_text')
+        self.assertEqual(html.text, 'We found no matches')
 
     def test_get_on_search_companies_backoffice_service_exception(self, *mocks):
         mocks[0].side_effect = BackofficeServiceException
