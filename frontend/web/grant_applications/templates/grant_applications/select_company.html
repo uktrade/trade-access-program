@@ -17,7 +17,7 @@
 
 {% block govuk_form %}
 {% if number_of_matches > 0 %}
-  <p class="govuk-body">We found <strong>{{ number_of_matches }}</strong> match{{ number_of_matches|pluralize:"es" }}</p>
+  <p class="govuk-body" id="id_matches_text">We found <strong>{{ number_of_matches }}</strong> match{{ number_of_matches|pluralize:"es" }}</p>
 
   <form class="form" method="POST" novalidate>
     {% csrf_token %}
@@ -27,7 +27,7 @@
 
   <span class="govuk-caption-m">If your business isn’t listed you can <a id="id_details_not_listed" href="{% url 'grant-applications:manual-company-details' pk=grantapplicationlink.pk %}" class="govuk-link">enter the details manually</a></span>
 {% else %}
-  <p class="govuk-body govuk-!-font-weight-bold">We found no matches</p>
+  <p class="govuk-body govuk-!-font-weight-bold" id="id_matches_text">We found no matches</p>
   <p class="govuk-body">We found no matching businesses for your search.</p>
   <p class="govuk-body">Please try checking the spelling of your business name or <a id="id_details_not_listed" href="{% url 'grant-applications:manual-company-details' pk=grantapplicationlink.pk %}" class="govuk-link">enter the details manually</a></p>
 {% endif %}
