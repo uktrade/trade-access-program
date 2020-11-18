@@ -292,9 +292,14 @@ class ManualCompanyDetailsForm(forms.ModelForm):
         )
     )
     manual_company_address_line_2 = forms.CharField(
+        required=False,
+        empty_value=None,
         label=_(''),
         widget=forms.TextInput(
-            attrs={'class': 'govuk-input'}
+            attrs={
+                'class': 'govuk-input',
+                'optional_label_override': True
+            }
         )
     )
     manual_company_address_town = forms.CharField(

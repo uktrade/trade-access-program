@@ -69,7 +69,6 @@ class TestManualCompanyDetailsView(BaseTestCase):
         self.assertFormError(response, 'form', 'manual_company_type', msg)
         self.assertFormError(response, 'form', 'manual_company_name', msg)
         self.assertFormError(response, 'form', 'manual_company_address_line_1', msg)
-        self.assertFormError(response, 'form', 'manual_company_address_line_2', msg)
         self.assertFormError(response, 'form', 'manual_company_address_town', msg)
         self.assertFormError(response, 'form', 'manual_company_address_county', msg)
         self.assertFormError(response, 'form', 'manual_company_address_postcode', msg)

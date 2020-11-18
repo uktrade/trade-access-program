@@ -613,7 +613,7 @@ class ApplicationReviewView(BackContextMixin, BackofficeMixin, ConfirmationRedir
             method = getattr(service, method_name, service.generic_summary_list)
             summary_list = method(
                 heading=str(view_class.extra_context['page']['heading']),
-                fields=form.fields,
+                fields=form.visible_fields(),
                 url=url
             )
             if summary_list:

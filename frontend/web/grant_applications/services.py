@@ -360,10 +360,10 @@ class ApplicationReviewService:
     def _make_rows(self, fields, url):
         rows = []
 
-        for field_name, field in fields.items():
-            if field_name not in self.application_data or not field.label:
+        for field in fields:
+            if field.name not in self.application_data:
                 continue
-            rows.append(self._make_row(url=url, key=field.label, field_name=field_name))
+            rows.append(self._make_row(url=url, key=field.label, field_name=field.name))
 
         return rows
 
@@ -373,10 +373,11 @@ class ApplicationReviewService:
             return self.summary_list_helper.make_summary_list(heading=heading, rows=rows)
 
     def select_an_event_summary_list(self, heading, fields, url):
+        _fields = {f.name: f for f in fields}
         event = self.application_data['event']
         rows = [
             self._make_row(
-                key=fields['event'].label,
+                key=_fields['event'].label,
                 url=url + f"?filter_by_name={event['name']}",
                 value='\n'.join([
                     event['name'],
@@ -391,10 +392,11 @@ class ApplicationReviewService:
         return self.summary_list_helper.make_summary_list(heading=heading, rows=rows)
 
     def event_commitment_summary_list(self, heading, fields, url):
-        label = fields['is_already_committed_to_event'].label.format(
+        _fields = {f.name: f for f in fields}
+        label = _fields['is_already_committed_to_event'].label.format(
             event_name=self.application_data['event']['name']
         )
-        fields['is_already_committed_to_event'].label = label
+        _fields['is_already_committed_to_event'].label = label
         return self.generic_summary_list(heading, fields, url)
 
     def select_company_summary_list(self, heading, fields, url):
@@ -421,9 +423,56 @@ class ApplicationReviewService:
         if self.application_data['manual_company_type'] is None:
             # Manual company details is a conditional view. Return None if no data was entered
             return
-        return self.generic_summary_list(heading, fields, url)
+
+        _fields = {f.name: f for f in fields}
+        address_fields = [
+            'manual_company_address_line_1', 'manual_company_address_line_2',
+            'manual_company_address_town', 'manual_company_address_county',
+            'manual_company_address_postcode'
+        ]
+        rows = [
+            self._make_row(
+                url=url,
+                key='Business type',
+                field_name='manual_company_type'
+            ),
+            self._make_row(
+                url=url,
+                key=_fields['manual_company_name'].label,
+                field_name='manual_company_name'
+            ),
+            self._make_row(
+                url=url,
+                key='Business address',
+                value='\n'.join([
+                    self.application_data[f] for f in address_fields if self.application_data[f]
+                ])
+            ),
+            self._make_row(
+                url=url,
+                key='Length of time trading in UK',
+                field_name='manual_time_trading_in_uk'
+            ),
+            self._make_row(
+                url=url,
+                key=_fields['manual_registration_number'].label,
+                value=self.application_data['manual_registration_number'] or '—'
+            ),
+            self._make_row(
+                url=url,
+                key=_fields['manual_vat_number'].label,
+                value=self.application_data['manual_vat_number'] or '—'
+            ),
+            self._make_row(
+                url=url,
+                key=_fields['manual_website'].label,
+                field_name='manual_website'
+            )
+        ]
+        return self.summary_list_helper.make_summary_list(heading=heading, rows=rows)
 
     def company_trading_details_summary_list(self, heading, fields, url):
+        _fields = {f.name: f for f in fields}
         rows = [
             self._make_row(
                 url=url,
@@ -445,32 +494,33 @@ class ApplicationReviewService:
             ),
             self._make_row(
                 url=url,
-                key=fields['other_business_names'].label,
+                key=_fields['other_business_names'].label,
                 field_name='other_business_names'
             ),
             self._make_row(
                 url=url,
-                key=fields['sector'].label,
+                key=_fields['sector'].label,
                 value=self.application_data['sector']['full_name']
             ),
             self._make_row(
                 url=url,
-                key=fields['products_and_services_description'].label,
+                key=_fields['products_and_services_description'].label,
                 field_name='products_and_services_description'
             ),
             self._make_row(
                 url=url,
-                key=fields['products_and_services_competitors'].label,
+                key=_fields['products_and_services_competitors'].label,
                 field_name='products_and_services_competitors'
             )
         ]
         return self.summary_list_helper.make_summary_list(heading=heading, rows=rows)
 
     def export_experience_summary_list(self, heading, fields, url):
+        _fields = {f.name: f for f in fields}
         rows = [
             self._make_row(
                 url=url,
-                key=fields['has_exported_before'].label,
+                key=_fields['has_exported_before'].label,
                 field_name='has_exported_before'
             )
         ]
@@ -478,7 +528,7 @@ class ApplicationReviewService:
             rows.append(
                 self._make_row(
                     url=url,
-                    key=fields['has_product_or_service_for_export'].label,
+                    key=_fields['has_product_or_service_for_export'].label,
                     field_name='has_product_or_service_for_export'
                 )
             )
@@ -488,48 +538,64 @@ class ApplicationReviewService:
         if self.application_data['has_exported_before'] is False:
             # Export details is a conditional view. Return None if no data was entered
             return
+
+        _fields = {f.name: f for f in fields}
         rows = [
             self._make_row(
                 url=url,
-                key=fields['has_exported_in_last_12_months'].label,
+                key=_fields['has_exported_in_last_12_months'].label,
                 field_name='has_exported_in_last_12_months'
             ),
             self._make_row(
                 url=url,
-                key=fields['export_regions'].label,
+                key=_fields['export_regions'].label,
                 value='\n'.join([
-                    dict(fields['export_regions'].choices)[c]
+                    dict(_fields['export_regions'].field.choices)[c]
                     for c in self.application_data['export_regions']
                 ])
             ),
             self._make_row(
                 url=url,
-                key=fields['markets_intending_on_exporting_to'].label,
+                key=_fields['markets_intending_on_exporting_to'].label,
                 value='\n'.join([
-                    dict(fields['markets_intending_on_exporting_to'].choices)[c]
+                    dict(_fields['markets_intending_on_exporting_to'].field.choices)[c]
                     for c in self.application_data['markets_intending_on_exporting_to']
                 ])
-            ),
-            self._make_row(
+            )
+        ]
+        if self.application_data['is_in_contact_with_dit_trade_advisor']:
+            rows.append(self._make_row(
                 url=url,
-                key=fields['is_in_contact_with_dit_trade_advisor'].label,
+                key=_fields['is_in_contact_with_dit_trade_advisor'].label,
+                value='\n'.join([
+                    self.application_data['ita_name'],
+                    self.application_data['ita_email'],
+                    self.application_data['ita_mobile_number'],
+                ])
+            ))
+        else:
+            rows.append(self._make_row(
+                url=url,
+                key=_fields['is_in_contact_with_dit_trade_advisor'].label,
                 field_name='is_in_contact_with_dit_trade_advisor'
-            ),
+            ))
+        rows += [
             self._make_row(
                 url=url,
-                key=fields['export_experience_description'].label,
+                key=_fields['export_experience_description'].label,
                 field_name='export_experience_description'
             ),
             self._make_row(
                 url=url,
-                key=fields['export_strategy'].label,
+                key=_fields['export_strategy'].label,
                 field_name='export_strategy'
             )
         ]
         return self.summary_list_helper.make_summary_list(heading=heading, rows=rows)
 
     def trade_event_details_summary_list(self, heading, fields, url):
-        interest_in_event_description_label = fields['interest_in_event_description'].label.format(
+        _fields = {f.name: f for f in fields}
+        interest_in_event_description_label = _fields['interest_in_event_description'].label.format(
             event_name=self.application_data['event']['name']
         )
         rows = [
@@ -543,7 +609,7 @@ class ApplicationReviewService:
         if self.application_data['is_in_contact_with_tcp']:
             rows.append(self._make_row(
                 url=url,
-                key=fields['is_in_contact_with_tcp'].label,
+                key=_fields['is_in_contact_with_tcp'].label,
                 value='\n'.join([
                     self.application_data['tcp_name'],
                     self.application_data['tcp_email'],
@@ -553,29 +619,29 @@ class ApplicationReviewService:
         else:
             rows.append(self._make_row(
                 url=url,
-                key=fields['is_in_contact_with_tcp'].label,
+                key=_fields['is_in_contact_with_tcp'].label,
                 field_name='is_in_contact_with_tcp'
             ))
 
         rows += [
             self._make_row(
                 url=url,
-                key=fields['is_intending_to_exhibit_as_tcp_stand'].label,
+                key=_fields['is_intending_to_exhibit_as_tcp_stand'].label,
                 field_name='is_intending_to_exhibit_as_tcp_stand'
             ),
             self._make_row(
                 url=url,
-                key=fields['stand_trade_name'].label,
+                key=_fields['stand_trade_name'].label,
                 field_name='stand_trade_name'
             ),
             self._make_row(
                 url=url,
-                key=fields['trade_show_experience_description'].label,
+                key=_fields['trade_show_experience_description'].label,
                 field_name='trade_show_experience_description'
             ),
             self._make_row(
                 url=url,
-                key=fields['additional_guidance'].label,
+                key=_fields['additional_guidance'].label,
                 field_name='additional_guidance'
             ),
         ]
