@@ -19,4 +19,8 @@ class SupportingInformationMixin:
         context = super().get_context_data(**kwargs)
         if hasattr(self, 'get_supporting_information'):
             context['supporting_information'] = self.get_supporting_information()
+        elif hasattr(self.supporting_information, f'{self.activation.flow_task.name}_content'):
+            context['supporting_information'] = getattr(
+                self.supporting_information, f'{self.activation.flow_task.name}_content'
+            )
         return context
