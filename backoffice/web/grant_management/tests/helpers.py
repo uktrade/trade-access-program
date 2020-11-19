@@ -8,8 +8,10 @@ from web.grant_management.models import GrantManagementProcess
 
 class GrantManagementFlowTestHelper:
     DEFAULT_TASK_PAYLOADS = {
-        'verify_employee_count': {'employee_count_is_verified': True},
-        'verify_turnover': {'turnover_is_verified': True},
+        'verify_previous_applications': {'previous_applications_is_verified': True},
+        'verify_event_commitment': {'event_commitment_is_verified': True},
+        'verify_business_entity': {'business_entity_is_verified': True},
+        'verify_state_aid': {'state_aid_is_verified': True},
         'decision': {'decision': GrantManagementProcess.Decision.APPROVED},
     }
 
