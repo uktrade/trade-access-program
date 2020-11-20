@@ -1,7 +1,18 @@
 from django import forms
+from django.conf import settings
 from material import Layout, Row, Column, Span4
 
 from web.grant_management.models import GrantManagementProcess
+
+VERIFY_CHOICES = ((True, 'Confirm'), (False, 'Challenge'))
+
+
+def str_to_bool(value):
+    if str(value).lower() in ['true', 't', '1']:
+        return True
+    elif str(value).lower() in ['false', 'f', '0']:
+        return False
+    raise ValueError(f'Cannot convert {value} to boolean')
 
 
 class VerifyPreviousApplicationsForm(forms.ModelForm):
@@ -9,11 +20,10 @@ class VerifyPreviousApplicationsForm(forms.ModelForm):
         model = GrantManagementProcess
         fields = ['previous_applications_is_verified']
 
-    previous_applications_is_verified = forms.BooleanField(
-        required=True,
-        widget=forms.RadioSelect(
-            choices=GrantManagementProcess.VerifyChoices.choices
-        )
+    previous_applications_is_verified = forms.TypedChoiceField(
+        coerce=str_to_bool,
+        choices=VERIFY_CHOICES,
+        widget=forms.RadioSelect
     )
 
 
@@ -22,10 +32,10 @@ class VerifyEventCommitmentForm(forms.ModelForm):
         model = GrantManagementProcess
         fields = ['event_commitment_is_verified']
 
-    event_commitment_is_verified = forms.BooleanField(
-        widget=forms.RadioSelect(
-            choices=GrantManagementProcess.VerifyChoices.choices
-        )
+    event_commitment_is_verified = forms.TypedChoiceField(
+        coerce=str_to_bool,
+        choices=VERIFY_CHOICES,
+        widget=forms.RadioSelect
     )
 
 
@@ -34,10 +44,10 @@ class VerifyBusinessEntityForm(forms.ModelForm):
         model = GrantManagementProcess
         fields = ['business_entity_is_verified']
 
-    business_entity_is_verified = forms.BooleanField(
-        widget=forms.RadioSelect(
-            choices=GrantManagementProcess.VerifyChoices.choices
-        )
+    business_entity_is_verified = forms.TypedChoiceField(
+        coerce=str_to_bool,
+        choices=VERIFY_CHOICES,
+        widget=forms.RadioSelect
     )
 
 
@@ -46,10 +56,10 @@ class VerifyStateAidForm(forms.ModelForm):
         model = GrantManagementProcess
         fields = ['state_aid_is_verified']
 
-    state_aid_is_verified = forms.BooleanField(
-        widget=forms.RadioSelect(
-            choices=GrantManagementProcess.VerifyChoices.choices
-        )
+    state_aid_is_verified = forms.TypedChoiceField(
+        coerce=str_to_bool,
+        choices=VERIFY_CHOICES,
+        widget=forms.RadioSelect
     )
 
 
@@ -72,6 +82,28 @@ class ProductsAndServicesForm(forms.ModelForm):
     )
 
 
+class ProductsAndServicesCompetitorsForm(forms.ModelForm):
+    layout = Layout(
+        Row('products_and_services_competitors_score'),
+        Row(Span4('products_and_services_competitors_justification'), Column())
+    )
+
+    class Meta:
+        model = GrantManagementProcess
+        fields = [
+            'products_and_services_competitors_score',
+            'products_and_services_competitors_justification'
+        ]
+
+    products_and_services_competitors_score = forms.IntegerField(
+        label='Score',
+        widget=forms.RadioSelect(choices=GrantManagementProcess.ScoreChoices.choices)
+    )
+    products_and_services_competitors_justification = forms.CharField(
+        label='Justification'
+    )
+
+
 class ExportStrategyForm(forms.ModelForm):
     layout = Layout(
         Row('export_strategy_score'),
@@ -88,4 +120,25 @@ class ExportStrategyForm(forms.ModelForm):
     )
     export_strategy_justification = forms.CharField(
         label='Justification'
+    )
+
+
+class EventIsAppropriateForm(forms.ModelForm):
+    class Meta:
+        model = GrantManagementProcess
+        fields = ['event_is_appropriate']
+
+    event_is_appropriate = forms.BooleanField(
+        label='Is the trade show appropriate?',
+        widget=forms.RadioSelect(choices=settings.BOOLEAN_CHOICES)
+    )
+
+
+class DecisionForm(forms.ModelForm):
+    class Meta:
+        model = GrantManagementProcess
+        fields = ['decision']
+
+    decision = forms.CharField(
+        widget=forms.RadioSelect(choices=GrantManagementProcess.Decision.choices)
     )

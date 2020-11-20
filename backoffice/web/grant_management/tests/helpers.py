@@ -11,11 +11,20 @@ class GrantManagementFlowTestHelper:
         'verify_previous_applications': {'previous_applications_is_verified': True},
         'verify_event_commitment': {'event_commitment_is_verified': True},
         'verify_business_entity': {'business_entity_is_verified': True},
-        'verify_state_aid': {'state_aid_is_verified': True},
+        'verify_state_aid': {'state_aid_is_verified': False},
         'products_and_services': {
             'products_and_services_score': 5,
             'products_and_services_justification': 'Blah blah blah'
         },
+        'products_and_services_competitors': {
+            'products_and_services_competitors_score': 5,
+            'products_and_services_competitors_justification': 'Blah blah blah'
+        },
+        'export_strategy': {
+            'export_strategy_score': 5,
+            'export_strategy_justification': 'Blah blah blah'
+        },
+        'event_is_appropriate': {'event_is_appropriate': True},
         'decision': {'decision': GrantManagementProcess.Decision.APPROVED},
     }
 

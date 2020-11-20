@@ -26,11 +26,13 @@
     <div class="card-content">
       <div class="card-title">{% trans 'Supporting Information' %}</div>
 
-      {% for text in supporting_information.texts %}
-        <p>{{ text }}</p>
+      {% for paragraph in supporting_information.paragraphs %}
+        <p class="flow-text">{{ paragraph.header|safe }}</p>
+        <p class="grey lighten-4">{{ paragraph.text|linebreaksbr }}</p>
       {% endfor %}
 
       {% for link in supporting_information.links %}
+        <p class="flow-text">{{ link.header|safe }}</p>
         <a href="{{ link.url }}" class="brand-logo">{{ link.text|default:link.url }}</a>
       {% endfor %}
 

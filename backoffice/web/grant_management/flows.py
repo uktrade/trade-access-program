@@ -5,10 +5,11 @@ from viewflow.base import this, Flow
 from web.core.notify import NotifyService
 from web.grant_management.forms import (
     VerifyPreviousApplicationsForm, VerifyBusinessEntityForm,
-    VerifyEventCommitmentForm, VerifyStateAidForm, ProductsAndServicesForm, ExportStrategyForm
+    VerifyEventCommitmentForm, VerifyStateAidForm, ProductsAndServicesForm, ExportStrategyForm,
+    ProductsAndServicesCompetitorsForm, DecisionForm, EventIsAppropriateForm
 )
 from web.grant_management.models import GrantManagementProcess
-from web.grant_management.views import DecisionView, BaseVerifyView, BaseScoreView
+from web.grant_management.views import BaseVerifyView, BaseScoreView, BaseUpdateProcessView
 
 
 @frontend.register
@@ -56,6 +57,9 @@ class GrantManagementFlow(Flow):
     create_suitability_tasks = (
         flow.Split()
             .Always(this.products_and_services)
+            .Always(this.products_and_services_competitors)
+            .Always(this.export_strategy)
+            .Always(this.event_is_appropriate)
             .Always(this.finish_suitability_tasks)
     )
 
@@ -63,15 +67,23 @@ class GrantManagementFlow(Flow):
         BaseScoreView, form_class=ProductsAndServicesForm
     ).Next(this.finish_suitability_tasks)
 
+    products_and_services_competitors = flow.View(
+        BaseScoreView, form_class=ProductsAndServicesCompetitorsForm
+    ).Next(this.finish_suitability_tasks)
+
     export_strategy = flow.View(
         BaseScoreView, form_class=ExportStrategyForm
+    ).Next(this.finish_suitability_tasks)
+
+    event_is_appropriate = flow.View(
+        BaseScoreView, form_class=EventIsAppropriateForm
     ).Next(this.finish_suitability_tasks)
 
     finish_suitability_tasks = flow.Join().Next(this.decision)
 
     # Decision task
     decision = flow.View(
-        DecisionView
+        BaseUpdateProcessView, form_class=DecisionForm
     ).Next(this.send_decision_email)
 
     send_decision_email = flow.Handler(
