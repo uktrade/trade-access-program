@@ -1,46 +1,23 @@
 from viewflow.flow.views import UpdateProcessView
 
-from web.grant_management.forms import (
-    VerifyPreviousApplicationsForm, VerifyEventCommitmentForm,
-    VerifyBusinessEntityForm, VerifyStateAidForm, ProductsAndServicesForm
-)
 from web.grant_management.mixins import SupportingInformationMixin
 
 
-class VerifyPreviousApplicationsView(SupportingInformationMixin, UpdateProcessView):
-    form_class = VerifyPreviousApplicationsForm
+class BaseVerifyView(SupportingInformationMixin, UpdateProcessView):
     extra_context = {
         'form_heading': 'Eligible'
     }
 
 
-class VerifyEventCommitmentView(SupportingInformationMixin, UpdateProcessView):
-    form_class = VerifyEventCommitmentForm
+class BaseScoreView(SupportingInformationMixin, UpdateProcessView):
     extra_context = {
-        'form_heading': 'Eligible'
+        'form_heading': "Please score the applicant's response"
     }
 
 
-class VerifyBusinessEntityView(SupportingInformationMixin, UpdateProcessView):
-    form_class = VerifyBusinessEntityForm
-    extra_context = {
-        'form_heading': 'Eligible'
-    }
-
-
-class VerifyStateAidView(SupportingInformationMixin, UpdateProcessView):
-    form_class = VerifyStateAidForm
-    extra_context = {
-        'form_heading': 'Eligible'
-    }
+# class ExportStrategyView(BaseScoreView):
+#     form_class = ExportStrategyForm
 
 
 class DecisionView(SupportingInformationMixin, UpdateProcessView):
     fields = ['decision']
-
-
-class ProductsAndServicesView(SupportingInformationMixin, UpdateProcessView):
-    form_class = ProductsAndServicesForm
-    extra_context = {
-        'form_heading': "Please score the applicant's response"
-    }

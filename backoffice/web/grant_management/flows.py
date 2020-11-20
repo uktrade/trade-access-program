@@ -3,11 +3,12 @@ from viewflow import flow, frontend
 from viewflow.base import this, Flow
 
 from web.core.notify import NotifyService
-from web.grant_management.models import GrantManagementProcess
-from web.grant_management.views import (
-    VerifyPreviousApplicationsView, VerifyEventCommitmentView, VerifyBusinessEntityView,
-    VerifyStateAidView, ProductsAndServicesView, DecisionView
+from web.grant_management.forms import (
+    VerifyPreviousApplicationsForm, VerifyBusinessEntityForm,
+    VerifyEventCommitmentForm, VerifyStateAidForm, ProductsAndServicesForm
 )
+from web.grant_management.models import GrantManagementProcess
+from web.grant_management.views import DecisionView, BaseVerifyView, BaseScoreView
 
 
 @frontend.register
@@ -34,19 +35,19 @@ class GrantManagementFlow(Flow):
     )
 
     verify_previous_applications = flow.View(
-        VerifyPreviousApplicationsView
+        BaseVerifyView, form_class=VerifyPreviousApplicationsForm
     ).Next(this.finish_verify_tasks)
 
     verify_event_commitment = flow.View(
-        VerifyEventCommitmentView
+        BaseVerifyView, form_class=VerifyEventCommitmentForm
     ).Next(this.finish_verify_tasks)
 
     verify_business_entity = flow.View(
-        VerifyBusinessEntityView
+        BaseVerifyView, form_class=VerifyBusinessEntityForm
     ).Next(this.finish_verify_tasks)
 
     verify_state_aid = flow.View(
-        VerifyStateAidView
+        BaseVerifyView, form_class=VerifyStateAidForm
     ).Next(this.finish_verify_tasks)
 
     finish_verify_tasks = flow.Join().Next(this.create_suitability_tasks)
@@ -59,7 +60,7 @@ class GrantManagementFlow(Flow):
     )
 
     products_and_services = flow.View(
-        ProductsAndServicesView
+        BaseScoreView, form_class=ProductsAndServicesForm
     ).Next(this.finish_suitability_tasks)
 
     finish_suitability_tasks = flow.Join().Next(this.decision)
