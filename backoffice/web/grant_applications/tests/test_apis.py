@@ -221,7 +221,7 @@ class StateAidApiTests(BaseAPITestCase):
 
     def setUp(self):
         super().setUp()
-        self.ga = CompletedGrantApplicationFactory()
+        self.ga = CompletedGrantApplicationFactory(stateaid_set=None)
 
     def test_get_grant_application_detail(self, *mocks):
         state_aid = StateAidFactory(grant_application=self.ga)

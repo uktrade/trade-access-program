@@ -12,6 +12,10 @@ class GrantManagementFlowTestHelper:
         'verify_event_commitment': {'event_commitment_is_verified': True},
         'verify_business_entity': {'business_entity_is_verified': True},
         'verify_state_aid': {'state_aid_is_verified': True},
+        'products_and_services': {
+            'products_and_services_score': 5,
+            'products_and_services_justification': 'Blah blah blah'
+        },
         'decision': {'decision': GrantManagementProcess.Decision.APPROVED},
     }
 

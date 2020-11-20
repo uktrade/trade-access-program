@@ -5,8 +5,13 @@ from web.core.exceptions import DnbServiceClientException
 
 
 class SupportingInformationContent:
-    MSGS = {
+    msgs = {
         'contact-admin': 'Please try again later or contact the site administrator.'
+    }
+    sections = {
+        'eligibility': _('Eligibility criteria'),
+        'application': _('Application answers'),
+        'dnb': _('Dun and Bradstreet'),
     }
 
     def __init__(self, grant_application):
@@ -15,6 +20,12 @@ class SupportingInformationContent:
         self.dnb_client = DnbServiceClient()
         self.ch_client = CompaniesHouseClient()
         self._dnb_company_data = None
+
+    def _make_table(self, headers, rows):
+        return {'headers': headers, 'rows': rows}
+
+    def _make_section(self, section, rows):
+        return self._make_table(headers=[self.sections[section]], rows=rows)
 
     @property
     def dnb_company_data(self):
@@ -52,19 +63,17 @@ class SupportingInformationContent:
     def verify_previous_applications_content(self):
         return {
             'tables': [
-                {
-                    'headers': [_('Eligibility criteria')],
-                    'rows': [
-                        [_('Businesses can have up to 6 TAP grants in total.')]
-                    ]
-                },
-                {
-                    'headers': [_('Application answers')],
-                    'rows': [
+                self._make_section(
+                    section='eligibility',
+                    rows=[[_('Businesses can have up to 6 TAP grants in total.')]]
+                ),
+                self._make_section(
+                    section='application',
+                    rows=[
                         [_(f"The applicant indicated that the business has has "
                            f"{self.grant_application.previous_applications} previous TAP grants.")]
                     ]
-                }
+                ),
             ]
         }
 
@@ -73,20 +82,20 @@ class SupportingInformationContent:
         has = 'has' if self.grant_application.is_already_committed_to_event else 'has not'
         return {
             'tables': [
-                {
-                    'headers': [_('Eligibility criteria')],
-                    'rows': [
+                self._make_section(
+                    section='eligibility',
+                    rows=[
                         [_('Businesses cannot have committed to the event before applying for a '
-                           'TAP grant.')]
+                            'TAP grant.')]
                     ]
-                },
-                {
-                    'headers': [_('Application answers')],
-                    'rows': [
+                ),
+                self._make_section(
+                    section='application',
+                    rows=[
                         [_(f"The applicant indicated that the business {has} already committed to "
                            f"the event.")]
                     ]
-                }
+                )
             ]
         }
 
@@ -94,65 +103,69 @@ class SupportingInformationContent:
     def verify_business_entity_content(self):
         content = {
             'tables': [
-                {
-                    'headers': [_('Eligibility criteria')],
-                    'rows': [
+                self._make_section(
+                    section='eligibility',
+                    rows=[
                         [_('Businesses should have less that 250 employees.')],
                         [_('Annual Turnover should be between £83,000 and £5 million.')]
                     ]
-                },
-                {
-                    'headers': [_('Application answers')],
-                    'rows': [
+                ),
+                self._make_section(
+                    section='application',
+                    rows=[
                         [_(f"The applicant indicated that the company has "
                            f"{self.grant_application.number_of_employees} employees.")],
                         [_(f"The applicant indicated that the company has a turnover of "
                            f"£{self.grant_application.previous_years_turnover_1}.")]
                     ]
-                },
-                {
-                    'headers': [_('Dun and Bradstreet')],
-                    'rows': []
-                }
+                )
             ]
         }
 
+        dnb_rows = [[_(f"Could not retrieve Dun & Bradstreet data. {self.msgs['contact-admin']}")]]
         if self.dnb_company_data:
-            # Include Dun & Bradstreet data for number_of_employees
             e_or_r = 'reports'
             if self.dnb_company_data['is_employees_number_estimated']:
                 e_or_r = 'estimates'
-            content['tables'][2]['rows'].append([_(
-                f"Dun & Bradstreet {e_or_r} that this company has "
-                f"{self.dnb_company_data['employee_number']} employees."
-            )])
+            dnb_rows = [
+                [_(  # Include Dun & Bradstreet data for number_of_employees
+                    f"Dun & Bradstreet {e_or_r} that this company has "
+                    f"{self.dnb_company_data['employee_number']} employees.")],
+                [_(  # Include Dun & Bradstreet data for annual_sales (turnover)
+                    f"Dun & Bradstreet reports that this company has a turnover of "
+                    f"£{int(self.dnb_company_data['annual_sales'])}."
+                )]
+            ]
 
-            # Include Dun & Bradstreet data for annual_sales (turnover)
-            content['tables'][2]['rows'].append([_(
-                f"Dun & Bradstreet reports that this company has a turnover of "
-                f"£{int(self.dnb_company_data['annual_sales'])}."
-            )])
-        else:
-            content['tables'][2]['rows'].append([_(
-                f"Could not retrieve Dun & Bradstreet data. {self.MSGS['contact-admin']}"
-            )])
+        content['tables'].append(
+            self._make_section(section='dnb', rows=dnb_rows)
+        )
 
         return content
 
     @property
     def verify_state_aid_content(self):
         rows = [
-            [s['authority'], s['amount'], s['description'], s['date_received']]
+            [s.authority, s.amount, s.description, s.date_received]
             for s in self.grant_application.stateaid_set.all()
         ]
         if not rows:
             rows = [['—', '—', '—', '—']]
         return {
             'tables': [
-                {
-                    'headers': ['Authority', 'Amount', 'Description', 'Date received'],
-                    'rows': rows
-                },
+                self._make_table(
+                    headers=['Authority', 'Amount', 'Description', 'Date received'],
+                    rows=rows
+                )
+            ]
+        }
+
+    @property
+    def products_and_services_content(self):
+        return {
+            'texts': [
+                'Describe your main products and services',
+                self.grant_application.products_and_services_description
             ]
         }
 
