@@ -70,3 +70,22 @@ class ProductsAndServicesForm(forms.ModelForm):
     products_and_services_justification = forms.CharField(
         label='Justification'
     )
+
+
+class ExportStrategyForm(forms.ModelForm):
+    layout = Layout(
+        Row('export_strategy_score'),
+        Row(Span4('export_strategy_justification'), Column())
+    )
+
+    class Meta:
+        model = GrantManagementProcess
+        fields = ['export_strategy_score', 'export_strategy_justification']
+
+    export_strategy_score = forms.IntegerField(
+        label='Score',
+        widget=forms.RadioSelect(choices=GrantManagementProcess.ScoreChoices.choices)
+    )
+    export_strategy_justification = forms.CharField(
+        label='Justification'
+    )
