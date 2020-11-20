@@ -6,7 +6,7 @@
   <thead>
     <tr class="flow-text {{ table.headers.class }}">
       {% for header in table.headers.values|default:table.headers %}
-        <th>{{ header }}</th>
+        <th>{{ header|safe }}</th>
       {% endfor %}
     </tr>
   </thead>

@@ -10,12 +10,24 @@ from web.tests.helpers import BaseTestCase
 
 class TestGrantManagementSupportingInformation(BaseTestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.notify_service_patch = patch('web.grant_management.flows.NotifyService')
+        cls.notify_service_patch.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        cls.notify_service_patch.stop()
+
     def setUp(self):
         super().setUp()
         self.ga = CompletedGrantApplicationFactory(company__dnb_get_company_responses=None)
+        self.ga.send_for_review()
         self.si_content = SupportingInformationContent(self.ga)
 
-    def test_application_acknowledgement_content(self):
+    def test_application_acknowledgement_content(self, *mocks):
         self.assertIn('tables', self.si_content.application_acknowledgement_content)
         self.assertEqual(
             len(self.si_content.application_acknowledgement_content['tables']),
