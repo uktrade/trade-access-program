@@ -34,6 +34,11 @@ class GrantManagementProcess(Process):
         validators=[MinValueValidator(1), MaxValueValidator(5)]
     )
     products_and_services_justification = models.TextField(null=True)
+    export_strategy_score = models.IntegerField(
+        null=True, choices=ScoreChoices.choices,
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    export_strategy_justification = models.TextField(null=True)
     decision = models.CharField(null=True, choices=Decision.choices, max_length=10)
 
     @property

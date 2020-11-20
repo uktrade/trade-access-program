@@ -5,7 +5,7 @@ from viewflow.base import this, Flow
 from web.core.notify import NotifyService
 from web.grant_management.forms import (
     VerifyPreviousApplicationsForm, VerifyBusinessEntityForm,
-    VerifyEventCommitmentForm, VerifyStateAidForm, ProductsAndServicesForm
+    VerifyEventCommitmentForm, VerifyStateAidForm, ProductsAndServicesForm, ExportStrategyForm
 )
 from web.grant_management.models import GrantManagementProcess
 from web.grant_management.views import DecisionView, BaseVerifyView, BaseScoreView
@@ -61,6 +61,10 @@ class GrantManagementFlow(Flow):
 
     products_and_services = flow.View(
         BaseScoreView, form_class=ProductsAndServicesForm
+    ).Next(this.finish_suitability_tasks)
+
+    export_strategy = flow.View(
+        BaseScoreView, form_class=ExportStrategyForm
     ).Next(this.finish_suitability_tasks)
 
     finish_suitability_tasks = flow.Join().Next(this.decision)

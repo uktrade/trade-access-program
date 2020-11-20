@@ -15,9 +15,5 @@ class BaseScoreView(SupportingInformationMixin, UpdateProcessView):
     }
 
 
-# class ExportStrategyView(BaseScoreView):
-#     form_class = ExportStrategyForm
-
-
 class DecisionView(SupportingInformationMixin, UpdateProcessView):
     fields = ['decision']
