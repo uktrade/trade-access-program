@@ -14,23 +14,21 @@
 <div class="left-panel">
   <div class="card">
     <div class="card-content">
-      <div class="card-title">
-        {{ activation.task.summary|default:activation.task.flow_task }}
-        <h6>{{ activation.process.summary }}</h6>
-      </div>
+      <div class="card-title">{{ activation.task.summary|default:activation.task.flow_task }}</div>
+      <p>Application ID <strong>{{ activation.process.grant_application.id }}</strong></p>
+      <p>Business name <strong>{{ activation.process.grant_application.company.name }}</strong></p>
+      <p>Application status <strong>{{ activation.process.status }}</strong></p>
     </div>
   </div>
 
   {% if supporting_information %}
   <div class="card">
     <div class="card-content">
-      <div class="card-title">
-        {% trans 'Supporting Information' %}
-      </div>
+      <div class="card-title">{% trans 'Supporting Information' %}</div>
 
-      {% if supporting_information.text %}
-        <p>{{ supporting_information.text }}</p>
-      {% endif %}
+      {% for text in supporting_information.texts %}
+        <p>{{ text }}</p>
+      {% endfor %}
 
       {% for link in supporting_information.links %}
         <a href="{{ link.url }}" class="brand-logo">{{ link.text|default:link.url }}</a>
@@ -50,9 +48,7 @@
         {% block task_form %}
         {% if form.fields %}
         <div class="card-content">
-          <div class="card-title">
-            {% trans 'Actions' %}
-          </div>
+          <div class="card-title">{% trans form_heading|default:'Actions' %}</div>
           {% csrf_token %}
           {% form form=form %}{% endform %}
           {{ activation.management_form }}

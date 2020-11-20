@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.db.models import PROTECT
 from viewflow.models import Process
@@ -8,6 +9,13 @@ class GrantManagementProcess(Process):
     class VerifyChoices(models.TextChoices):
         CONFIRM = True, 'Confirm'
         CHALLENGE = False, 'Challenge'
+
+    class ScoreChoices(models.IntegerChoices):
+        ONE = 1, '1 - Poor'
+        TWO = 2, '2 - Limited'
+        THREE = 3, '3 - Acceptable'
+        FOUR = 4, '4 - Good'
+        FIVE = 5, '5 - Excellent'
 
     class Decision(models.TextChoices):
         APPROVED = 'approved'
@@ -21,6 +29,11 @@ class GrantManagementProcess(Process):
     event_commitment_is_verified = models.BooleanField(null=True)
     business_entity_is_verified = models.BooleanField(null=True)
     state_aid_is_verified = models.BooleanField(null=True)
+    products_and_services_score = models.IntegerField(
+        null=True, choices=ScoreChoices.choices,
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    products_and_services_justification = models.TextField(null=True)
     decision = models.CharField(null=True, choices=Decision.choices, max_length=10)
 
     @property

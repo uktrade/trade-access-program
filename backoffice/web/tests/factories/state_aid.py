@@ -12,7 +12,7 @@ class StateAidFactory(factory.django.DjangoModelFactory):
 
     authority = factory.Sequence(lambda n: f'authority-{n}')
     date_received = factory.Sequence(lambda n: today().date() - timedelta(days=n))
-    amount = 1
+    amount = 1000
     description = factory.Sequence(lambda n: f'description-{n}')
     grant_application = factory.SubFactory(
         'web.tests.factories.grant_applications.GrantApplicationFactory'

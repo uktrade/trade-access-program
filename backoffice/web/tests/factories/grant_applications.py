@@ -83,3 +83,8 @@ class CompletedGrantApplicationFactory(GrantApplicationFactory):
             } for row in range(3)],
         } for heading in range(3)
     ]
+
+    stateaid_set = factory.RelatedFactory(
+        'web.tests.factories.state_aid.StateAidFactory',
+        factory_related_name='grant_application'
+    )

@@ -6,7 +6,7 @@ from web.core.notify import NotifyService
 from web.grant_management.models import GrantManagementProcess
 from web.grant_management.views import (
     VerifyPreviousApplicationsView, VerifyEventCommitmentView, VerifyBusinessEntityView,
-    VerifyStateAidView, DecisionView
+    VerifyStateAidView, ProductsAndServicesView, DecisionView
 )
 
 
@@ -49,7 +49,20 @@ class GrantManagementFlow(Flow):
         VerifyStateAidView
     ).Next(this.finish_verify_tasks)
 
-    finish_verify_tasks = flow.Join().Next(this.decision)
+    finish_verify_tasks = flow.Join().Next(this.create_suitability_tasks)
+
+    # Suitability tasks
+    create_suitability_tasks = (
+        flow.Split()
+            .Always(this.products_and_services)
+            .Always(this.finish_suitability_tasks)
+    )
+
+    products_and_services = flow.View(
+        ProductsAndServicesView
+    ).Next(this.finish_suitability_tasks)
+
+    finish_suitability_tasks = flow.Join().Next(this.decision)
 
     # Decision task
     decision = flow.View(
