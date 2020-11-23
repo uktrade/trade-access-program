@@ -148,7 +148,7 @@ class SupportingInformationContent:
                     f"{self.dnb_company_data['employee_number']} employees.")],
                 [_(  # Include Dun & Bradstreet data for annual_sales (turnover)
                     f"Dun & Bradstreet reports that this company has a turnover of "
-                    f"£{int(self.dnb_company_data['annual_sales'])}."
+                    f"£{int(self.dnb_company_data['annual_sales'] or 0)}."
                 )]
             ]
 

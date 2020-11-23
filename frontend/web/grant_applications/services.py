@@ -487,9 +487,9 @@ class ApplicationReviewService:
                 url=url,
                 key='Annual turnover generated from exports',
                 value='\n'.join([
-                    f"Last year - {self.application_data['previous_years_turnover_1']}",
-                    f"Year 2 - {self.application_data['previous_years_turnover_2']}",
-                    f"Year 3 - {self.application_data['previous_years_turnover_3']}"
+                    f"Last year - {self.application_data['previous_years_export_turnover_1']}",
+                    f"Year 2 - {self.application_data['previous_years_export_turnover_2']}",
+                    f"Year 3 - {self.application_data['previous_years_export_turnover_3']}"
                 ])
             ),
             self._make_row(
