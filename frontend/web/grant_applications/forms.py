@@ -713,7 +713,10 @@ class TradeEventDetailsForm(FormatLabelMixin, forms.ModelForm):
         empty_value=None,
         label=_('TCP contact name'),
         widget=forms.TextInput(
-            attrs={'class': 'govuk-input govuk-!-width-two-thirds'}
+            attrs={
+                'class': 'govuk-input govuk-!-width-two-thirds',
+                'optional_label_override': True
+            }
         )
     )
     tcp_email = forms.CharField(
@@ -724,6 +727,7 @@ class TradeEventDetailsForm(FormatLabelMixin, forms.ModelForm):
             attrs={
                 'class': 'govuk-input govuk-!-width-two-thirds',
                 'type': 'email',
+                'optional_label_override': True
             }
         )
     )
@@ -733,7 +737,10 @@ class TradeEventDetailsForm(FormatLabelMixin, forms.ModelForm):
         label=_('TCP mobile number'),
         region='GB',
         widget=forms.TextInput(
-            attrs={'class': 'govuk-input govuk-input--width-10'}
+            attrs={
+                'class': 'govuk-input govuk-input--width-10',
+                'optional_label_override': True
+            }
         )
     )
     is_intending_to_exhibit_as_tcp_stand = forms.TypedChoiceField(
