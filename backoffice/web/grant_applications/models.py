@@ -165,5 +165,5 @@ class StateAid(BaseMetaModel):
     authority = models.CharField(max_length=500)
     date_received = models.DateField()
     amount = models.IntegerField(validators=[MinValueValidator(1)])
-    description = models.CharField(max_length=500)
+    description = models.CharField(max_length=2000)
     grant_application = models.ForeignKey(GrantApplication, on_delete=PROTECT)
