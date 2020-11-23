@@ -260,7 +260,7 @@ class SupportingInformationContent:
                         ],
                         [
                             self.headers['suitability'],
-                            f'{grant_management_process.suitability_score}/20'
+                            f'{grant_management_process.suitability_score}/15'
                         ],
                         [
                             'Is the trade show appropriate?',
