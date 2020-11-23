@@ -14,7 +14,9 @@ from web.grant_management.views import BaseVerifyView, BaseScoreView, BaseUpdate
 
 @frontend.register
 class GrantManagementFlow(Flow):
-    summary_template = "{{ process.grant_application.company.name }} [{{ process.status }}]"
+    summary_template = "{{ process.grant_application.company.name" \
+                       "|default:process.grant_application.manual_company_name }} " \
+                       "[{{ process.status }}]"
     process_class = GrantManagementProcess
 
     start = flow.StartFunction(
