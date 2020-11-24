@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "12.18.x"
+    "node": "12.19.x"
   },
   "dependencies": {
     "@hmcts/frontend": "0.0.41-alpha",
