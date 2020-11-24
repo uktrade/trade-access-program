@@ -75,7 +75,7 @@ class CompletedGrantApplicationFactory(GrantApplicationFactory):
             'heading': f'Heading {heading}',
             'rows': [{
                 'key': f'Question {row}',
-                'value': f'Answer {row}',
+                'value': f'Answer {row}\nBlah\nBlah\nBlah\n',
                 'action': {
                     'text': f'Action {row}',
                     'url': f'/action-url-{row}',

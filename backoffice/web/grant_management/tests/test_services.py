@@ -27,13 +27,6 @@ class TestGrantManagementSupportingInformation(BaseTestCase):
         self.ga.send_for_review()
         self.si_content = SupportingInformationContent(self.ga)
 
-    def test_application_acknowledgement_content(self, *mocks):
-        self.assertIn('tables', self.si_content.application_acknowledgement_content)
-        self.assertEqual(
-            len(self.si_content.application_acknowledgement_content['tables']),
-            len(self.ga.application_summary)
-        )
-
     @patch.object(DnbServiceClient, 'get_company', side_effect=DnbServiceClientException)
     def test_business_entity_content_on_dnb_service_error(self, *mocks):
         # Assert no dnb exception is caught and error is mentioned in content

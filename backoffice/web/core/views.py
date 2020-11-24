@@ -7,10 +7,10 @@ def handler404(request, exception):
 
 
 def handler500(request, *args, **argv):
-    return render(request, 'core/500.html', status=404)
+    return render(request, 'core/500.html', status=404)  # pragma: no cover
 
 
-class PageNumberPagination(PageNumberPagination):
+class TAPPageNumberPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
 
     def get_page_size(self, request):

@@ -1,3 +1,4 @@
+from django.http import FileResponse
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -7,6 +8,7 @@ from web.grant_applications.serializers import (
     GrantApplicationReadSerializer, GrantApplicationWriteSerializer, StateAidSerializer,
     SendForReviewWriteSerializer
 )
+from web.grant_applications.services import GrantApplicationPdf
 
 
 class GrantApplicationsViewSet(ModelViewSet):
@@ -25,6 +27,11 @@ class GrantApplicationsViewSet(ModelViewSet):
         serializer.save()
         instance.send_for_review()
         return Response(self.get_serializer(instance).data)
+
+    @action(detail=True, methods=['GET'], url_path='pdf')
+    def pdf(self, request, pk=None):
+        buffer = GrantApplicationPdf(grant_application=self.get_object()).generate()
+        return FileResponse(buffer, as_attachment=True, filename='grant-application.pdf')
 
 
 class StateAidViewSet(ModelViewSet):

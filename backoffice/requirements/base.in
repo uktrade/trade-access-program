@@ -13,6 +13,7 @@ libsass==0.20.1
 notifications-python-client==5.7.0
 phonenumbers==8.12.10
 psycopg2==2.8.6
+reportlab==3.5.55
 requests==2.24.0
 sentry-sdk==0.17.8
 whitenoise==5.2.0

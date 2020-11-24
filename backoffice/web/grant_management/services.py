@@ -62,19 +62,6 @@ class SupportingInformationContent:
         return self._dnb_company_data
 
     @property
-    def application_acknowledgement_content(self):
-        tables = []
-
-        for section in self.grant_application.application_summary:
-            tables.append(self._table(
-                headers=[section['heading'], ''],
-                rows=[[row['key'], row['value']] for row in section['rows']],
-                col_tags=["style=width:50%", "style=width:50%"]
-            ))
-
-        return {'tables': tables}
-
-    @property
     def verify_previous_applications_content(self):
         return {
             'tables': [
