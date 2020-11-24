@@ -216,6 +216,17 @@ class GrantApplicationsApiTests(BaseAPITestCase):
         self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['application_summary'][0].code, 'required')
 
+    def test_grant_application_pdf_download(self, *mocks):
+        ga = CompletedGrantApplicationFactory()
+        ga.send_for_review()
+        path = reverse('grant-applications:grant-applications-pdf', args=(ga.id,))
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEquals(
+            response['Content-Disposition'],
+            'attachment; filename="grant-application.pdf"'
+        )
+
 
 class StateAidApiTests(BaseAPITestCase):
 

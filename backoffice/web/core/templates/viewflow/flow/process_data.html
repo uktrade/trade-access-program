@@ -17,6 +17,7 @@
             </dd>
             {% endfor %}
         </dl>
+        <a download class="btn-flat primary white-text" href="{% url 'grant-applications:grant-applications-pdf' process.grant_application.pk %}">{% trans 'Download' %}</a>
     </div>
 </div>
 
