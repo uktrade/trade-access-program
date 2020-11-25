@@ -16,13 +16,14 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls import url
 from django.urls import path, include
-from django.views.generic import TemplateView, RedirectView
-from material.frontend import urls as viewflow_frontend_urls
+from django.views.generic import RedirectView
+from material.frontend.urls import modules as viewflow_apps
 
-handler404 = 'web.core.views.handler404'
-handler500 = 'web.core.views.handler500'
+from web.core.views import IndexView
 
 urlpatterns = [
+    path('', IndexView.as_view(), name='index'),
+
     # The govuk-frontend stylesheet requires a specific assets location
     # eg. node_modules/govuk-frontend/govuk/helpers/_font-faces.scss
     path(
@@ -31,8 +32,8 @@ urlpatterns = [
     ),
     path('auth/', include('authbroker_client.urls')),
 
-    # Viewflow urls includes django '/admin' and '/accounts'
-    path('', include(viewflow_frontend_urls)),
+    # Viewflow urls (includes the django /admin site)
+    path('', include(viewflow_apps.urls)),
 
     # API
     path('api/', include('web.companies.api_urls')),

@@ -1,13 +1,16 @@
-from django.shortcuts import render
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.views.generic import TemplateView
 from rest_framework.pagination import PageNumberPagination
 
 
-def handler404(request, exception):
-    return render(request, 'core/404.html', status=404)
+class IndexView(TemplateView):
+    template_name = 'index.html'
 
-
-def handler500(request, *args, **argv):
-    return render(request, 'core/500.html', status=404)  # pragma: no cover
+    def get(self, request, *args, **kwargs):
+        if self.request.user.is_anonymous:
+            return super().get(request, *args, **kwargs)
+        return HttpResponseRedirect(reverse('viewflow:index'))
 
 
 class TAPPageNumberPagination(PageNumberPagination):
