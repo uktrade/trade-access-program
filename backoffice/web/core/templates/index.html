@@ -1,0 +1,20 @@
+{% extends "material/frontend/base_lockscreen.html" %}
+{% load i18n %}
+
+{% block title %}{% trans 'Login' %} - {{ block.super }}{% endblock %}
+
+
+{% block content %}
+<div class="row">
+    <div class="col s12">
+        {% trans 'You are not logged in' %}
+    </div>
+</div>
+<div class="row">
+    <div class="col s12">
+        <a href="{% url 'authbroker_client:login' %}?next={{ request.path }}" class="btn btn-primary white-text">{% trans 'Log in' %}</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block icon %}lock{% endblock %}

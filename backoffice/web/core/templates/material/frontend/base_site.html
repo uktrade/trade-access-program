@@ -25,3 +25,9 @@
   </div>
 </li>
 {% endblock %}
+
+{% block topbar_links %}
+{% if not user.is_authenticated %}
+<li><a href="{% url 'authbroker_client:login' %}" data-turbolinks="false"><i class="material-icons right">lock_open</i>{% trans "Log in" %}</a></li>
+{% endif %}
+{% endblock %}

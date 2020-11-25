@@ -183,7 +183,7 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-LOGIN_URL = reverse_lazy('authbroker_client:login')
+LOGIN_URL = reverse_lazy('index')
 LOGIN_REDIRECT_URL = reverse_lazy('viewflow:index')
 
 # https://www.django-rest-framework.org/
