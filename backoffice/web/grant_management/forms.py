@@ -145,9 +145,11 @@ class EventIsAppropriateForm(forms.ModelForm):
         model = GrantManagementProcess
         fields = ['event_is_appropriate']
 
-    event_is_appropriate = forms.BooleanField(
+    event_is_appropriate = forms.TypedChoiceField(
         label='Is the trade show appropriate?',
-        widget=forms.RadioSelect(choices=settings.BOOLEAN_CHOICES)
+        widget=forms.RadioSelect,
+        coerce=str_to_bool,
+        choices=settings.BOOLEAN_CHOICES
     )
 
 

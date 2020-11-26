@@ -1,18 +1,18 @@
 {% load i18n viewflow viewflow_frontend material_form material_frontend %}
 
-<table class="{{ table.class|default:'default' }}">
-  {% for col in table.col_tags %}<col {{ col }} >{% endfor %}
+<table class="{{ class|default:'default' }}">
+  {% for col in col_tags %}<col {{ col }} >{% endfor %}
 
   <thead>
-    <tr class="{{ table.headers_class }}">
-      {% for header in table.headers %}
+    <tr class="{{ headers_class }}">
+      {% for header in headers %}
         <th>{{ header|safe }}</th>
       {% endfor %}
     </tr>
   </thead>
   <tbody>
-    {% for row in table.rows %}
-      <tr class="{{ table.rows_class }}">
+    {% for row in rows %}
+      <tr class="{{ rows_class }}">
         {% for cell in row %}
           <td>{{ cell|linebreaksbr }}</td>
         {% endfor %}
