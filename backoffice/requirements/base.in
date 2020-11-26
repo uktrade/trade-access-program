@@ -2,7 +2,7 @@ Django==3.1.1
 django-compressor==2.4
 django-environ==0.4.5
 django-filter==2.3.0
-django-material==1.7.1
+django-material==1.7.3
 django-phonenumber-field==5.0.0
 django-sass-processor==0.8.2
 django-viewflow==1.6.1

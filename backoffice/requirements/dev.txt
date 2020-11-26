@@ -20,7 +20,7 @@ django-environ==0.4.5     # via -r requirements/base.txt
 django-extensions==3.0.9  # via -r requirements/dev.in
 django-filter==2.3.0      # via -r requirements/base.txt, django-viewflow
 django-jsonstore==0.4.1   # via -r requirements/base.txt, django-viewflow
-django-material==1.7.1    # via -r requirements/base.txt
+django-material==1.7.3    # via -r requirements/base.txt
 django-phonenumber-field==5.0.0  # via -r requirements/base.txt
 django-sass-processor==0.8.2  # via -r requirements/base.txt
 git+https://github.com/uktrade/django-staff-sso-client.git@master#egg=django-staff-sso-client  # via -r requirements/base.txt
