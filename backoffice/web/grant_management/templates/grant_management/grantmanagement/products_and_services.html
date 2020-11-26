@@ -1,0 +1,13 @@
+{% extends "viewflow/flow/task.html" %}
+{% load i18n %}
+
+{% block information_cards %}
+<div class="card">
+  <div class="card-content">
+    <span class="card-title">{{ information_card_title }}</span>
+
+    {% include "grant_management/grantmanagement/information_card_section.html" with outer_p="Describe your main products and services" inner_p=activation.process.grant_application.products_and_services_description %}
+
+  </div>
+</div>
+{% endblock %}

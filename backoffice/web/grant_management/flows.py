@@ -9,7 +9,7 @@ from web.grant_management.forms import (
     ProductsAndServicesCompetitorsForm, DecisionForm, EventIsAppropriateForm
 )
 from web.grant_management.models import GrantManagementProcess
-from web.grant_management.views import BaseVerifyView, BaseScoreView, BaseUpdateProcessView
+from web.grant_management.views import BaseGrantManagementView
 
 
 @frontend.register
@@ -38,19 +38,27 @@ class GrantManagementFlow(Flow):
     )
 
     verify_previous_applications = flow.View(
-        BaseVerifyView, form_class=VerifyPreviousApplicationsForm
+        BaseGrantManagementView,
+        form_class=VerifyPreviousApplicationsForm,
+        task_title='Verify number of previous grants'
     ).Next(this.finish_verify_tasks)
 
     verify_event_commitment = flow.View(
-        BaseVerifyView, form_class=VerifyEventCommitmentForm
+        BaseGrantManagementView,
+        form_class=VerifyEventCommitmentForm,
+        task_title='Verify event commitment'
     ).Next(this.finish_verify_tasks)
 
     verify_business_entity = flow.View(
-        BaseVerifyView, form_class=VerifyBusinessEntityForm
+        BaseGrantManagementView,
+        form_class=VerifyBusinessEntityForm,
+        task_title='Verify business eligibility'
     ).Next(this.finish_verify_tasks)
 
     verify_state_aid = flow.View(
-        BaseVerifyView, form_class=VerifyStateAidForm
+        BaseGrantManagementView,
+        form_class=VerifyStateAidForm,
+        task_title='Verify event commitment'
     ).Next(this.finish_verify_tasks)
 
     finish_verify_tasks = flow.Join().Next(this.create_suitability_tasks)
@@ -66,26 +74,36 @@ class GrantManagementFlow(Flow):
     )
 
     products_and_services = flow.View(
-        BaseScoreView, form_class=ProductsAndServicesForm
+        BaseGrantManagementView,
+        form_class=ProductsAndServicesForm,
+        task_title='Products and services'
     ).Next(this.finish_suitability_tasks)
 
     products_and_services_competitors = flow.View(
-        BaseScoreView, form_class=ProductsAndServicesCompetitorsForm
+        BaseGrantManagementView,
+        form_class=ProductsAndServicesCompetitorsForm,
+        task_title='Products and services competitors'
     ).Next(this.finish_suitability_tasks)
 
     export_strategy = flow.View(
-        BaseScoreView, form_class=ExportStrategyForm
+        BaseGrantManagementView,
+        form_class=ExportStrategyForm,
+        task_title='Export strategy'
     ).Next(this.finish_suitability_tasks)
 
     event_is_appropriate = flow.View(
-        BaseScoreView, form_class=EventIsAppropriateForm
+        BaseGrantManagementView,
+        form_class=EventIsAppropriateForm,
+        task_title='Event is appropriate'
     ).Next(this.finish_suitability_tasks)
 
     finish_suitability_tasks = flow.Join().Next(this.decision)
 
     # Decision task
     decision = flow.View(
-        BaseUpdateProcessView, form_class=DecisionForm
+        BaseGrantManagementView,
+        form_class=DecisionForm,
+        task_title='Final review',
     ).Next(this.send_decision_email)
 
     send_decision_email = flow.Handler(

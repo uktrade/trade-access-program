@@ -1,0 +1,22 @@
+<div class="section">
+  <div class="row">
+    <p>{{ outer_p }}</p>
+  </div>
+
+  <div class="row">
+    <div class="col s12">
+      <p><strong>{{ inner_p }}</strong></p>
+    </div>
+  </div>
+
+  {% if highlighted_p %}
+  <div class="row grey lighten-4">
+    <div class="col s12">
+      <div class="section">
+        <p>{{ highlighted_p }}</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
