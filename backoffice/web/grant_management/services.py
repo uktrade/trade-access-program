@@ -14,10 +14,10 @@ class SupportingInformationContent:
         self.ch_client = CompaniesHouseClient()
         self._dnb_company_data = None
 
-    def _make_table(self, headers, rows, col_tags=None):
+    def _make_table(self, headers=None, rows=None, col_tags=None):
         return {
-            'headers': headers,
-            'rows': rows,
+            'headers': headers or [],
+            'rows': rows or [],
             'col_tags': col_tags or []
         }
 
@@ -67,7 +67,6 @@ class SupportingInformationContent:
         grant_management_process = self.grant_application.grant_management_process
         return {
             'table': self._make_table(
-                headers=[],
                 rows=[
                     [
                         'Eligibility criteria',

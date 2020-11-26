@@ -6,7 +6,7 @@
   <div class="card-content">
     <span class="card-title">{{ information_card_title }}</span>
 
-    {% include "viewflow/table.html" with table=supporting_information.table %}
+    {% include "viewflow/table.html" with headers=supporting_information.table.headers rows=supporting_information.table.rows  %}
 
   </div>
 </div>
