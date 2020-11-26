@@ -12,45 +12,27 @@
 {% block content %}
 {% block left-panel %}
 <div class="left-panel">
+  {% block title_card %}
   <div class="card">
     <div class="card-content">
-      <div class="card-title">{{ activation.task.summary|default:activation.task.flow_task }}</div>
-      <p>Application ID <strong>{{ activation.process.grant_application.id }}</strong></p>
-      <p>Business name <strong>{{ activation.process.grant_application.company.name }}</strong></p>
-      <p>Application status <strong>{{ activation.process.status }}</strong></p>
+      <span class="card-title">{{ activation.task.flow_task.task_title|default:activation.task.flow_task }}</span>
+      <p>Application ID {{ activation.process.grant_application.id }}</p>
+      <p>Business name {{ activation.process.grant_application.company.name }}</p>
+      <p>Application status {{ activation.process.status }}</p>
     </div>
   </div>
+  {% endblock %}
 
-  {% if supporting_information %}
-  <div class="card">
-    <div class="card-content">
-      <div class="card-title">{% trans 'Supporting Information' %}</div>
+  {% block information_cards %}{% endblock %}
 
-      {% for paragraph in supporting_information.paragraphs %}
-        <p class="flow-text">{{ paragraph.header|safe }}</p>
-        <p class="grey lighten-4">{{ paragraph.text|linebreaksbr }}</p>
-      {% endfor %}
-
-      {% for link in supporting_information.links %}
-        <p class="flow-text">{{ link.header|safe }}</p>
-        <a href="{{ link.url }}" class="brand-logo">{{ link.text|default:link.url }}</a>
-      {% endfor %}
-
-      {% for table in supporting_information.tables %}
-        {% include 'viewflow/table.html' with table=table %}
-      {% endfor %}
-
-    </div>
-  </div>
-  {% endif %}
-
+  {% block form_card %}
   <div class="card">
     <dmc-form>
       <form role="form" method="POST" enctype="multipart/form-data">
         {% block task_form %}
         {% if form.fields %}
         <div class="card-content">
-          <div class="card-title">{% trans form_heading|default:'Actions' %}</div>
+          <span class="card-title">{% trans form_heading|default:'Actions' %}</span>
           {% csrf_token %}
           {% form form=form %}{% endform %}
           {{ activation.management_form }}
@@ -65,12 +47,12 @@
         <div class="card-action">
           <div class="row">
             {% block task_actions %}
-            <div class="col s3">
-              <a class="btn btn-flat black-text" href="{% flowurl activation.task 'detail' %}?{{ request|query_back }}">{% trans 'Detail' %}</a>
+            <div class="col s4">
+              <a class="btn btn-flat" href="{% flowurl activation.task 'detail' %}?{{ request|query_back }}">{% trans 'View task detail' %}</a>
             </div>
-            <div class="col s9 right-align">
-              <button type="submit" name="_continue" class="btn btn-flat">{% trans 'Done and continue on this process' %}</button>
-              <button type="submit" name="_done" class="btn primary white-text">{% trans 'Done' %}</button>
+            <div class="col s8 right-align">
+              <button type="submit" name="_continue" class="btn btn-flat">{% trans 'Confirm and continue with next step' %}</button>
+              <button type="submit" name="_done" class="btn primary green darken-4 white-text">{% trans 'Confirm' %}</button>
             </div>
             {% endblock %}
           </div>
@@ -78,6 +60,8 @@
       </form>
     </dmc-form>
   </div>
+  {% endblock %}
+
 </div>
 {% endblock %}
 {% block right-panel %}

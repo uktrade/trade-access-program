@@ -1,0 +1,45 @@
+{% extends "viewflow/flow/task.html" %}
+{% load i18n %}
+
+{% block information_cards %}
+<div class="card">
+  <div class="card-content">
+    <span class="card-title">{{ information_card_title }}</span>
+
+    {% include "grant_management/grantmanagement/information_card_section.html" with outer_p="How many employees are currently on your payroll across all UK sites?" inner_p=activation.process.grant_application.get_number_of_employees_display highlighted_p="A business must have less than 250 employees on their UK payroll to be eligible" %}
+    {% include "grant_management/grantmanagement/information_card_section.html" with outer_p="Was your turnover greater than €50m, or your balance sheet (or Statement of Financial Position) greater than €43m, in the last fiscal year?" inner_p=activation.process.grant_application.is_turnover_greater_than|yesno:"Yes,No" highlighted_p="A business must have less than 250 employees on their UK payroll to be eligible" %}
+
+    </div>
+</div>
+
+<div class="card">
+  <div class="card-content">
+    <span class="card-title">Supporting information</span>
+
+    <div class="row">
+      <p>Dun & Bradstreet records for {{ activation.process.grant_application.company_name }}</p>
+    </div>
+    <strong>
+      <div class="row">
+        <div class="col">Estimated employees</div>
+        <div class="col">{{ supporting_information.employee_number }}</div>
+      </div>
+      <div class="row">
+        <div class="col">Turnover</div>
+        <div class="col">{{ supporting_information.annual_sales }} {{ supporting_information.annual_sales_currency }}</div>
+      </div>
+    </strong>
+
+    <div class="row">
+      <p>Details provided by applicant</p>
+    </div>
+    <strong>
+      <div class="row">
+        <div class="col">Turnover last year</div>
+        <div class="col">{{ activation.process.grant_application.previous_years_turnover_1 }}</div>
+      </div>
+    </strong>
+
+  </div>
+</div>
+{% endblock %}

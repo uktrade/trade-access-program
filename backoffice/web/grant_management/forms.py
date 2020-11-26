@@ -4,7 +4,11 @@ from material import Layout, Row, Column, Span4
 
 from web.grant_management.models import GrantManagementProcess
 
-VERIFY_CHOICES = ((True, 'Confirm'), (False, 'Challenge'))
+VERIFY_CHOICES = ((True, 'Accept'), (False, 'Reject'))
+VERIFY_LABEL = 'Do you accept or reject the applicant’s answer?'
+SCORE_LABEL = 'How would you assess the applicant’s response?'
+RATIONALE_LABEL = 'Rationale'
+RATIONALE_PLACEHOLDER = 'Enter your rationale here'
 
 
 def str_to_bool(value):
@@ -21,6 +25,7 @@ class VerifyPreviousApplicationsForm(forms.ModelForm):
         fields = ['previous_applications_is_verified']
 
     previous_applications_is_verified = forms.TypedChoiceField(
+        label=VERIFY_LABEL,
         coerce=str_to_bool,
         choices=VERIFY_CHOICES,
         widget=forms.RadioSelect
@@ -33,6 +38,7 @@ class VerifyEventCommitmentForm(forms.ModelForm):
         fields = ['event_commitment_is_verified']
 
     event_commitment_is_verified = forms.TypedChoiceField(
+        label=VERIFY_LABEL,
         coerce=str_to_bool,
         choices=VERIFY_CHOICES,
         widget=forms.RadioSelect
@@ -45,6 +51,7 @@ class VerifyBusinessEntityForm(forms.ModelForm):
         fields = ['business_entity_is_verified']
 
     business_entity_is_verified = forms.TypedChoiceField(
+        label=VERIFY_LABEL,
         coerce=str_to_bool,
         choices=VERIFY_CHOICES,
         widget=forms.RadioSelect
@@ -57,6 +64,7 @@ class VerifyStateAidForm(forms.ModelForm):
         fields = ['state_aid_is_verified']
 
     state_aid_is_verified = forms.TypedChoiceField(
+        label=VERIFY_LABEL,
         coerce=str_to_bool,
         choices=VERIFY_CHOICES,
         widget=forms.RadioSelect
@@ -74,11 +82,14 @@ class ProductsAndServicesForm(forms.ModelForm):
         fields = ['products_and_services_score', 'products_and_services_justification']
 
     products_and_services_score = forms.IntegerField(
-        label='Score',
+        label=SCORE_LABEL,
         widget=forms.RadioSelect(choices=GrantManagementProcess.ScoreChoices.choices)
     )
     products_and_services_justification = forms.CharField(
-        label='Justification'
+        label=RATIONALE_LABEL,
+        widget=forms.Textarea(
+            attrs={'placeholder': RATIONALE_PLACEHOLDER}
+        )
     )
 
 
@@ -100,7 +111,10 @@ class ProductsAndServicesCompetitorsForm(forms.ModelForm):
         widget=forms.RadioSelect(choices=GrantManagementProcess.ScoreChoices.choices)
     )
     products_and_services_competitors_justification = forms.CharField(
-        label='Justification'
+        label=RATIONALE_LABEL,
+        widget=forms.Textarea(
+            attrs={'placeholder': RATIONALE_PLACEHOLDER}
+        )
     )
 
 
@@ -119,7 +133,10 @@ class ExportStrategyForm(forms.ModelForm):
         widget=forms.RadioSelect(choices=GrantManagementProcess.ScoreChoices.choices)
     )
     export_strategy_justification = forms.CharField(
-        label='Justification'
+        label=RATIONALE_LABEL,
+        widget=forms.Textarea(
+            attrs={'placeholder': RATIONALE_PLACEHOLDER}
+        )
     )
 
 
