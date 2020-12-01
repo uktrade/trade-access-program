@@ -136,6 +136,3 @@ dmypy.json
 /reports
 node_modules
 *.csv
-
-#CSS
-web/core/static/core/css/styles.css
