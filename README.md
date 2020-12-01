@@ -45,17 +45,27 @@ make run-background-services
 make run-frontend-debug
 ```   
 
-#### Elevate user permissions
-In order to view grant applications in the [grant management site](http://localhost.com/workflow) you will need to 
-give your user the right permissions. 
+### Elevate user permissions
+_Note: development only_
 
-To do this first log into the [grant management site](http://localhost.com/workflow) 
+In order to view grant applications in the [grant management site](http://localhost:8001/workflow) you will need to 
+give your user superuser permissions.
+
+To do this first log into the [grant management site](http://localhost:8001/workflow)
 using your single sign on (SSO) gov account. This will create your user record. Then you 
 can run the elevate command to grant your user the right permissions. 
 ```
 cd backoffice
 make elevate
 ```
+
+In production `make elevate` will **not** work (controlled by the setting `CAN_ELEVATE_SSO_USER_PERMISSIONS`) therefore
+permissions for each user need to be granted correctly via the backoffice Django admin site at: `/admin`
+To do this do this following:
+ - Ask the grant administrator to login to the system (using DIT SSO).
+ - A superuser (likely a developer) will then need go to the backoffice Django admin site and:
+    - set the `is_staff` flag for that new user account.
+    - assign the relevant `viewflow` permissions to the new user account. 
 
 ### Seed database
 You can seed the database with some dummy data using:
@@ -65,12 +75,13 @@ make seed-db
 ``` 
 
 This will add a few dummy grant applications to your database which will be viewable in the
-[grant management site](http://localhost.com/workflow). 
+[grant management site](http://localhost.com/workflow).
 
 _Note: Make sure you have given your user permissions to view new grant applications by following 
 the steps in the [Elevate user permissions](#elevate-user-permissions) section_  
 
 ### Run detached
+To run all services in the background do
 ```
 docker-compose up -d
 ```
@@ -85,6 +96,18 @@ The project uses `pytest` to run the test suite and generate test coverage.
 The project uses flake8 for linting.
  - command `make lint`
  - config `./setup.cfg`
+
+## CI/CD
+We run the build, test suite and linting on each pushed commit to github. These are run through [CircleCI](https://app.circleci.com/pipelines/github/uktrade/trade-access-program).
+
+### Pull requests
+Pull requests in github cannot be merged until the CircleCI jobs report a successful result.
+
+### Build Artifacts
+Build artifacts are stored against each build in CircleCI. These artifacts include:
+ - Frontend test coverage
+ - Backend test coverage
+ - Backend ERD diagram for that commit (using `python manage.py graph_models`) 
  
 ## Branching strategy
  - master branch => production environment
@@ -94,21 +117,28 @@ The project uses flake8 for linting.
  
 Feature branches should branch off of develop and be merged back into develop (ideally with 
 minimal single purpose commits).
- 
+
 ## Deployment
-The project has 4 environments:
+The project has 4 environments. All environments sit behind the DIT vpn with the exception of `frontend-uat` (this exception is to allow non DIT staff to access this site, e.e. the main TAP team).
+
+Each environment is deployed from its corresponding github branch. The deploy is executed automatically by [Jenkins](https://jenkins.ci.uktrade.digital/view/Trade%20Access%20Program/) once a commit or push is made to that github branch. This is done using a polling job in Jenkins (set up and managed by the Webops team).    
+
+Deployemnts are handled by Jenkins and are not related the the CircleCI builds that get run on each Pull request.
 
 #### develop
 - Develop is automatically deployed from the **develop** branch.
-- http://trade-access-program-dev.london.cloudapps.digital/
+- https://trade-access-program-frontend-dev.london.cloudapps.digital/
+- https://trade-access-program-backoffice-dev.london.cloudapps.digital/
 
 #### staging
 - Staging is automatically deployed from the **staging** branch
-- http://trade-access-program-staging.london.cloudapps.digital/
+- https://trade-access-program-frontend-staging.london.cloudapps.digital/
+- https://trade-access-program-backoffice-staging.london.cloudapps.digital/
     
 #### uat 
-- UAT is manually deployed
-- http://trade-access-program-uat.london.cloudapps.digital/
+- UAT is automatically deployed from the **uat** branch
+- https://trade-access-program-frontend-uat.london.cloudapps.digital/
+- https://trade-access-program-backoffice-uat.london.cloudapps.digital/
     
 #### production 
 - Production is manually deployed. 
