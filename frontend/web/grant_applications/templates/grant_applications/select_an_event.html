@@ -3,7 +3,15 @@
 
 {% block forms %}
 <div class="govuk-grid-row">
-
+  <div class="govuk-grid-column-full">
+    {% if number_of_events %}
+      <h4 class="govuk-heading-s">We found {{ number_of_events }} events.</h4>
+    {% else %}
+      <h4 class="govuk-heading-s">We found no matching events</h4>
+    {% endif %}
+  </div>
+</div>
+<div class="govuk-grid-row">
   <!-- Filters -->
   <div class="govuk-grid-column-one-third">
     <form class="form" id="id_filters_form" action="{% url 'grant-applications:select-an-event' pk=grantapplicationlink.pk %}" method="GET" novalidate>
@@ -14,7 +22,6 @@
         {% include "core/govt_uk_form_field.html" with field=form.filter_by_country %}
         {% include "core/govt_uk_form_field.html" with field=form.filter_by_month %}
         {% include "core/govt_uk_form_button.html" with button_class="govuk-button govuk-button--blue" button_name="filters_button" button_text="Search again" %}
-        <p class="govuk-body">We found <strong>{{ number_of_events }}</strong> matching events.</p>
       </div>
     </form>
   </div>
@@ -25,10 +32,10 @@
       {% csrf_token %}
       {% include "core/govt_uk_form_non_field_errors.html" with non_field_errors=form.non_field_errors %}
 
-      {% if not form.event.field.choices %}
-        <p class="govuk-body" id="id_no_matching_events_1">We’ve found no matching events for your search.</p>
-        <p class="govuk-body" id="id_no_matching_events_2">Please try widening your search criteria or checking the spelling of the event name.</p>
-        <p class="govuk-body" id="id_no_matching_events_3">If you still can’t find the event you’re looking for please check the calendar of supported overseas events on great.gov.uk as changes to events do sometimes occur.</p>
+      {% if not number_of_events %}
+        <p class="govuk-body" id="id_no_matching_events_1">No events matched your search.</p>
+        <p class="govuk-body" id="id_no_matching_events_2">Try widening your search criteria or check the spelling of the event name.</p>
+        <p class="govuk-body" id="id_no_matching_events_3">If you still can’t find the event, check the calendar of supported overseas events on great.gov.uk as changes to events can occur.</p>
       {% else %}
         {% include "core/govt_uk_form_field.html" with field=form.event %}
         {% include "widgets/pagination.html" with pagination=pagination results_from=results_from results_to=results_to total_results=number_of_events %}

@@ -35,7 +35,7 @@ class PreviousApplicationsForm(forms.ModelForm):
         coerce=int,
         choices=[(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (6, '6 or more')],
         widget=widgets.RadioSelect(),
-        label=_('How many grants have you received from TAP since April 1st 2009?'),
+        label=_('Have you received any TAP grants since 1 April 2009? '),
     )
 
 
@@ -54,12 +54,10 @@ class FindAnEventForm(forms.ModelForm):
     filter_by_name = forms.CharField(
         required=False,
         label=_('Event name'),
-        help_text=_('You can leave this blank if you prefer'),
         widget=forms.TextInput(
             attrs={
-                'class': 'govuk-input govuk-grid-column-full',
-                'placeholder': 'Search...',
-                'optional_label_override': True
+                'class': 'govuk-input govuk-!-width-two-thirds',
+                'placeholder': 'Search...'
             }
         )
     )
@@ -68,7 +66,7 @@ class FindAnEventForm(forms.ModelForm):
         label=_('Sector'),
         widget=forms.Select(
             attrs={
-                'class': 'govuk-select govuk-grid-column-full',
+                'class': 'govuk-select govuk-!-width-two-thirds',
                 'optional_label_override': True
             }
         )
@@ -78,7 +76,7 @@ class FindAnEventForm(forms.ModelForm):
         label=_('Location'),
         widget=forms.Select(
             attrs={
-                'class': 'govuk-select govuk-grid-column-full',
+                'class': 'govuk-select govuk-!-width-two-thirds',
                 'optional_label_override': True
             }
         )
@@ -154,8 +152,8 @@ class SelectAnEventForm(forms.ModelForm):
         )
     )
     event = forms.ChoiceField(
-        label=_('What event are you intending to exhibit at'),
-        widget=widgets.RadioSelect(),
+        label=_('Select the event where you intend to exhibit'),
+        widget=widgets.RadioSelect,
     )
 
 
@@ -168,18 +166,8 @@ class EventCommitmentForm(FormatLabelMixin, forms.ModelForm):
     is_already_committed_to_event = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
-        widget=widgets.RadioSelect(
-            attrs={
-                'details': {
-                    'summary_text': 'What do we mean by committed?',
-                    'text': 'TODO',  # TODO: Content needed
-                }
-            }
-        ),
-        label=_(
-            'Have you already committed to purchasing exhibition space for '
-            '<strong>{event_name}</strong>?'
-        ),
+        widget=widgets.RadioSelect,
+        label=_('Have you already booked your exhibition space at <strong>{event_name}</strong>?'),
     )
 
 
@@ -190,7 +178,10 @@ class SearchCompanyForm(forms.ModelForm):
         fields = ['search_term']
 
     search_term = forms.CharField(
-        label=_('Full business name or company registration number'),
+        label=_(
+            'Enter your full business name or company registration number and we’ll search for '
+            'a match.'
+        ),
         min_length=2,
         help_text=_("For example 'My Business' or '12345678'"),
         widget=forms.TextInput(
@@ -218,7 +209,10 @@ class SelectCompanyForm(forms.ModelForm):
     search_term = forms.CharField(
         required=False,
         min_length=2,
-        label=_('Full business name or company registration number'),
+        label=_(
+            'Enter your full business name or company registration number and we’ll search for '
+            'a match.'
+        ),
         help_text=_("For example 'My Business' or '12345678'"),
         widget=forms.TextInput(
             attrs={
@@ -280,7 +274,7 @@ class ManualCompanyDetailsForm(forms.ModelForm):
     )
     manual_company_name = forms.CharField(
         label=_('Full business name'),
-        help_text=_("For example 'Your Business Limited'"),
+        help_text=_("For example 'My Business Limited'"),
         widget=forms.TextInput(
             attrs={'class': 'govuk-input'}
         )
@@ -328,7 +322,7 @@ class ManualCompanyDetailsForm(forms.ModelForm):
     manual_registration_number = forms.CharField(
         required=False,
         empty_value=None,
-        label=_('Company number'),
+        label=_('Company registration number'),
         validators=[validate_registration_number],
         widget=forms.TextInput(
             attrs={'class': 'govuk-input govuk-input--width-10'}
@@ -346,7 +340,7 @@ class ManualCompanyDetailsForm(forms.ModelForm):
     manual_website = forms.URLField(
         required=False,
         empty_value=None,
-        label=_('Business website address'),
+        label=_('Business website'),
         help_text=_('For example www.yourbusiness.co.uk'),
         widget=forms.URLInput(
             attrs={
@@ -372,15 +366,15 @@ class CompanyDetailsForm(forms.ModelForm):
     number_of_employees = forms.ChoiceField(
         choices=NumberOfEmployees.choices,
         widget=widgets.RadioSelect(),
-        label=_('How many UK based employees does the business currently have?')
+        label=_('How many UK-based employees does your business have?')
     )
     is_turnover_greater_than = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
         widget=widgets.RadioSelect(),
         label=_(
-            'Was your turnover greater than €50m, or your balance sheet '
-            '(or Statement of Financial Position) greater than €43m, in the last fiscal year?'
+            'Was your turnover greater than €50m, or your balance sheet (or Statement of Financial '
+            'Position) greater than €43m, in the last financial year?'
         )
     )
 
@@ -445,12 +439,12 @@ class CompanyTradingDetailsForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['sector'].choices = sector_choices
 
-    previous_years_turnover_1 = CurrencyField(label=_('Last year'))
-    previous_years_turnover_2 = CurrencyField(label=_('Year 2'))
-    previous_years_turnover_3 = CurrencyField(label=_('Year 3'))
-    previous_years_export_turnover_1 = CurrencyField(label=_('Last year'))
-    previous_years_export_turnover_2 = CurrencyField(label=_('Year 2'))
-    previous_years_export_turnover_3 = CurrencyField(label=_('Year 3'))
+    previous_years_turnover_1 = CurrencyField(label=_('Last year’s (most recent)'))
+    previous_years_turnover_2 = CurrencyField(label=_('2 years prior'))
+    previous_years_turnover_3 = CurrencyField(label=_('3 years prior'))
+    previous_years_export_turnover_1 = CurrencyField(label=_('Last year’s (most recent)'))
+    previous_years_export_turnover_2 = CurrencyField(label=_('2 years prior'))
+    previous_years_export_turnover_3 = CurrencyField(label=_('3 years prior'))
     sector = forms.ChoiceField(
         label=_('Primary industry sector'),
         widget=forms.Select(attrs={'class': 'govuk-select'})
@@ -483,8 +477,8 @@ class CompanyTradingDetailsForm(forms.ModelForm):
     )
     products_and_services_competitors = MaxAllowedCharField(
         label=_(
-            'Describe any advantages your products and services offer over competitors in '
-            'overseas markets'
+            'What advantages do your products and services have over competitors in overseas '
+            'markets?'
         ),
         max_length=2000,
         widget=widgets.CharacterCountTextArea(
@@ -507,7 +501,7 @@ class ExportExperienceForm(forms.ModelForm):
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
         widget=widgets.RadioSelect(),
-        label=_('Has your business exported any products or services before?'),
+        label=_('Has your business previously exported any products or services?'),
     )
     has_product_or_service_for_export = forms.TypedChoiceField(
         required=False,
@@ -551,7 +545,7 @@ class ExportDetailsForm(forms.ModelForm):
         ]
 
     export_regions = forms.MultipleChoiceField(
-        label=_('Which region(s) has your business exported to?'),
+        label=_('Select the region(s) your business has previously exported to'),
         choices=(
             ('africa', 'Africa'),
             ('asia pacific', 'Asia-Pacific'),
@@ -561,7 +555,7 @@ class ExportDetailsForm(forms.ModelForm):
             ('latin america', 'Latin America'),
             ('middle east', 'Middle East'),
             ('north america', 'North America'),
-            ('south america', 'South America'),
+            ('south asia', 'South Asia'),
         ),
         widget=widgets.CheckboxSelectMultiple()
     )
@@ -586,7 +580,13 @@ class ExportDetailsForm(forms.ModelForm):
             attrs={
                 'details': {
                     'summary_text': 'What is a DIT trade advisor?',
-                    'text': 'TODO',  # TODO: Content needed
+                    'text': 'The DIT offers support to businesses considering international trade '
+                            'through International Trade Advisors. They act as independent mentors '
+                            'to both those new to, and experienced in exporting. They can help '
+                            'with everything from preparing for trade shows, creating an export '
+                            'growth action plan, advising on which markets are best for your '
+                            'business, and putting you touch with contacts who can help your '
+                            'international expansion.',
                 }
             }
         ),
@@ -692,7 +692,7 @@ class TradeEventDetailsForm(FormatLabelMixin, forms.ModelForm):
         ]
 
     interest_in_event_description = MaxAllowedCharField(
-        label=_('Why are you particularly interested in <strong>{event_name}</strong>?'),
+        label=_('Why are you interested in <strong>{event_name}</strong>?'),
         max_length=2000,
         widget=widgets.CharacterCountTextArea(
             attrs={
@@ -705,7 +705,18 @@ class TradeEventDetailsForm(FormatLabelMixin, forms.ModelForm):
     is_in_contact_with_tcp = forms.TypedChoiceField(
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
-        widget=widgets.RadioSelect(),
+        widget=widgets.RadioSelect(
+            attrs={
+                'details': {
+                    'summary_text': 'What is a TCP?',
+                    'text': 'Trade Challenge Partners, or TCPs, are trade associations and other '
+                            'industry representative organisations focused on overseas trade that '
+                            'are accredited by the DIT. Reflecting every sector and industry in '
+                            'the UK, accreditation allows these DIT partners to work with us to '
+                            'deliver customer-focused trade shows and events.',
+                }
+            }
+        ),
         label=_('Are you in contact with a Trade Challenge Partner (TCP) about this event?')
     )
     tcp_name = forms.CharField(
@@ -744,21 +755,19 @@ class TradeEventDetailsForm(FormatLabelMixin, forms.ModelForm):
         )
     )
     is_intending_to_exhibit_as_tcp_stand = forms.TypedChoiceField(
-        label=_('Are you intending to exhibit as part of a TCP organised stand?'),
+        label=_('Do you intend to exhibit as part of a TCP pavilion?'),
         choices=settings.BOOLEAN_CHOICES,
         coerce=str_to_bool,
         widget=widgets.RadioSelect()
     )
     stand_trade_name = forms.CharField(
-        label=_('What trade name will be used on your stand?'),
+        label=_('What trade name will you use on your stand?'),
         widget=forms.TextInput(
             attrs={'class': 'govuk-input'}
         )
     )
     trade_show_experience_description = MaxAllowedCharField(
-        label=_(
-            'What experience do you have of trade shows and how have they benefited your business?'
-        ),
+        label=_('What trade show experience do you have – and how has it benefited your business?'),
         max_length=2000,
         widget=widgets.CharacterCountTextArea(
             attrs={
@@ -770,8 +779,8 @@ class TradeEventDetailsForm(FormatLabelMixin, forms.ModelForm):
     )
     additional_guidance = MaxAllowedCharField(
         label=_(
-            'In addition to the financial support, are there particular areas where you would like'
-            ' guidance and help either before, during or after the event? '
+            'In addition to the grant, tell us which areas you’d like guidance and help with – '
+            'before, during or after the event.'
         ),
         max_length=2000,
         widget=widgets.CharacterCountTextArea(

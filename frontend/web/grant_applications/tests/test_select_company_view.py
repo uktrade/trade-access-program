@@ -81,7 +81,7 @@ class TestSelectCompanyView(LogCaptureMixin, BaseTestCase):
         response = self.client.get(self.url, data={'search_term': 'company-1'})
         self.assertEqual(response.status_code, 200)
         html = BeautifulSoup(response.content, 'html.parser').find(id='id_matches_text')
-        self.assertEqual(html.text, 'We found no matches')
+        self.assertEqual(html.text, 'We found no matching businesses')
 
     def test_get_on_search_companies_backoffice_service_exception(self, *mocks):
         mocks[0].side_effect = BackofficeServiceException

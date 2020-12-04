@@ -75,7 +75,7 @@ class FindAnEventView(BackContextMixin, BackofficeMixin, ConfirmationRedirectMix
     success_url_name = 'grant_applications:select-an-event'
     extra_context = {
         'page': {
-            'heading':  _('Find an event')
+            'heading':  _('Find an approved event')
         }
     }
 
@@ -193,7 +193,7 @@ class EventCommitmentView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeM
     success_url_name = 'grant_applications:search-company'
     extra_context = {
         'page': {
-            'heading': _('Event commitment')
+            'heading': _('Event booking')
         }
     }
 
@@ -576,7 +576,7 @@ class ApplicationReviewView(BackContextMixin, BackofficeMixin, ConfirmationRedir
     back_url_name = 'grant-applications:state-aid-summary'
     extra_context = {
         'page': {
-            'heading':  _('Check your answers before you submit your application')
+            'heading':  _('Check your answers before sending your application')
         }
     }
     sections = [
