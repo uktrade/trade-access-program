@@ -13,7 +13,7 @@ There are 2 services in this project. Each service serves a slightly different p
   - stores the state of grant applications. 
   - serves the grant management portal for the internal teams (DIT/TAP)
 
-## Installation
+## Installation (docker)
 
 ### Requirements
  - [docker](https://hub.docker.com/editions/community/docker-ce-desktop-mac)
@@ -26,7 +26,7 @@ make build
 _The first time you run `make build` a templated `.env` file will be created in every service directory 
 (`./frontend`, `./backoffice`). Please update these files with any secrets required to make these services run correctly._
 
-### Run all services 
+### Run all services
 ```
 make up
 ```
@@ -37,13 +37,13 @@ make up
 - Grant management site: http://localhost:8001
 - Backoffice admin site: http://localhost:8001/admin/
 
-## Development
-Development has been done to attempt to be OS agnostic. All functionality _should_ be 
-available via docker and docker-compose entry points.
+## Development (docker)
+The project has been created in an attempt to be OS agnostic. All functionality _should_ be available via docker 
+and docker-compose entry points.
 
 ### Debugging
 #### Run with port access.
-This allows you to drop into a debug breakpoint with: `pdb`, `ipdb` or similar
+This will allow you to drop into a debug breakpoint with: `pdb`, `ipdb` or similar.
 
 ##### Backoffice
 ```
@@ -98,11 +98,39 @@ To run all services in the background do
 docker-compose up -d
 ```
 
+## Development (native)
+If you are going to be working on this project for an extended period of time it might be useful to set up a native 
+development environment. This can be useful when using an IDE. This will of course vary from machine to machine depending on your native local environment 
+but this section covers some basics about what tech the project uses. This section is relevant to all services in 
+the project (`./frontend` and `./backoffice`).
+
+### Python setup
+To develop the project natively the suggestion would be to set up a virtualenv for each service directory 
+(`./frontend` and `./backoffice`) using whichever virtualenv tech you are familiar with (pyenv, pyenv-virtualenv, 
+virtualenvwrapper, virtualenv).
+
+The project uses the pip-tools system to manage python dependencies. So once you have setup your virtualenv and
+activated it you can install all dependencies into it by running:
+```
+cd <service-dir>
+make pip-compile-and-sync-dev
+```
+
+### node setup
+The easiest way to install the necessary node libraries is to use the main root docker build. This will install 
+`node_modules` into all the relevant service directories.
+```
+make build
+```
+This will create a `./<service-dir>/node_modules` folder in each of the service directories. 
+
 ## Testing
 The project uses `pytest` to run the test suite and generate test coverage.
- - command `make test`
- - config `./setup.cfg`
- - coverage reporting output `./reports/coverage` 
+ - command to run all test suites `make test`
+    - command to run only frontend test suite `make test-frontend` or `cd frontend && make test`
+    - command to run only backoffice test suite `make test-backoffice` or `cd backoffice && make test`
+ - config `./<service-dir>/setup.cfg`
+ - coverage reporting output `./<service-dir>/reports/coverage` 
 
 ## Linting
 The project uses flake8 for linting.
@@ -122,20 +150,24 @@ Build artifacts are stored against each build in CircleCI. These artifacts inclu
  - Backend ERD diagram for that commit (using `python manage.py graph_models`) 
  
 ## Branching strategy
- - master branch => production environment
- - staging branch => staging environment
- - develop branch => develop environment
  - feature branches => **no environment**
+ - develop branch   => develop environment
+ - staging branch   => staging environment
+ - master branch    => production environment
  
 Feature branches should branch off of develop and be merged back into develop (ideally with 
 minimal single purpose commits).
 
 ## Deployment
-The project has 4 environments. All environments sit behind the DIT vpn with the exception of `frontend-uat` (this exception is to allow non DIT staff to access this site, e.e. the main TAP team).
+Deployments are handled automatically by Jenkins and are not related the the CircleCI builds that get run on each 
+pull request.
 
-Each environment is deployed from its corresponding github branch. The deploy is executed automatically by [Jenkins](https://jenkins.ci.uktrade.digital/view/Trade%20Access%20Program/) once a commit or push is made to that github branch. This is done using a polling job in Jenkins (set up and managed by the Webops team).    
+The project has 4 environments. All environments sit behind the DIT vpn with the exception of `frontend-uat` 
+(this exception is to allow non DIT staff to access this site, e.e. the main TAP team).
 
-Deployemnts are handled by Jenkins and are not related the the CircleCI builds that get run on each Pull request.
+Each environment is deployed from its corresponding github branch. The deploy is executed automatically by 
+[Jenkins](https://jenkins.ci.uktrade.digital/view/Trade%20Access%20Program/) once a commit or push is made to that 
+github branch. This is done via a polling job in Jenkins (set up and managed by the Webops team).    
 
 #### Develop
 - Develop is automatically deployed from the **develop** branch.
@@ -146,12 +178,12 @@ Deployemnts are handled by Jenkins and are not related the the CircleCI builds t
 - Staging is automatically deployed from the **staging** branch
 - https://trade-access-program-frontend-staging.london.cloudapps.digital/
 - https://trade-access-program-backoffice-staging.london.cloudapps.digital/
-    
+
 #### UAT 
 - UAT is automatically deployed from the **uat** branch
 - https://trade-access-program-frontend-uat.london.cloudapps.digital/
 - https://trade-access-program-backoffice-uat.london.cloudapps.digital/
-    
+
 #### Production 
 - Does not exist... yet...
  
