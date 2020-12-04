@@ -12,6 +12,9 @@
     {% include "core/govt_uk_form_field_errors.html" with field=form.is_in_contact_with_tcp %}
 
     <fieldset class="govuk-fieldset">
+
+      {% include "core/govt_uk_details.html" with text=form.is_in_contact_with_tcp.field.widget.attrs.details.text summary_text=form.is_in_contact_with_tcp.field.widget.attrs.details.summary_text %}
+
       <div class="govuk-radios govuk-radios--conditional" data-module="govuk-radios">
 
         <div class="govuk-radios__item">
@@ -26,6 +29,7 @@
         </div>
 
         <div class="govuk-radios__conditional govuk-radios__conditional--hidden" id="tcp_details-conditional">
+          <p class="govuk-body">Provide the contact details of the TCP, including at least an email address or a phone number</p>
           {% include "core/govt_uk_form_field.html" with field=form.tcp_name %}
           {% include "core/govt_uk_form_field.html" with field=form.tcp_email %}
           {% include "core/govt_uk_form_field.html" with field=form.tcp_mobile_number %}

@@ -39,7 +39,7 @@ class GrantApplication(BaseMetaModel):
         LATIN_AMERICA = 'latin america', 'Latin America'
         MIDDLE_EAST = 'middle east', 'Middle East'
         NORTH_AMERICA = 'north america', 'North America'
-        SOUTH_AMERICA = 'south america', 'South America'
+        SOUTH_ASIA = 'south asia', 'South Asia'
 
     class MarketsIntendingOnExportingTo(models.TextChoices):
         Existing = 'existing', 'existing markets'

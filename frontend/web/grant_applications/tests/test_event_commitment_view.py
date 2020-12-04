@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-from bs4 import BeautifulSoup
 from django.urls import reverse
 
 from web.grant_applications.services import BackofficeService
@@ -22,12 +21,6 @@ class TestEventCommitmentView(BaseTestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, EventCommitmentView.template_name)
-
-    def test_form_details(self, *mocks):
-        response = self.client.get(self.url)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(soup.find_all('details')), 1)
 
     def test_post_redirects(self, *mocks):
         response = self.client.post(self.url, data={'is_already_committed_to_event': True})
