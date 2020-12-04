@@ -23,6 +23,8 @@ There are 2 services in this project. Each service serves a slightly different p
 ```
 make build
 ```
+_The first time you run `make build` a templated `.env` file will be created in every service directory 
+(`./frontend`, `./backoffice`). Please update these files with any secrets required to make these services run correctly._
 
 ### Run all services 
 ```
@@ -151,6 +153,5 @@ Deployemnts are handled by Jenkins and are not related the the CircleCI builds t
 - https://trade-access-program-backoffice-uat.london.cloudapps.digital/
     
 #### Production 
-- Production is manually deployed. 
-- domain TBD
+- Does not exist... yet...
  
