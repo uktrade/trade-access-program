@@ -1,7 +1,17 @@
 [![CircleCI](https://circleci.com/gh/uktrade/trade-access-program/tree/master.svg?style=shield)](https://circleci.com/gh/uktrade/trade-access-program/tree/master)
 
 # trade-access-program
-This repo houses the tradeshow access program (TAP) service
+This repo houses the tradeshow access program (TAP) services. 
+
+There are 2 services in this project. Each service serves a slightly different purpose but both are build with the Django framework. 
+
+- frontend
+  - serves the govuk styled grant application form.
+  - communicates with the backoffice via json REST APIs. 
+- backoffice
+  - serves some dynamic content for the frontend services via json REST APIs.
+  - stores the state of grant applications. 
+  - serves the grant management portal for the internal teams (DIT/TAP)
 
 ## Installation
 
@@ -22,7 +32,7 @@ make up
 #### Browse at:
 - Grant application site: http://localhost:8000
 - Frontend admin site: http://localhost:8000/admin/
-- Grant management site: http://localhost:8001/workflow/
+- Grant management site: http://localhost:8001
 - Backoffice admin site: http://localhost:8001/admin/
 
 ## Development
@@ -125,22 +135,22 @@ Each environment is deployed from its corresponding github branch. The deploy is
 
 Deployemnts are handled by Jenkins and are not related the the CircleCI builds that get run on each Pull request.
 
-#### develop
+#### Develop
 - Develop is automatically deployed from the **develop** branch.
 - https://trade-access-program-frontend-dev.london.cloudapps.digital/
 - https://trade-access-program-backoffice-dev.london.cloudapps.digital/
 
-#### staging
+#### Staging
 - Staging is automatically deployed from the **staging** branch
 - https://trade-access-program-frontend-staging.london.cloudapps.digital/
 - https://trade-access-program-backoffice-staging.london.cloudapps.digital/
     
-#### uat 
+#### UAT 
 - UAT is automatically deployed from the **uat** branch
 - https://trade-access-program-frontend-uat.london.cloudapps.digital/
 - https://trade-access-program-backoffice-uat.london.cloudapps.digital/
     
-#### production 
+#### Production 
 - Production is manually deployed. 
 - domain TBD
  
