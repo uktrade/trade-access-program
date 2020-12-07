@@ -165,7 +165,8 @@ make build
 This will create a `./<service-dir>/node_modules` folder in each of the service directories. 
 
 ## Testing
-The project uses `pytest` to run the test suite and generate test coverage.
+The project uses `pytest` to run the test suite and generate test coverage. Dummy environment values are required in 
+the `.env` files in order for the tests to run. 
  - command to run all test suites `make test`
     - command to run only frontend test suite `make test-frontend` or `cd frontend && make test`
     - command to run only backoffice test suite `make test-backoffice` or `cd backoffice && make test`
