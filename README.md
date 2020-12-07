@@ -26,6 +26,46 @@ make build
 _The first time you run `make build` a templated `.env` file will be created in every service directory 
 (`./frontend`, `./backoffice`). Please update these files with any secrets required to make these services run correctly._
 
+Populate the following environment variables in the relevant `.env` files:
+
+#### Backoffice .env 
+location: `./backoffice/.env`
+
+| Variable name              | Required      | Description                               |
+| -------------------------- | ------------- | ----------------------------------------- |
+| `DEBUG`                    | Yes           | Django DEBUG setting                      |
+| `DJANGO_SETTINGS_MODULE`   | Yes           | location of Django settings module        |
+| `POSTGRES_DB`              | Yes           | backoffice db name                        |
+| `POSTGRES_USER`            | Yes           | backoffice db user                        |
+| `POSTGRES_PASSWORD`        | Yes           | backoffice db password                    |
+| `POSTGRES_HOST`            | Yes           | backoffice db hostname                    |
+| `POSTGRES_PORT`            | Yes           | backoffice db port                        |
+| `AUTHBROKER_URL`           | Yes           | URL for SSO service                       |
+| `AUTHBROKER_CLIENT_ID`     | Yes           | SSO service client id                     |
+| `AUTHBROKER_CLIENT_SECRET` | Yes           | SSO service client secret                 |
+| `SECRET_KEY`               | Yes           | Unique Django secret key                  |
+| `DNB_SERVICE_URL`          | Yes           | URL for DNB service                       |
+| `DNB_SERVICE_TOKEN`        | Yes           | API token for DNB service                 |
+| `NOTIFY_API_KEY`           | Yes           | API token for gov.notify service          |
+| `COMPANIES_HOUSE_URL`      | Yes           | URL for companies house service           |
+| `COMPANIES_HOUSE_API_KEY`  | Yes           | API token for companies house service     |
+
+#### frontend .env 
+location: `./frontend/.env`
+
+| Variable name             | Required      | Description                         |
+| ------------------------- | ------------- | ----------------------------------- |
+| `DEBUG`                   | Yes           | Django DEBUG setting                |
+| `DJANGO_SETTINGS_MODULE`  | Yes           | location of Django settings module  |
+| `POSTGRES_DB`             | Yes           | frontend db name                    |
+| `POSTGRES_USER`           | Yes           | frontend db user                    |
+| `POSTGRES_PASSWORD`       | Yes           | frontend db password                |
+| `POSTGRES_HOST`           | Yes           | frontend db hostname                |
+| `POSTGRES_PORT`           | Yes           | frontend db port                    |
+| `SECRET_KEY`              | Yes           | Unique Django secret key            |
+| `BACKOFFICE_API_URL`      | Yes           | URL for backoffice service          |
+
+
 ### Run all services
 ```
 make up
