@@ -194,6 +194,7 @@ Build artifacts are stored against each build in CircleCI. These artifacts inclu
  - feature branches => **no environment**
  - develop branch   => develop environment
  - staging branch   => staging environment
+ - uat branch       => uat environment
  - master branch    => production environment
  
 Feature branches should branch off of develop and be merged back into develop (ideally with 
