@@ -1,7 +1,7 @@
 [![CircleCI](https://circleci.com/gh/uktrade/trade-access-program/tree/master.svg?style=shield)](https://circleci.com/gh/uktrade/trade-access-program/tree/master)
 
 # trade-access-program
-This repo houses the tradeshow access program (TAP) services. 
+This repo houses the Tradeshow Access Program (TAP) services.  
 
 There are 2 services in this project. Each service serves a slightly different purpose but both are build with the Django framework. 
 
