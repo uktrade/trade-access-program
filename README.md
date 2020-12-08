@@ -1,9 +1,16 @@
 [![CircleCI](https://circleci.com/gh/uktrade/trade-access-program/tree/master.svg?style=shield)](https://circleci.com/gh/uktrade/trade-access-program/tree/master)
 
 # trade-access-program
+TAP is an initiative to provide small grants to SME businesses and sole traders to help them start or grow their 
+exports.  
+
 This repo houses the Tradeshow Access Program (TAP) services.  
 
-There are 2 services in this project. Each service serves a slightly different purpose but both are build with the Django framework. 
+## Architecture 
+There are 2 services in this project. Each service serves a slightly different purpose but both are build with the 
+Django framework. 
+
+See the **[ADR on service architecture](docs/adr/0006-split-service-into-two.md)** for more details about this decision. 
 
 - frontend
   - serves the govuk styled grant application form.
@@ -11,7 +18,7 @@ There are 2 services in this project. Each service serves a slightly different p
 - backoffice
   - serves some dynamic content for the frontend services via json REST APIs.
   - stores the state of grant applications. 
-  - serves the grant management portal for the internal teams (DIT/TAP)
+  - serves the grant management portal for the internal users (DIT/TAP)
 
 ## Installation (docker)
 
