@@ -5,8 +5,10 @@ help:  ## Show this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nmake \033[36m<target>\033[0m\n"} /^([a-zA-Z_-]+|.*-%*):.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 	@echo ""
 
+setup-%:  ## Setup a local environment for a specific service
+	$(MAKE) -C $* setup
 
-test-%:  ## Run tests for a specific project
+test-%: setup ## Run tests for a specific project
 	$(MAKE) -C $* test
 
 lint-%:  ## Run linting for a specific project
@@ -19,9 +21,7 @@ run-%-debug:  ## Run a service in debug mode, eg. `make run-frontend-debug`. Ava
 	$(MAKE) -C $* run-$*-debug
 
 ##@ Main
-setup:  ## Setup a local environment
-	cp -n backoffice/sample.env backoffice/.env
-	cp -n frontend/sample.env frontend/.env
+setup: setup-backoffice setup-frontend  ## Setup a local environment
 
 run-background-services:  ## Start all backing helper services in the background
 	docker-compose up -d backoffice_db frontend_db

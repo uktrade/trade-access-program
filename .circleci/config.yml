@@ -85,25 +85,10 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Set up backoffice .env files
-          command: |
-            echo "DJANGO_SETTINGS_MODULE=config.settings.ci
-            SECRET_KEY=ci-secret-key
-            POSTGRES_HOST=backoffice_db
-            POSTGRES_PORT=5432
-            POSTGRES_USER=tap
-            POSTGRES_DB=tap
-            POSTGRES_PASSWORD=tap" > backoffice/.env
-            echo "DJANGO_SETTINGS_MODULE=config.settings.ci
-            SECRET_KEY=ci-secret-key
-            POSTGRES_HOST=frontend_db
-            POSTGRES_PORT=5432
-            POSTGRES_USER=tap
-            POSTGRES_DB=tap
-            POSTGRES_PASSWORD=tap" > frontend/.env
-      - run:
           name: Build docker images
-          command: make build-backoffice
+          command: |
+            make -C backoffice setup
+            make build-backoffice
       - run:
           name: Migrate DB
           command: make -C backoffice django-migrate
