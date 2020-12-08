@@ -85,7 +85,7 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Set up backoffice .env files
+          name: Setup env
           command: |
             echo "DJANGO_SETTINGS_MODULE=config.settings.ci
             SECRET_KEY=ci-secret-key

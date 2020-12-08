@@ -88,6 +88,13 @@ make up
 The project has been created in an attempt to be OS agnostic. All functionality _should_ be available via docker 
 and docker-compose entry points.
 
+### Help menus
+```
+make help
+make -C backoffice help
+make -C frontend help
+```
+
 ### Debugging
 #### Run with port access.
 This will allow you to drop into a debug breakpoint with: `pdb`, `ipdb` or similar.
