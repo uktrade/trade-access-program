@@ -4,7 +4,7 @@ from django.urls import reverse, resolve
 from django.utils import timezone
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import CreateView, UpdateView, RedirectView
+from django.views.generic import CreateView, UpdateView, RedirectView, TemplateView
 from django.views.generic.detail import SingleObjectMixin
 
 from web.core.forms import FORM_MSGS
@@ -26,10 +26,21 @@ from web.grant_applications.view_mixins import (
 )
 
 
+class StartYourApplicationView(TemplateView):
+    template_name = 'grant_applications/start-your-application.html'
+    back_url_name = 'grant-applications:index'
+    extra_context = {
+        'page': {
+            'heading': _('Start Application')
+        },
+        'button_text': 'Start a new application',
+    }
+
+
 class BeforeYouStartView(BackContextMixin, SuccessUrlObjectPkMixin, CreateView):
     model = GrantApplicationLink
     form_class = EmptyGrantApplicationLinkForm
-    template_name = 'grant_applications/before_you_start.html'
+    template_name = 'grant_applications/start-your-application.html'
     back_url_name = 'grant-applications:index'
     success_url_name = 'grant_applications:previous-applications'
     extra_context = {

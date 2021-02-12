@@ -6,13 +6,14 @@ from web.grant_applications.views import (
     PreviousApplicationsView, CompanyTradingDetailsView, ExportExperienceView, StateAidSummaryView,
     ApplicationReviewView, FindAnEventView, BeforeYouStartView, EventCommitmentView,
     CompanyDetailsView, ExportDetailsView, TradeEventDetailsView, AddStateAidView, EditStateAidView,
-    DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView
+    DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView, StartYourApplicationView
 )
 
 app_name = 'grant_applications'
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name='grant_applications/index.html'), name='index'),
+    path('start-your-application/', StartYourApplicationView.as_view(), name='start-your-application'),
     path('before-you-start/', BeforeYouStartView.as_view(), name='before-you-start'),
     path(
         '<pk>/previous-applications/',
