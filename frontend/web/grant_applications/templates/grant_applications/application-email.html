@@ -1,0 +1,23 @@
+{% extends "grant_applications/generic_form_page.html" %}
+
+{% block breadcrumbs %}
+  <a href="{{ back.url }}" id="id_back_link" class="govuk-back-link">{{ back.text }}</a>
+{% endblock %}
+
+{% block forms %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-one-third">
+    <form class="form" id="id_filters_form" action="{% url 'grant-applications:application-email' %}" method="POST" novalidate>
+
+      {% csrf_token %}
+      <div class="govuk-grid-column-full govuk-tag--grey">
+        <p class="govuk-body"></p>
+        {% include "core/govt_uk_form_field.html" with field=form.email %}
+      </div>
+      {% include "core/govt_uk_form_button.html" with button_class=button_class button_name=button_name button_text=button_text %}
+
+    </form>
+  </div>
+</div>
+
+{% endblock %}

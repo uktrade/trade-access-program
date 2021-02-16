@@ -17,6 +17,15 @@ from web.grant_applications.services import (
 )
 
 
+class ApplicationEmailForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = ('email', )
+
+    email = forms.EmailField()
+
+
 class EmptyGrantApplicationLinkForm(forms.ModelForm):
 
     class Meta:

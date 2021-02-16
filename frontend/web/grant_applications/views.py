@@ -14,7 +14,7 @@ from web.grant_applications.forms import (
     CompanyTradingDetailsForm, ExportExperienceForm, FindAnEventForm,
     EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm, ContactDetailsForm,
     ExportDetailsForm, TradeEventDetailsForm, AddStateAidForm, EditStateAidForm,
-    ManualCompanyDetailsForm
+    ManualCompanyDetailsForm, ApplicationEmailForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -26,7 +26,7 @@ from web.grant_applications.view_mixins import (
 )
 
 
-class StartYourApplicationView(TemplateView):
+class StartYourApplicationView(BackContextMixin, TemplateView):
     template_name = 'grant_applications/start-your-application.html'
     back_url_name = 'grant-applications:index'
     extra_context = {
@@ -37,15 +37,26 @@ class StartYourApplicationView(TemplateView):
     }
 
 
-class BeforeYouStartView(BackContextMixin, SuccessUrlObjectPkMixin, CreateView):
-    model = GrantApplicationLink
-    form_class = EmptyGrantApplicationLinkForm
-    template_name = 'grant_applications/start-your-application.html'
-    back_url_name = 'grant-applications:index'
-    success_url_name = 'grant_applications:previous-applications'
+class BeforeYouStartView(BackContextMixin, TemplateView):
+    template_name = 'grant_applications/before_you_start.html'
+    back_url_name = 'grant-applications:start-your-application'
+    success_url_name = 'grant_applications:application-email'
     extra_context = {
         'page': {
             'heading': _('What you will need')
+        }
+    }
+
+
+class ApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, CreateView):
+    model = GrantApplicationLink
+    form_class = ApplicationEmailForm
+    template_name = 'grant_applications/application-email.html'
+    back_url_name = 'grant-applications:before-you-start'
+    success_url_name = 'grant_applications:previous-applications'
+    extra_context = {
+        'page': {
+            'heading': _('Your Email')
         }
     }
 

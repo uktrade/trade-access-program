@@ -8,7 +8,7 @@ class BackContextMixin:
     back_url = None
 
     def get_back_url(self):
-        if hasattr(self, 'back_url_name') and self.object:
+        if hasattr(self, 'back_url_name') and getattr(self, 'object', None):
             return reverse(self.back_url_name, args=(self.object.pk,))
         elif hasattr(self, 'back_url_name'):
             return reverse(self.back_url_name)

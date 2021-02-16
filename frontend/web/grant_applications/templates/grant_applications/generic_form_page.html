@@ -6,28 +6,26 @@
   {% endif %}
 {% endblock %}
 
-{% block before_content %}{% endblock %}
-
 {% block content %}
 
-{% block headings %}
+  {% block headings %}
+    <div class="govuk-grid-row">
+      <div class="govuk-grid-column-two-thirds">
+        {% if page.caption %}<span class="govuk-caption-l" id="id_page_caption">{{ page.caption }}</span>{% endif %}
+        <h2 class="govuk-heading-l" id="id_page_heading">{{ page.heading|default:"Tradeshow Access Programme" }}</h2>
+      </div>
+    </div>
+  {% endblock %}
+
+  {% block forms %}
   <div class="govuk-grid-row">
     <div class="govuk-grid-column-two-thirds">
-      {% if page.caption %}<span class="govuk-caption-l" id="id_page_caption">{{ page.caption }}</span>{% endif %}
-      <h2 class="govuk-heading-l" id="id_page_heading">{{ page.heading|default:"Tradeshow Access Programme" }}</h2>
+      {% block before_govuk_form %}{% endblock %}
+      {% block govuk_form %}{% include "core/govt_uk_form.html" %}{% endblock %}
+      {% block after_govuk_form %}{% endblock %}
     </div>
   </div>
-{% endblock %}
-
-{% block forms %}
-<div class="govuk-grid-row">
-  <div class="govuk-grid-column-two-thirds">
-    {% block before_govuk_form %}{% endblock %}
-    {% block govuk_form %}{% include "core/govt_uk_form.html" %}{% endblock %}
-    {% block after_govuk_form %}{% endblock %}
-  </div>
-</div>
-{% endblock %}
+  {% endblock %}
 
 {% endblock %}
 
