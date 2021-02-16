@@ -4,26 +4,34 @@ from django.urls import reverse, resolve
 from django.utils import timezone
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import CreateView, UpdateView, RedirectView, TemplateView
+from django.views.generic import CreateView, UpdateView, RedirectView, TemplateView, FormView
 from django.views.generic.detail import SingleObjectMixin
 
 from web.core.forms import FORM_MSGS
-from web.core.view_mixins import SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin
+from web.core.view_mixins import SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin, SaveStateMixin
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, SelectAnEventForm, PreviousApplicationsForm,
     CompanyTradingDetailsForm, ExportExperienceForm, FindAnEventForm,
     EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm, ContactDetailsForm,
     ExportDetailsForm, TradeEventDetailsForm, AddStateAidForm, EditStateAidForm,
-    ManualCompanyDetailsForm, ApplicationEmailForm
+    ManualCompanyDetailsForm, ApplicationEmailForm, ApplicationProgressForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     BackofficeServiceException, BackofficeService, get_companies_from_search_term,
-    get_state_aid_summary_table, ApplicationReviewService
+    get_state_aid_summary_table, ApplicationReviewService, send_authentication_email
 )
 from web.grant_applications.view_mixins import (
     BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin
 )
+
+
+class ApplicationResumeView(SingleObjectMixin, RedirectView):
+    model = GrantApplicationLink
+
+    def get_redirect_url(self, *args, **kwargs):
+        application = self.get_object()
+        return application.state_url
 
 
 class StartYourApplicationView(BackContextMixin, TemplateView):
@@ -31,7 +39,7 @@ class StartYourApplicationView(BackContextMixin, TemplateView):
     back_url_name = 'grant-applications:index'
     extra_context = {
         'page': {
-            'heading': _('Start Application')
+            'heading': _('Start Page')
         },
         'button_text': 'Start a new application',
     }
@@ -48,31 +56,138 @@ class BeforeYouStartView(BackContextMixin, TemplateView):
     }
 
 
-class ApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, CreateView):
+class ApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, FormView):
     model = GrantApplicationLink
     form_class = ApplicationEmailForm
     template_name = 'grant_applications/application-email.html'
     back_url_name = 'grant-applications:before-you-start'
-    success_url_name = 'grant_applications:previous-applications'
+    success_url_name = 'grant_applications:check-your-email'
     extra_context = {
         'page': {
             'heading': _('Your Email')
-        }
+        },
     }
 
     def form_valid(self, form):
+        email = form.cleaned_data.get('email')
+        self.request.session['application_email'] = None
+        if self.model.objects.filter(email=email).exists():
+           self.request.session['application_email'] = email
+           return HttpResponseRedirect(
+               reverse('grant_applications:select-application-progress')
+           )
+
         try:
             backoffice_grant_application = BackofficeService().create_grant_application()
         except BackofficeServiceException:
             form.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))
             return super().form_invalid(form)
-        form.instance.backoffice_grant_application_id = backoffice_grant_application['id']
-        return super().form_valid(form)
+        grant_application_link = GrantApplicationLink(
+            email=email,
+            backoffice_grant_application_id=backoffice_grant_application['id'],
+            state_url_name=self.success_url_name
+        )
+        grant_application_link.save()
+        send_authentication_email(grant_application_link)
+        return HttpResponseRedirect(reverse(self.success_url_name))
+
+
+class CheckYourEmailView(BackContextMixin, TemplateView):
+    template_name = 'grant_applications/check-your-email.html'
+    back_url_name = 'grant-applications:before-you-start'
+    extra_context = {
+        'page': {
+            'heading': _('Check Your Email')
+        }
+    }
+
+    @property
+    def user_email(self):
+        return self.request.session.get('application_email')
+
+    @property
+    def linked_application(self):
+        try:
+            return GrantApplicationLink.objects.get(email=self.user_email)
+        except (
+            GrantApplicationLink.DoesNotExist,
+            GrantApplicationLink.MultipleObjectsReturned
+        ):
+            pass
+
+        return None
+
+    def get_back_url(self):
+        self.application_email = self.request.session.get('application_email')
+        if self.application_email:
+            return reverse('grant-applications:select-application-progress')
+        return reverse('grant-applications:application-email')
+
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        if self.linked_application:
+            kwargs['email_resend_message'] = 'New Email send successfully.'
+            send_authentication_email(self.linked_application)
+        return self.get(request, *args, **kwargs)
+
+
+class SelectApplicationProgressView(BackContextMixin, FormView):
+    back_url_name = 'grant-applications:application-email'
+    template_name = 'grant_applications/application_in_progress.html'
+    form_class = ApplicationProgressForm
+    extra_context = {
+        'page': {
+            'heading': _('Application in progress')
+        }
+    }
+
+    @property
+    def user_email(self):
+        return self.request.session.get('application_email')
+
+    @property
+    def linked_application(self):
+        try:
+            return GrantApplicationLink.objects.get(email=self.user_email)
+        except (
+            GrantApplicationLink.DoesNotExist,
+            GrantApplicationLink.MultipleObjectsReturned
+        ):
+            pass
+
+        return None
+
+    def form_valid(self, form):
+        if not self.user_email:  # redirect application email view if the session flush.
+            return HttpResponseRedirect(reverse('grant-applications:grant_applications:application-email'))
+
+        progress_option = form.cleaned_data.get('progress_option')
+        if progress_option == form.CONTINUE_OPTION and self.linked_application:
+            send_authentication_email(self.linked_application)
+            return HttpResponseRedirect(reverse('grant-applications:check-your-email'))
+
+        GrantApplicationLink.objects.filter(email=self.user_email).delete()
+        try:
+            backoffice_grant_application = BackofficeService().create_grant_application()
+        except BackofficeServiceException:
+            form.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))
+            return super().form_invalid(form)
+        grant_application_link = GrantApplicationLink(
+            email=self.user_email,
+            backoffice_grant_application_id=backoffice_grant_application['id'],
+            state_url_name=GrantApplicationLink.APPLICATION_FIRST_STEP_URL_NAME
+        )
+        grant_application_link.save()
+        send_authentication_email(grant_application_link)
+        self.request.session.pop('application_email', None)
+        return HttpResponseRedirect(reverse('grant-applications:check-your-email'))
 
 
 class PreviousApplicationsView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,
-                               InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin,
-                               UpdateView):
+                               InitialDataMixin, SaveStateMixin, ConfirmationRedirectMixin,
+                               IneligibleRedirectMixin, UpdateView):
     model = GrantApplicationLink
     form_class = PreviousApplicationsForm
     template_name = 'grant_applications/previous_applications.html'

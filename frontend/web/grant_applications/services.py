@@ -24,6 +24,10 @@ class BackofficeServiceException(Exception):
     pass
 
 
+def send_authentication_email(application):
+    print(f'EMAIL LINK ({application.email}): {settings.BASE_URL}{application.resume_url}', flush=True)
+
+
 def _raise_for_status(response, **kwargs):
     try:
         response.raise_for_status()

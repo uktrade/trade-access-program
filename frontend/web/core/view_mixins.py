@@ -150,3 +150,17 @@ class PaginationMixin:
     def get_context_data(self, **kwargs):
         kwargs['pagination'] = self.get_pagination()
         return super().get_context_data(**kwargs)
+
+
+class SaveStateMixin:
+    success_url_name = None
+
+    def save_state(self, form):
+        application = form.instance
+        application.state_url_name = self.success_url_name
+        application.save()
+
+    def form_valid(self, form):
+        form_valid = super().form_valid(form)
+        self.save_state(form)
+        return form_valid

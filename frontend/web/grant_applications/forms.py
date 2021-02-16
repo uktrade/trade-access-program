@@ -17,12 +17,23 @@ from web.grant_applications.services import (
 )
 
 
-class ApplicationEmailForm(forms.ModelForm):
+class ApplicationProgressForm(forms.Form):
+    CONTINUE_OPTION = 'continue'
+    START_NEW_OPTION = 'start_new'
 
-    class Meta:
-        model = GrantApplicationLink
-        fields = ('email', )
+    progress_option = forms.TypedChoiceField(
+        empty_value=None,
+        coerce=str,
+        choices=[
+            (CONTINUE_OPTION, _('Continue with application')),
+            (START_NEW_OPTION, _('Start new application'))
+        ],
+        widget=widgets.RadioSelect(),
+        label=_('Email recognised and application in progress found.'),
+    )
 
+
+class ApplicationEmailForm(forms.Form):
     email = forms.EmailField()
 
 
