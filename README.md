@@ -1,9 +1,16 @@
 [![CircleCI](https://circleci.com/gh/uktrade/trade-access-program/tree/master.svg?style=shield)](https://circleci.com/gh/uktrade/trade-access-program/tree/master)
 
 # trade-access-program
-This repo houses the tradeshow access program (TAP) services. 
+TAP is an initiative to provide small grants to SME businesses and sole traders to help them start or grow their 
+exports.  
 
-There are 2 services in this project. Each service serves a slightly different purpose but both are build with the Django framework. 
+This repo houses the Tradeshow Access Program (TAP) services.  
+
+## Architecture 
+There are 2 services in this project. Each service serves a slightly different purpose but both are build with the 
+Django framework. 
+
+See the **[ADR on service architecture](docs/adr/0006-split-service-into-two.md)** for more details about this decision. 
 
 - frontend
   - serves the govuk styled grant application form.
@@ -11,7 +18,7 @@ There are 2 services in this project. Each service serves a slightly different p
 - backoffice
   - serves some dynamic content for the frontend services via json REST APIs.
   - stores the state of grant applications. 
-  - serves the grant management portal for the internal teams (DIT/TAP)
+  - serves the grant management portal for the internal users (DIT/TAP)
 
 ## Installation (docker)
 
@@ -25,6 +32,46 @@ make build
 ```
 _The first time you run `make build` a templated `.env` file will be created in every service directory 
 (`./frontend`, `./backoffice`). Please update these files with any secrets required to make these services run correctly._
+
+Populate the following environment variables in the relevant `.env` files:
+
+#### Backoffice .env 
+location: `./backoffice/.env`
+
+| Variable name              | Required      | Description                               |
+| -------------------------- | ------------- | ----------------------------------------- |
+| `DEBUG`                    | Yes           | Django DEBUG setting                      |
+| `DJANGO_SETTINGS_MODULE`   | Yes           | location of Django settings module        |
+| `POSTGRES_DB`              | Yes           | backoffice db name                        |
+| `POSTGRES_USER`            | Yes           | backoffice db user                        |
+| `POSTGRES_PASSWORD`        | Yes           | backoffice db password                    |
+| `POSTGRES_HOST`            | Yes           | backoffice db hostname                    |
+| `POSTGRES_PORT`            | Yes           | backoffice db port                        |
+| `AUTHBROKER_URL`           | Yes           | URL for SSO service                       |
+| `AUTHBROKER_CLIENT_ID`     | Yes           | SSO service client id                     |
+| `AUTHBROKER_CLIENT_SECRET` | Yes           | SSO service client secret                 |
+| `SECRET_KEY`               | Yes           | Unique Django secret key                  |
+| `DNB_SERVICE_URL`          | Yes           | URL for DNB service                       |
+| `DNB_SERVICE_TOKEN`        | Yes           | API token for DNB service                 |
+| `NOTIFY_API_KEY`           | Yes           | API token for gov.notify service          |
+| `COMPANIES_HOUSE_URL`      | Yes           | URL for companies house service           |
+| `COMPANIES_HOUSE_API_KEY`  | Yes           | API token for companies house service     |
+
+#### frontend .env 
+location: `./frontend/.env`
+
+| Variable name             | Required      | Description                         |
+| ------------------------- | ------------- | ----------------------------------- |
+| `DEBUG`                   | Yes           | Django DEBUG setting                |
+| `DJANGO_SETTINGS_MODULE`  | Yes           | location of Django settings module  |
+| `POSTGRES_DB`             | Yes           | frontend db name                    |
+| `POSTGRES_USER`           | Yes           | frontend db user                    |
+| `POSTGRES_PASSWORD`       | Yes           | frontend db password                |
+| `POSTGRES_HOST`           | Yes           | frontend db hostname                |
+| `POSTGRES_PORT`           | Yes           | frontend db port                    |
+| `SECRET_KEY`              | Yes           | Unique Django secret key            |
+| `BACKOFFICE_API_URL`      | Yes           | URL for backoffice service          |
+
 
 ### Run all services
 ```
@@ -40,6 +87,13 @@ make up
 ## Development (docker)
 The project has been created in an attempt to be OS agnostic. All functionality _should_ be available via docker 
 and docker-compose entry points.
+
+### Help menus
+```
+make help
+make -C backoffice help
+make -C frontend help
+```
 
 ### Debugging
 #### Run with port access.
@@ -125,7 +179,8 @@ make build
 This will create a `./<service-dir>/node_modules` folder in each of the service directories. 
 
 ## Testing
-The project uses `pytest` to run the test suite and generate test coverage.
+The project uses `pytest` to run the test suite and generate test coverage. Dummy environment values are required in 
+the `.env` files in order for the tests to run. 
  - command to run all test suites `make test`
     - command to run only frontend test suite `make test-frontend` or `cd frontend && make test`
     - command to run only backoffice test suite `make test-backoffice` or `cd backoffice && make test`
@@ -153,6 +208,7 @@ Build artifacts are stored against each build in CircleCI. These artifacts inclu
  - feature branches => **no environment**
  - develop branch   => develop environment
  - staging branch   => staging environment
+ - uat branch       => uat environment
  - master branch    => production environment
  
 Feature branches should branch off of develop and be merged back into develop (ideally with 
