@@ -80,8 +80,9 @@ class NotifyService:
             }
         )
 
-    def send_application_authentication_link_email(self, email_address):
+    def send_application_email(self, template_name, email_address, personalisation):
         self.send_email(
             email_address=email_address,
-            template_name='application-authentication'
+            template_name=template_name,
+            personalisation=personalisation
         )

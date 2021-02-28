@@ -111,3 +111,9 @@ class StateAidSerializer(serializers.ModelSerializer):
     class Meta:
         model = StateAid
         fields = '__all__'
+
+
+class SendApplicationSerializer(serializers.Serializer):
+    template_name = serializers.CharField()
+    email = serializers.EmailField()
+    personalisation = serializers.DictField(required=False)

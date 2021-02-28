@@ -1,13 +1,15 @@
 from django.http import FileResponse
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from web.grant_applications.models import GrantApplication, StateAid
 from web.grant_applications.serializers import (
     GrantApplicationReadSerializer, GrantApplicationWriteSerializer, StateAidSerializer,
-    SendForReviewWriteSerializer
+    SendForReviewWriteSerializer, SendApplicationSerializer
 )
+from web.core.notify import NotifyService
 from web.grant_applications.services import GrantApplicationPdf
 
 
@@ -38,3 +40,19 @@ class StateAidViewSet(ModelViewSet):
     queryset = StateAid.objects.all()
     serializer_class = StateAidSerializer
     filterset_fields = ['grant_application']
+
+
+class SendApplicationEmail(APIView):
+    notification_service = NotifyService()
+
+    def post(self, request, *args, **kwargs):
+        serializer = SendApplicationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.data
+        application_email = data.get('email')
+        self.notification_service.send_application_email(
+            email_address=application_email,
+            template_name=data.get('email'),
+            personalisation=data.get('personalisation')
+        )
+        return Response({}, status=200)

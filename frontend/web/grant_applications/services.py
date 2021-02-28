@@ -50,7 +50,7 @@ class BackofficeService:
         self.trade_events_url = urljoin(self.base_url, 'trade-events/')
         self.trade_event_aggregates_url = urljoin(self.base_url, 'trade-events/aggregates/')
         self.sectors_url = urljoin(self.base_url, 'sectors/')
-        self.send_user_email_url = urljoin(self.base_url, 'send-user-email/')
+        self.send_user_email_url = urljoin(self.base_url, 'send-application-email/')
 
         self.session = requests.Session()
 
@@ -186,8 +186,8 @@ class BackofficeService:
             json={
                 'template_name': 'application-authentication',
                 'email': grant_application.email,
-                'grant_application_id': grant_application.backoffice_grant_application_id,
-                'email_context': {
+                'grant_application_id': str(grant_application.backoffice_grant_application_id),
+                'personalisation': {
                     'application_auth_link': auth_link
                 }
             }
