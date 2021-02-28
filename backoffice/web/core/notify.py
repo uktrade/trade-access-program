@@ -79,3 +79,9 @@ class NotifyService:
                 'application_id': application_id,
             }
         )
+
+    def send_application_authentication_link_email(self, email_address):
+        self.send_email(
+            email_address=email_address,
+            template_name='application-authentication'
+        )

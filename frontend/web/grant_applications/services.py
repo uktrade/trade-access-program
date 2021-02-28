@@ -24,10 +24,6 @@ class BackofficeServiceException(Exception):
     pass
 
 
-def send_authentication_email(application):
-    print(f'EMAIL LINK ({application.email}): {settings.BASE_URL}{application.resume_url}', flush=True)
-
-
 def _raise_for_status(response, **kwargs):
     try:
         response.raise_for_status()
@@ -54,6 +50,7 @@ class BackofficeService:
         self.trade_events_url = urljoin(self.base_url, 'trade-events/')
         self.trade_event_aggregates_url = urljoin(self.base_url, 'trade-events/aggregates/')
         self.sectors_url = urljoin(self.base_url, 'sectors/')
+        self.send_user_email_url = urljoin(self.base_url, 'send-user-email/')
 
         self.session = requests.Session()
 
@@ -182,6 +179,20 @@ class BackofficeService:
         except (BackofficeServiceException, ValueError):
             if raise_exception:
                 raise
+
+    def send_application_authentication_link_email(self, grant_application, auth_link):
+        response = self.session.post(
+            self.send_user_email_url,
+            json={
+                'template_name': 'application-authentication',
+                'email': grant_application.email,
+                'grant_application_id': grant_application.backoffice_grant_application_id,
+                'email_context': {
+                    'application_auth_link': auth_link
+                }
+            }
+        )
+        return response.json()
 
 
 def get_backoffice_choices(object_type, choice_id_key, choice_name_key, request_kwargs=None):
@@ -662,3 +673,8 @@ class ApplicationReviewService:
             value=f"£{sum([sa['amount'] for sa in state_aids])}"
         )
         return self.summary_list_helper.make_summary_list(heading=heading, rows=[row])
+
+
+def send_authentication_email(grant_application):
+    auth_link = f'{settings.BASE_URL}{grant_application.resume_url}'
+    BackofficeService().send_application_authentication_link_email(grant_application, auth_link)

@@ -121,8 +121,6 @@ class CheckYourEmailView(BackContextMixin, TemplateView):
         ):
             pass
 
-        return None
-
     def get_back_url(self):
         self.application_email = self.request.session.get('application_email')
         if self.application_email:
@@ -134,7 +132,7 @@ class CheckYourEmailView(BackContextMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         if self.linked_application:
-            kwargs['email_resend_message'] = 'New Email send successfully.'
+            kwargs['email_resend_message'] = f'The link sent to <strong>{self.user_email}</strong> successfully.'
             send_authentication_email(self.linked_application)
         return self.get(request, *args, **kwargs)
 

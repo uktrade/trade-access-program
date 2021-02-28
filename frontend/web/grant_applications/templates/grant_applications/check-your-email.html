@@ -10,13 +10,12 @@ If your email doesn’t arrive within 5 minutes, check your spam folder – or t
 
 {% block forms %}
 <div class="govuk-grid-row">
-  <div class="govuk-grid-column-one-third">
+  <div class="govuk-grid-column-two-third">
     {% if email_resend_message %}
-      <p>{{ email_resend_message }}</p>
+      <p class="govuk-body">{{ email_resend_message|safe }}</p>
     {% endif %}
 
     <form class="form" id="id_filters_form" action="{% url 'grant-applications:check-your-email' %}" method="POST" novalidate>
-
       {% csrf_token %}
       {% include "core/govt_uk_form_button.html" with button_class=button_class button_name=button_name button_text="Resend link" %}
       {% url 'grant-applications:application-email' as change_email_href %}
