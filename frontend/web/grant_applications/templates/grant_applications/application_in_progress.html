@@ -1,1 +1,4 @@
 {% extends 'grant_applications/generic_form_page.html' %}
+{% block heading_text %}
+  <p class="govuk-body govuk-!-margin-bottom-6">We’ve found a TAP grant application corresponding to the email address <strong>{{ view.user_email }}</strong>.</p>
+{% endblock %}

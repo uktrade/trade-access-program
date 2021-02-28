@@ -64,8 +64,14 @@ class ApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, FormView):
     success_url_name = 'grant_applications:check-your-email'
     extra_context = {
         'page': {
-            'heading': _('Your Email')
+            'heading': _('Your Email'),
+            'heading_text': _(
+                'Before you start, register your business email address '
+                'and we will send you a secure sign in link. You will also '
+                'be able to use your email address to return to your application.'
+            )
         },
+        'button_text': 'Authenticate'
     }
 
     def form_valid(self, form):

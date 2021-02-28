@@ -1,8 +1,12 @@
 {% extends "grant_applications/generic_form_page.html" %}
+ [email address]. Click on the link to confirm your address and return to this service.
+If your email doesn’t arrive within 5 minutes, check your spam folder – or try resending the link.
 
-{% block breadcrumbs %}
-  <a href="{{ back.url }}" id="id_back_link" class="govuk-back-link">{{ back.text }}</a>
+{% block heading_text %}
+  <p class="govuk-body govuk-!-margin-bottom-6">We’ve sent an email to <strong>{{ view.user_email }}</strong>. Click on the link to confirm your address and return to this service.</p>
+  <p class="govuk-body govuk-!-margin-bottom-6">If your email doesn’t arrive within 5 minutes, check your spam folder – or try resending the link.</p>
 {% endblock %}
+
 
 {% block forms %}
 <div class="govuk-grid-row">
