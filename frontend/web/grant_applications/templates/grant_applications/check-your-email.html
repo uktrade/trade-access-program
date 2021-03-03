@@ -1,27 +1,11 @@
 {% extends "grant_applications/generic_form_page.html" %}
- [email address]. Click on the link to confirm your address and return to this service.
-If your email doesn’t arrive within 5 minutes, check your spam folder – or try resending the link.
 
 {% block heading_text %}
   <p class="govuk-body govuk-!-margin-bottom-6">We’ve sent an email to <strong>{{ view.user_email }}</strong>. Click on the link to confirm your address and return to this service.</p>
-  <p class="govuk-body govuk-!-margin-bottom-6">If your email doesn’t arrive within 5 minutes, check your spam folder – or try resending the link.</p>
+  <p class="govuk-body govuk-!-margin-bottom-6">If your email doesn’t arrive within 5 minutes, check your spam <br>
+    folder – or <a href="{% url 'grant-applications:application-email' %}">try resending the link</a>.</p>
 {% endblock %}
 
 
 {% block forms %}
-<div class="govuk-grid-row">
-  <div class="govuk-grid-column-two-third">
-    {% if email_resend_message %}
-      <p class="govuk-body">{{ email_resend_message|safe }}</p>
-    {% endif %}
-
-    <form class="form" id="id_filters_form" action="{% url 'grant-applications:check-your-email' %}" method="POST" novalidate>
-      {% csrf_token %}
-      {% include "core/govt_uk_form_button.html" with button_class=button_class button_name=button_name button_text="Resend link" %}
-      {% url 'grant-applications:application-email' as change_email_href %}
-      {% include 'core/govt_uk_link_button.html' with text='Change Email' href=change_email_href class='govuk-details' %}
-    </form>
-  </div>
-</div>
-
 {% endblock %}

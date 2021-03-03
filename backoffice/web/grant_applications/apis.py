@@ -42,17 +42,18 @@ class StateAidViewSet(ModelViewSet):
     filterset_fields = ['grant_application']
 
 
-class SendApplicationEmail(APIView):
+class SendApplicationResumeEmailView(APIView):
     notification_service = NotifyService()
+    NOTIFICATION_EMAIL_TEMPLATE_NAME = 'magic-link'
 
     def post(self, request, *args, **kwargs):
         serializer = SendApplicationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.data
         application_email = data.get('email')
-        self.notification_service.send_application_email(
+        self.notification_service.send_application_resume_email(
             email_address=application_email,
-            template_name=data.get('email'),
+            template_name=self.NOTIFICATION_EMAIL_TEMPLATE_NAME,
             personalisation=data.get('personalisation')
         )
         return Response({}, status=200)

@@ -1,4 +1,5 @@
 from django import forms
+from django.core.signing import SignatureExpired, BadSignature
 from django.http import HttpResponseRedirect
 from django.urls import reverse, resolve
 from django.utils import timezone
@@ -9,6 +10,7 @@ from django.views.generic.detail import SingleObjectMixin
 
 from web.core.forms import FORM_MSGS
 from web.core.view_mixins import SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin, SaveStateMixin
+from web.grant_applications.constants import APPLICATION_EMAIL_SESSION_KEY
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, SelectAnEventForm, PreviousApplicationsForm,
     CompanyTradingDetailsForm, ExportExperienceForm, FindAnEventForm,
@@ -19,30 +21,115 @@ from web.grant_applications.forms import (
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
     BackofficeServiceException, BackofficeService, get_companies_from_search_term,
-    get_state_aid_summary_table, ApplicationReviewService, send_authentication_email
+    get_state_aid_summary_table, ApplicationReviewService
 )
+from web.grant_applications.utils import send_resume_application_email, decrypting_data, RESUME_APPLICATION_ACTION
+
 from web.grant_applications.view_mixins import (
     BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin
 )
 
 
-class ApplicationResumeView(SingleObjectMixin, RedirectView):
-    model = GrantApplicationLink
+class MagicLinkHandlerView(RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
-        application = self.get_object()
-        return application.state_url
+        invalid_link_url = reverse('grant_applications:invalid-magic-link')
+        expired_link_url = reverse('grant_applications:expired-magic-link')
+        hash_value = self.kwargs.get('hash')
+        if not hash_value:
+            return invalid_link_url
+
+        try:
+            data = decrypting_data(hash_value)
+        except SignatureExpired:
+            return expired_link_url
+        except BadSignature:
+            return invalid_link_url
+
+        if data.get('action-type') == RESUME_APPLICATION_ACTION:
+            return data.get('redirect-url', invalid_link_url)
+
+        return invalid_link_url
 
 
-class StartYourApplicationView(BackContextMixin, TemplateView):
-    template_name = 'grant_applications/start-your-application.html'
-    back_url_name = 'grant-applications:index'
+class InvalidMagicLinkView(FormView):
+    template_name = 'grant_applications/invalid-magic-link.html'
+    form_class = ApplicationEmailForm
+    success_url_name = 'grant_applications:check-your-email'
     extra_context = {
         'page': {
-            'heading': _('Start Page')
+            'heading': _('The link is invalid'),
+            'heading_text': _(
+                'That sign in link is not valid. To continue your application, '
+                'enter your email address and we’ll send you a new secure link.'
+            )
         },
-        'button_text': 'Start a new application',
+        'button_text': 'Continue'
     }
+
+
+    @property
+    def user_email(self):
+        return self.request.session.get(APPLICATION_EMAIL_SESSION_KEY)
+
+    def set_application_email_session(self, email):
+        self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get('email')
+        try:
+            grant_application_link = GrantApplicationLink.objects.get(email=email)
+            self.set_application_email_session(email)
+            send_resume_application_email(grant_application_link)
+        except (
+                GrantApplicationLink.DoesNotExist,
+                GrantApplicationLink.MultipleObjectsReturned
+        ):
+            return HttpResponseRedirect(reverse('grant_applications:no-application-found'))
+        return super().form_valid(form)
+
+
+class ExpiredMagicLinkView(InvalidMagicLinkView):
+    template_name = 'grant_applications/expired-magic-link.html'
+    extra_context = {
+        'page': {
+            'heading': _('The link has expired'),
+            'heading_text': _(
+                'That sign in link has expired. To continue your application, '
+                'enter your email address and we’ll send you a new secure link.'
+            )
+        },
+        'button_text': 'Continue'
+    }
+
+
+class NoApplicationFoundView(InvalidMagicLinkView):
+    template_name = 'grant_applications/no-application-found.html'
+    extra_context = {
+        'page': {
+            'heading': _('No application found'),
+        },
+        'button_text': 'Continue'
+    }
+
+
+class CheckYourEmailView(BackContextMixin, TemplateView):
+    template_name = 'grant_applications/check-your-email.html'
+    back_url_name = 'grant-applications:before-you-start'
+    extra_context = {
+        'page': {
+            'heading': _('Confirm your email address')
+        }
+    }
+
+    @property
+    def user_email(self):
+        return self.request.session.get(APPLICATION_EMAIL_SESSION_KEY)
+
+    def get(self, request, *args, **kwargs):
+        if not self.user_email:
+            return HttpResponseRedirect(reverse('grant_applications:index'))
+        return super().get(request, *args, **kwargs)
 
 
 class BeforeYouStartView(BackContextMixin, TemplateView):
@@ -53,6 +140,17 @@ class BeforeYouStartView(BackContextMixin, TemplateView):
         'page': {
             'heading': _('What you will need')
         }
+    }
+
+
+class StartYourApplicationView(BackContextMixin, TemplateView):
+    template_name = 'grant_applications/start-your-application.html'
+    back_url_name = 'grant-applications:index'
+    extra_context = {
+        'page': {
+            'heading': _('Start Page')
+        },
+        'button_text': 'Start a new application',
     }
 
 
@@ -76,15 +174,16 @@ class ApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, FormView):
 
     def form_valid(self, form):
         email = form.cleaned_data.get('email')
-        self.request.session['application_email'] = None
+        self.request.session[APPLICATION_EMAIL_SESSION_KEY] = None
         if self.model.objects.filter(email=email).exists():
-           self.request.session['application_email'] = email
+           self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
            return HttpResponseRedirect(
                reverse('grant_applications:select-application-progress')
            )
 
         try:
             backoffice_grant_application = BackofficeService().create_grant_application()
+            self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
         except BackofficeServiceException:
             form.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))
             return super().form_invalid(form)
@@ -94,51 +193,12 @@ class ApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, FormView):
             state_url_name=self.success_url_name
         )
         grant_application_link.save()
-        send_authentication_email(grant_application_link)
+        send_resume_application_email(grant_application_link)
         return HttpResponseRedirect(reverse(self.success_url_name))
 
 
-class CheckYourEmailView(BackContextMixin, TemplateView):
-    template_name = 'grant_applications/check-your-email.html'
-    back_url_name = 'grant-applications:before-you-start'
-    extra_context = {
-        'page': {
-            'heading': _('Check Your Email')
-        }
-    }
-
-    @property
-    def user_email(self):
-        return self.request.session.get('application_email')
-
-    @property
-    def linked_application(self):
-        try:
-            return GrantApplicationLink.objects.get(email=self.user_email)
-        except (
-            GrantApplicationLink.DoesNotExist,
-            GrantApplicationLink.MultipleObjectsReturned
-        ):
-            pass
-
-    def get_back_url(self):
-        self.application_email = self.request.session.get('application_email')
-        if self.application_email:
-            return reverse('grant-applications:select-application-progress')
-        return reverse('grant-applications:application-email')
-
-    def get(self, request, *args, **kwargs):
-        return super().get(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        if self.linked_application:
-            kwargs['email_resend_message'] = f'The link sent to <strong>{self.user_email}</strong> successfully.'
-            send_authentication_email(self.linked_application)
-        return self.get(request, *args, **kwargs)
-
-
 class SelectApplicationProgressView(BackContextMixin, FormView):
-    back_url_name = 'grant-applications:application-email'
+    back_url_name = 'grant_applications:application-email'
     template_name = 'grant_applications/application_in_progress.html'
     form_class = ApplicationProgressForm
     extra_context = {
@@ -149,7 +209,7 @@ class SelectApplicationProgressView(BackContextMixin, FormView):
 
     @property
     def user_email(self):
-        return self.request.session.get('application_email')
+        return self.request.session.get(APPLICATION_EMAIL_SESSION_KEY)
 
     @property
     def linked_application(self):
@@ -165,12 +225,12 @@ class SelectApplicationProgressView(BackContextMixin, FormView):
 
     def form_valid(self, form):
         if not self.user_email:  # redirect application email view if the session flush.
-            return HttpResponseRedirect(reverse('grant-applications:grant_applications:application-email'))
+            return HttpResponseRedirect(reverse('grant_applications:application-email'))
 
         progress_option = form.cleaned_data.get('progress_option')
         if progress_option == form.CONTINUE_OPTION and self.linked_application:
-            send_authentication_email(self.linked_application)
-            return HttpResponseRedirect(reverse('grant-applications:check-your-email'))
+            send_resume_application_email(self.linked_application)
+            return HttpResponseRedirect(reverse('grant_applications:check-your-email'))
 
         GrantApplicationLink.objects.filter(email=self.user_email).delete()
         try:
@@ -184,9 +244,9 @@ class SelectApplicationProgressView(BackContextMixin, FormView):
             state_url_name=GrantApplicationLink.APPLICATION_FIRST_STEP_URL_NAME
         )
         grant_application_link.save()
-        send_authentication_email(grant_application_link)
+        send_resume_application_email(grant_application_link)
         self.request.session.pop('application_email', None)
-        return HttpResponseRedirect(reverse('grant-applications:check-your-email'))
+        return HttpResponseRedirect(reverse('grant_applications:check-your-email'))
 
 
 class PreviousApplicationsView(BackContextMixin, SuccessUrlObjectPkMixin, BackofficeMixin,

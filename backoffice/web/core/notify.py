@@ -80,7 +80,7 @@ class NotifyService:
             }
         )
 
-    def send_application_email(self, template_name, email_address, personalisation):
+    def send_application_resume_email(self, email_address, template_name, personalisation):
         self.send_email(
             email_address=email_address,
             template_name=template_name,

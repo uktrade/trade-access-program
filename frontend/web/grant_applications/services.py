@@ -50,7 +50,7 @@ class BackofficeService:
         self.trade_events_url = urljoin(self.base_url, 'trade-events/')
         self.trade_event_aggregates_url = urljoin(self.base_url, 'trade-events/aggregates/')
         self.sectors_url = urljoin(self.base_url, 'sectors/')
-        self.send_user_email_url = urljoin(self.base_url, 'send-application-email/')
+        self.send_user_email_url = urljoin(self.base_url, 'send-resume-application-email/')
 
         self.session = requests.Session()
 
@@ -180,15 +180,14 @@ class BackofficeService:
             if raise_exception:
                 raise
 
-    def send_application_authentication_link_email(self, grant_application, auth_link):
+    def send_resume_application_email(self, grant_application, magic_link):
         response = self.session.post(
             self.send_user_email_url,
             json={
-                'template_name': 'application-authentication',
+                'template_name': 'resume-application',
                 'email': grant_application.email,
-                'grant_application_id': str(grant_application.backoffice_grant_application_id),
                 'personalisation': {
-                    'application_auth_link': auth_link
+                    'magic_link': magic_link
                 }
             }
         )
@@ -673,8 +672,3 @@ class ApplicationReviewService:
             value=f"£{sum([sa['amount'] for sa in state_aids])}"
         )
         return self.summary_list_helper.make_summary_list(heading=heading, rows=[row])
-
-
-def send_authentication_email(grant_application):
-    auth_link = f'{settings.BASE_URL}{grant_application.resume_url}'
-    BackofficeService().send_application_authentication_link_email(grant_application, auth_link)
