@@ -27,9 +27,8 @@ RESUME_APPLICATION_ACTION = 'resume-application-link'
 
 def send_resume_application_email(grant_application):
     data = {
-        'redirect-url': f'{settings.BASE_URL}{grant_application.state_url}',
+        'redirect-url': f'{settings.FRONTEND_DOMAIN}{grant_application.state_url}',
         'action-type': RESUME_APPLICATION_ACTION
     }
     magic_link = generate_action_magic_link(data)
-    print(f'##### {magic_link}', flush=True)
     BackofficeService().send_resume_application_email(grant_application, magic_link)

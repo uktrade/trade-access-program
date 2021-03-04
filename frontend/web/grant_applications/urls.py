@@ -6,9 +6,9 @@ from web.grant_applications.views import (
     PreviousApplicationsView, CompanyTradingDetailsView, ExportExperienceView, StateAidSummaryView,
     ApplicationReviewView, FindAnEventView, BeforeYouStartView, EventCommitmentView,
     CompanyDetailsView, ExportDetailsView, TradeEventDetailsView, AddStateAidView, EditStateAidView,
-    DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView, StartYourApplicationView, ApplicationEmailView,
+    DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView, StartNewApplicationEmailView,
     MagicLinkHandlerView, SelectApplicationProgressView, CheckYourEmailView, InvalidMagicLinkView, ExpiredMagicLinkView,
-    NoApplicationFoundView
+    NoApplicationFoundView, ContinueApplicationEmailView
 )
 
 app_name = 'grant_applications'
@@ -16,8 +16,8 @@ app_name = 'grant_applications'
 urlpatterns = [
     path('', TemplateView.as_view(template_name='grant_applications/index.html'), name='index'),
     path('before-you-start/', BeforeYouStartView.as_view(), name='before-you-start'),
-    path('start-your-application/', StartYourApplicationView.as_view(), name='start-your-application'),
-    path('your-email/', ApplicationEmailView.as_view(), name='application-email'),
+    path('new-application-email/', StartNewApplicationEmailView.as_view(), name='new-application-email'),
+    path('continue-application-email/', ContinueApplicationEmailView.as_view(), name='continue-application-email'),
     path('select-application-progress/', SelectApplicationProgressView.as_view(), name='select-application-progress'),
     path('check-your-email/', CheckYourEmailView.as_view(), name='check-your-email'),
     path('resume/<hash>/', MagicLinkHandlerView.as_view(), name='magic-link'),

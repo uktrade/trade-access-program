@@ -43,7 +43,6 @@ class StateAidViewSet(ModelViewSet):
 
 
 class SendApplicationResumeEmailView(APIView):
-    notification_service = NotifyService()
     NOTIFICATION_EMAIL_TEMPLATE_NAME = 'magic-link'
 
     def post(self, request, *args, **kwargs):
@@ -51,7 +50,8 @@ class SendApplicationResumeEmailView(APIView):
         serializer.is_valid(raise_exception=True)
         data = serializer.data
         application_email = data.get('email')
-        self.notification_service.send_application_resume_email(
+        notification_service = NotifyService()
+        notification_service.send_application_resume_email(
             email_address=application_email,
             template_name=self.NOTIFICATION_EMAIL_TEMPLATE_NAME,
             personalisation=data.get('personalisation')

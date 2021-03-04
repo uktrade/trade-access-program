@@ -77,16 +77,16 @@ class InvalidMagicLinkView(FormView):
 
     def form_valid(self, form):
         email = form.cleaned_data.get('email')
+        self.set_application_email_session(email)
         try:
             grant_application_link = GrantApplicationLink.objects.get(email=email)
-            self.set_application_email_session(email)
             send_resume_application_email(grant_application_link)
         except (
                 GrantApplicationLink.DoesNotExist,
                 GrantApplicationLink.MultipleObjectsReturned
         ):
             return HttpResponseRedirect(reverse('grant_applications:no-application-found'))
-        return super().form_valid(form)
+        return HttpResponseRedirect(reverse(self.success_url_name))
 
 
 class ExpiredMagicLinkView(InvalidMagicLinkView):
@@ -122,6 +122,23 @@ class CheckYourEmailView(BackContextMixin, TemplateView):
         }
     }
 
+    def get_back_url(self):
+        if self.linked_application:
+            return reverse('grant-applications:continue-application-email')
+        return reverse('grant-applications:new-application-email')
+
+    @property
+    def linked_application(self):
+        try:
+            return GrantApplicationLink.objects.get(email=self.user_email)
+        except (
+            GrantApplicationLink.DoesNotExist,
+            GrantApplicationLink.MultipleObjectsReturned
+        ):
+            pass
+
+        return None
+
     @property
     def user_email(self):
         return self.request.session.get(APPLICATION_EMAIL_SESSION_KEY)
@@ -134,8 +151,8 @@ class CheckYourEmailView(BackContextMixin, TemplateView):
 
 class BeforeYouStartView(BackContextMixin, TemplateView):
     template_name = 'grant_applications/before_you_start.html'
-    back_url_name = 'grant-applications:start-your-application'
-    success_url_name = 'grant_applications:application-email'
+    back_url_name = 'grant-applications:index'
+    success_url_name = 'grant_applications:new-application-email'
     extra_context = {
         'page': {
             'heading': _('What you will need')
@@ -143,18 +160,7 @@ class BeforeYouStartView(BackContextMixin, TemplateView):
     }
 
 
-class StartYourApplicationView(BackContextMixin, TemplateView):
-    template_name = 'grant_applications/start-your-application.html'
-    back_url_name = 'grant-applications:index'
-    extra_context = {
-        'page': {
-            'heading': _('Start Page')
-        },
-        'button_text': 'Start a new application',
-    }
-
-
-class ApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, FormView):
+class StartNewApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, FormView):
     model = GrantApplicationLink
     form_class = ApplicationEmailForm
     template_name = 'grant_applications/application-email.html'
@@ -176,10 +182,10 @@ class ApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, FormView):
         email = form.cleaned_data.get('email')
         self.request.session[APPLICATION_EMAIL_SESSION_KEY] = None
         if self.model.objects.filter(email=email).exists():
-           self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
-           return HttpResponseRedirect(
+            self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
+            return HttpResponseRedirect(
                reverse('grant_applications:select-application-progress')
-           )
+            )
 
         try:
             backoffice_grant_application = BackofficeService().create_grant_application()
@@ -197,8 +203,24 @@ class ApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, FormView):
         return HttpResponseRedirect(reverse(self.success_url_name))
 
 
+class ContinueApplicationEmailView(StartNewApplicationEmailView):
+    back_url_name = 'grant-applications:before-you-start'
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get('email')
+        self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
+        if GrantApplicationLink.objects.filter(email=email).exists():
+            grant_application_link = GrantApplicationLink.objects.get(email=email)
+            send_resume_application_email(grant_application_link)
+            return HttpResponseRedirect(
+               reverse('grant_applications:check-your-email')
+            )
+
+        return HttpResponseRedirect('grant_applications:check-your-email')
+
+
 class SelectApplicationProgressView(BackContextMixin, FormView):
-    back_url_name = 'grant_applications:application-email'
+    back_url_name = 'grant_applications:new-application-email'
     template_name = 'grant_applications/application_in_progress.html'
     form_class = ApplicationProgressForm
     extra_context = {
@@ -225,7 +247,7 @@ class SelectApplicationProgressView(BackContextMixin, FormView):
 
     def form_valid(self, form):
         if not self.user_email:  # redirect application email view if the session flush.
-            return HttpResponseRedirect(reverse('grant_applications:application-email'))
+            return HttpResponseRedirect(reverse('grant_applications:new-application-email'))
 
         progress_option = form.cleaned_data.get('progress_option')
         if progress_option == form.CONTINUE_OPTION and self.linked_application:
@@ -245,7 +267,6 @@ class SelectApplicationProgressView(BackContextMixin, FormView):
         )
         grant_application_link.save()
         send_resume_application_email(grant_application_link)
-        self.request.session.pop('application_email', None)
         return HttpResponseRedirect(reverse('grant_applications:check-your-email'))
 
 
