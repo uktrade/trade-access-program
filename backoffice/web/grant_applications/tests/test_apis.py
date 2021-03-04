@@ -274,3 +274,33 @@ class StateAidApiTests(BaseAPITestCase):
         response = self.client.delete(path)
         self.assertEqual(response.status_code, HTTP_204_NO_CONTENT, msg=response.data)
         self.assertFalse(StateAid.objects.filter(grant_application=self.ga).exists())
+
+
+@patch('web.grant_management.flows.NotifyService')
+class SendApplicationResumeEmailAPITests(BaseAPITestCase):
+
+    def test_send_resume_application_email_action(self, *mocks):
+        path = reverse('grant-applications:send-resume-application-email')
+        response = self.client.post(
+            path,
+            data={
+                'email': 'test@test.com',
+                'personalisation': {
+                    'magic_link': 'http://magic-link/test/'
+                }
+            }
+        )
+        self.assertEqual(response.status_code, HTTP_200_OK)
+
+    def test_send_resume_application_email_api_validations(self, *mocks):
+        path = reverse('grant-applications:send-resume-application-email')
+        response = self.client.post(
+            path,
+            data={
+                'personalisation': {
+                    'magic_link': 'http://magic-link/test/'
+                }
+            }
+        )
+        self.assertEqual(response.status_code, HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['email'][0].code, 'required')

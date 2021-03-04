@@ -7,7 +7,7 @@ from rest_framework.viewsets import ModelViewSet
 from web.grant_applications.models import GrantApplication, StateAid
 from web.grant_applications.serializers import (
     GrantApplicationReadSerializer, GrantApplicationWriteSerializer, StateAidSerializer,
-    SendForReviewWriteSerializer, SendApplicationSerializer
+    SendForReviewWriteSerializer, SendApplicationMagicLinkSerializer
 )
 from web.core.notify import NotifyService
 from web.grant_applications.services import GrantApplicationPdf
@@ -43,17 +43,16 @@ class StateAidViewSet(ModelViewSet):
 
 
 class SendApplicationResumeEmailView(APIView):
-    NOTIFICATION_EMAIL_TEMPLATE_NAME = 'magic-link'
 
     def post(self, request, *args, **kwargs):
-        serializer = SendApplicationSerializer(data=request.data)
+        serializer = SendApplicationMagicLinkSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.data
         application_email = data.get('email')
+        personalisation = data.get('personalisation')
         notification_service = NotifyService()
         notification_service.send_application_resume_email(
             email_address=application_email,
-            template_name=self.NOTIFICATION_EMAIL_TEMPLATE_NAME,
-            personalisation=data.get('personalisation')
+            magic_link=personalisation.get('magic_link')
         )
         return Response({}, status=200)

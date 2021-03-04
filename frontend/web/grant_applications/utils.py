@@ -1,3 +1,5 @@
+from urllib.parse import urljoin
+
 from django.conf import settings
 from django.core import signing
 from django.urls import reverse
@@ -19,7 +21,7 @@ def decrypting_data(hashed_value, max_age=settings.MAGIC_LINK_HASH_TTL):
 def generate_action_magic_link(data):
     encrypted_data = encrypt_data(data)
     magic_view_url = reverse('grant_applications:magic-link', args=(encrypted_data,))
-    return f'{settings.BASE_URL}{magic_view_url}',
+    return urljoin(settings.FRONTEND_DOMAIN, magic_view_url)
 
 
 RESUME_APPLICATION_ACTION = 'resume-application-link'

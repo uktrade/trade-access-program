@@ -14,6 +14,6 @@ urlpatterns = [
     path(
         'send-resume-application-email/',
         SendApplicationResumeEmailView.as_view(),
-        name='send-application-email'
+        name='send-resume-application-email'
     ),
 ] + router.urls

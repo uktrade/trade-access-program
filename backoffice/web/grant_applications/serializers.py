@@ -113,7 +113,6 @@ class StateAidSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class SendApplicationSerializer(serializers.Serializer):
-    template_name = serializers.CharField()
+class SendApplicationMagicLinkSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    personalisation = serializers.DictField(required=False)
+    personalisation = serializers.DictField()
