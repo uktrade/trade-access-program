@@ -5,11 +5,13 @@ from django.urls import reverse, resolve
 from django.utils import timezone
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import CreateView, UpdateView, RedirectView, TemplateView, FormView
+from django.views.generic import UpdateView, RedirectView, TemplateView, FormView
 from django.views.generic.detail import SingleObjectMixin
 
 from web.core.forms import FORM_MSGS
-from web.core.view_mixins import SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin, SaveStateMixin
+from web.core.view_mixins import (
+    SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin, SaveStateMixin
+)
 from web.grant_applications.constants import APPLICATION_EMAIL_SESSION_KEY
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, SelectAnEventForm, PreviousApplicationsForm,
@@ -23,7 +25,9 @@ from web.grant_applications.services import (
     BackofficeServiceException, BackofficeService, get_companies_from_search_term,
     get_state_aid_summary_table, ApplicationReviewService
 )
-from web.grant_applications.utils import send_resume_application_email, decrypting_data, RESUME_APPLICATION_ACTION
+from web.grant_applications.utils import (
+    send_resume_application_email, decrypting_data, RESUME_APPLICATION_ACTION
+)
 
 from web.grant_applications.view_mixins import (
     BackofficeMixin, InitialDataMixin, ConfirmationRedirectMixin, IneligibleRedirectMixin
@@ -66,7 +70,6 @@ class InvalidMagicLinkView(FormView):
         },
         'button_text': 'Continue'
     }
-
 
     @property
     def user_email(self):

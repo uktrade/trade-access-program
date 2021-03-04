@@ -6,8 +6,9 @@ from web.grant_applications.views import (
     PreviousApplicationsView, CompanyTradingDetailsView, ExportExperienceView, StateAidSummaryView,
     ApplicationReviewView, FindAnEventView, BeforeYouStartView, EventCommitmentView,
     CompanyDetailsView, ExportDetailsView, TradeEventDetailsView, AddStateAidView, EditStateAidView,
-    DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView, StartNewApplicationEmailView,
-    MagicLinkHandlerView, SelectApplicationProgressView, CheckYourEmailView, InvalidMagicLinkView, ExpiredMagicLinkView,
+    DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView,
+    StartNewApplicationEmailView, MagicLinkHandlerView, SelectApplicationProgressView,
+    CheckYourEmailView, InvalidMagicLinkView, ExpiredMagicLinkView,
     NoApplicationFoundView, ContinueApplicationEmailView
 )
 
@@ -16,9 +17,21 @@ app_name = 'grant_applications'
 urlpatterns = [
     path('', TemplateView.as_view(template_name='grant_applications/index.html'), name='index'),
     path('before-you-start/', BeforeYouStartView.as_view(), name='before-you-start'),
-    path('new-application-email/', StartNewApplicationEmailView.as_view(), name='new-application-email'),
-    path('continue-application-email/', ContinueApplicationEmailView.as_view(), name='continue-application-email'),
-    path('select-application-progress/', SelectApplicationProgressView.as_view(), name='select-application-progress'),
+    path(
+        'new-application-email/',
+        StartNewApplicationEmailView.as_view(),
+        name='new-application-email'
+    ),
+    path(
+        'continue-application-email/',
+        ContinueApplicationEmailView.as_view(),
+        name='continue-application-email'
+    ),
+    path(
+        'select-application-progress/',
+        SelectApplicationProgressView.as_view(),
+        name='select-application-progress'
+    ),
     path('check-your-email/', CheckYourEmailView.as_view(), name='check-your-email'),
     path('resume/<hash>/', MagicLinkHandlerView.as_view(), name='magic-link'),
     path('invalid-link/', InvalidMagicLinkView.as_view(), name='invalid-magic-link'),
