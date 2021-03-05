@@ -9,13 +9,13 @@ from web.grant_applications.views import (
     DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView,
     StartNewApplicationEmailView, MagicLinkHandlerView, SelectApplicationProgressView,
     CheckYourEmailView, InvalidMagicLinkView, ExpiredMagicLinkView,
-    NoApplicationFoundView, ContinueApplicationEmailView
+    NoApplicationFoundView, ContinueApplicationEmailView, ApplicationIndexView
 )
 
 app_name = 'grant_applications'
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name='grant_applications/index.html'), name='index'),
+    path('', ApplicationIndexView.as_view(), name='index'),
     path('before-you-start/', BeforeYouStartView.as_view(), name='before-you-start'),
     path(
         'new-application-email/',

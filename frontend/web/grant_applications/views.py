@@ -34,6 +34,17 @@ from web.grant_applications.view_mixins import (
 )
 
 
+class ApplicationIndexView(TemplateView):
+    template_name = 'grant_applications/index.html'
+
+    def clean_session_data(self):
+        self.request.session.pop(APPLICATION_EMAIL_SESSION_KEY, None)
+
+    def get(self, request, *args, **kwargs):
+        self.clean_session_data()
+        return super().get(request, *args, **kwargs)
+
+
 class MagicLinkHandlerView(RedirectView):
 
     def get_redirect_url(self, *args, **kwargs):
@@ -171,19 +182,19 @@ class StartNewApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, Fo
     success_url_name = 'grant_applications:check-your-email'
     extra_context = {
         'page': {
-            'heading': _('Your Email'),
+            'heading': _('Register your email'),
             'heading_text': _(
                 'Before you start, register your business email address '
                 'and we will send you a secure sign in link. You will also '
                 'be able to use your email address to return to your application.'
             )
         },
-        'button_text': 'Authenticate'
+        'button_text': 'Continue'
     }
 
     def form_valid(self, form):
         email = form.cleaned_data.get('email')
-        self.request.session[APPLICATION_EMAIL_SESSION_KEY] = None
+        self.request.session.pop(APPLICATION_EMAIL_SESSION_KEY, None)
         if self.model.objects.filter(email=email).exists():
             self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
             return HttpResponseRedirect(
@@ -208,6 +219,17 @@ class StartNewApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, Fo
 
 class ContinueApplicationEmailView(StartNewApplicationEmailView):
     back_url_name = 'grant-applications:before-you-start'
+    extra_context = {
+        'page': {
+            'heading': _('Enter your email'),
+            'heading_text': _(
+                'To continue with your application please enter the business '
+                'email address you registered with and we will send you a '
+                'secure sign in link.'
+            )
+        },
+        'button_text': 'Continue'
+    }
 
     def form_valid(self, form):
         email = form.cleaned_data.get('email')
@@ -219,7 +241,7 @@ class ContinueApplicationEmailView(StartNewApplicationEmailView):
                reverse('grant_applications:check-your-email')
             )
 
-        return HttpResponseRedirect('grant_applications:check-your-email')
+        return HttpResponseRedirect(reverse('grant_applications:check-your-email'))
 
 
 class SelectApplicationProgressView(BackContextMixin, FormView):
