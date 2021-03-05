@@ -195,7 +195,7 @@ class StartNewApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, Fo
     def form_valid(self, form):
         email = form.cleaned_data.get('email')
         self.request.session.pop(APPLICATION_EMAIL_SESSION_KEY, None)
-        if self.model.objects.filter(email=email).exists():
+        if self.model.objects.filter(email__iexact=email).exists():
             self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
             return HttpResponseRedirect(
                reverse('grant_applications:select-application-progress')
