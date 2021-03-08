@@ -16,7 +16,6 @@ class GrantApplicationLinkAdmin(admin.ModelAdmin):
     readonly_fields = (
         'id',
         'email',
-        'admin_state_url_name',
         'backoffice_grant_application_id',
         'has_viewed_review_page',
         'created',
@@ -25,12 +24,8 @@ class GrantApplicationLinkAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'email',
-        'admin_state_url_name',
         'backoffice_grant_application_id',
         'has_viewed_review_page',
         'created',
         'updated'
     )
-
-    def admin_state_url_name(self, obj):
-        return obj.state_url_name or self.model.APPLICATION_FIRST_STEP_URL_NAME

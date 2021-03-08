@@ -174,12 +174,12 @@ class BeforeYouStartView(BackContextMixin, TemplateView):
     }
 
 
-class StartNewApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, FormView):
+class StartNewApplicationView(BackContextMixin, SuccessUrlObjectPkMixin, FormView):
     model = GrantApplicationLink
     form_class = ApplicationEmailForm
     template_name = 'grant_applications/application-email.html'
     back_url_name = 'grant-applications:before-you-start'
-    success_url_name = 'grant_applications:check-your-email'
+    success_url_name = 'grant-applications:check-your-email'
     extra_context = {
         'page': {
             'heading': _('Register your email'),
@@ -195,7 +195,7 @@ class StartNewApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, Fo
     def form_valid(self, form):
         email = form.cleaned_data.get('email')
         self.request.session.pop(APPLICATION_EMAIL_SESSION_KEY, None)
-        if self.model.objects.filter(email=email).exists():
+        if self.model.objects.filter(email__iexact=email).exists():
             self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
             return HttpResponseRedirect(
                reverse('grant_applications:select-application-progress')
@@ -217,8 +217,8 @@ class StartNewApplicationEmailView(BackContextMixin, SuccessUrlObjectPkMixin, Fo
         return HttpResponseRedirect(reverse(self.success_url_name))
 
 
-class ContinueApplicationEmailView(StartNewApplicationEmailView):
-    back_url_name = 'grant-applications:before-you-start'
+class ContinueApplicationView(StartNewApplicationView):
+    back_url_name = 'grant-applications:index'
     extra_context = {
         'page': {
             'heading': _('Enter your email'),
@@ -241,7 +241,7 @@ class ContinueApplicationEmailView(StartNewApplicationEmailView):
                reverse('grant_applications:check-your-email')
             )
 
-        return HttpResponseRedirect(reverse('grant_applications:check-your-email'))
+        return HttpResponseRedirect(reverse('grant_applications:no-application-found'))
 
 
 class SelectApplicationProgressView(BackContextMixin, FormView):

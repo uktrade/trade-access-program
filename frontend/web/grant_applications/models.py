@@ -24,7 +24,3 @@ class GrantApplicationLink(models.Model):
             except NoReverseMatch:
                 return first_step_url
         return first_step_url
-
-    @property
-    def resume_url(self):
-        return reverse('grant_applications:resume', args=(self.id,))

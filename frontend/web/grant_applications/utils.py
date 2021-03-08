@@ -14,8 +14,10 @@ def encrypt_data(data):
     return signing.dumps(data)
 
 
-def decrypting_data(hashed_value, max_age=settings.MAGIC_LINK_HASH_TTL):
-    return signing.loads(hashed_value)
+def decrypting_data(hashed_value, max_age=None):
+    if max_age is None:
+        max_age = settings.MAGIC_LINK_HASH_TTL
+    return signing.loads(hashed_value, max_age=max_age)
 
 
 def generate_action_magic_link(data):

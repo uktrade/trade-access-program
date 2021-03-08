@@ -7,9 +7,9 @@ from web.grant_applications.views import (
     ApplicationReviewView, FindAnEventView, BeforeYouStartView, EventCommitmentView,
     CompanyDetailsView, ExportDetailsView, TradeEventDetailsView, AddStateAidView, EditStateAidView,
     DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView,
-    StartNewApplicationEmailView, MagicLinkHandlerView, SelectApplicationProgressView,
+    StartNewApplicationView, MagicLinkHandlerView, SelectApplicationProgressView,
     CheckYourEmailView, InvalidMagicLinkView, ExpiredMagicLinkView,
-    NoApplicationFoundView, ContinueApplicationEmailView, ApplicationIndexView
+    NoApplicationFoundView, ContinueApplicationView, ApplicationIndexView
 )
 
 app_name = 'grant_applications'
@@ -19,12 +19,12 @@ urlpatterns = [
     path('before-you-start/', BeforeYouStartView.as_view(), name='before-you-start'),
     path(
         'new-application-email/',
-        StartNewApplicationEmailView.as_view(),
+        StartNewApplicationView.as_view(),
         name='new-application-email'
     ),
     path(
         'continue-application-email/',
-        ContinueApplicationEmailView.as_view(),
+        ContinueApplicationView.as_view(),
         name='continue-application-email'
     ),
     path(
