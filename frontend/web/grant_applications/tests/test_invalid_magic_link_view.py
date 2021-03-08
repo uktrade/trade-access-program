@@ -1,6 +1,9 @@
+from unittest.mock import patch
+
 from django.urls import reverse
 
 from web.grant_applications.views import InvalidMagicLinkView
+from web.grant_applications.services import BackofficeService
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.testcases import BaseTestCase
 
@@ -12,11 +15,16 @@ class TestInvalidMagicLinkView(BaseTestCase):
         self.user_email = 'user@test.com'
         self.gal = GrantApplicationLinkFactory(email=self.user_email)
 
-    def test_get(self, *mocks):
+    def test_get(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, InvalidMagicLinkView.template_name)
 
+    @patch.object(
+        BackofficeService,
+        'send_resume_application_email',
+        return_value={}
+    )
     def test_post(self, *mocks):
         response = self.client.post(
             self.url,

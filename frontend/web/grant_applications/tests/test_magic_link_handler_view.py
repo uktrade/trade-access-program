@@ -1,11 +1,15 @@
 import time
+from unittest.mock import patch
 
 from django.test import override_settings
 from django.urls import reverse
 
 from web.grant_applications.utils import RESUME_APPLICATION_ACTION, encrypt_data
+from web.grant_applications.services import BackofficeService
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
 from web.tests.helpers.testcases import BaseTestCase
+
+from web.tests.helpers.backoffice_objects import FAKE_GRANT_APPLICATION
 
 
 class TestMagicLinkHandlerView(BaseTestCase):
@@ -21,7 +25,12 @@ class TestMagicLinkHandlerView(BaseTestCase):
         magic_link_hash = encrypt_data(data)
         self.url = reverse('grant-applications:magic-link', args=(magic_link_hash, ))
 
-    def test_valid_magic_link_url(self):
+    @patch.object(
+        BackofficeService,
+        'get_grant_application',
+        return_value=FAKE_GRANT_APPLICATION.copy()
+    )
+    def test_valid_magic_link_url(self, *mocks):
         response = self.client.get(self.url)
         self.assertRedirects(
             response,

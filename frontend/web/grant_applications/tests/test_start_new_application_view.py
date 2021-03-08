@@ -28,6 +28,11 @@ class TestStartNewApplicationView(BaseTestCase):
 
     @patch.object(
         BackofficeService,
+        'send_resume_application_email',
+        return_value={}
+    )
+    @patch.object(
+        BackofficeService,
         'create_grant_application',
         return_value=FAKE_GRANT_APPLICATION
     )
