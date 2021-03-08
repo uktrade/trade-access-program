@@ -6,14 +6,37 @@ from web.grant_applications.views import (
     PreviousApplicationsView, CompanyTradingDetailsView, ExportExperienceView, StateAidSummaryView,
     ApplicationReviewView, FindAnEventView, BeforeYouStartView, EventCommitmentView,
     CompanyDetailsView, ExportDetailsView, TradeEventDetailsView, AddStateAidView, EditStateAidView,
-    DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView
+    DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView,
+    StartNewApplicationView, MagicLinkHandlerView, SelectApplicationProgressView,
+    CheckYourEmailView, InvalidMagicLinkView, ExpiredMagicLinkView,
+    NoApplicationFoundView, ContinueApplicationView, ApplicationIndexView
 )
 
 app_name = 'grant_applications'
 
 urlpatterns = [
-    path('', TemplateView.as_view(template_name='grant_applications/index.html'), name='index'),
+    path('', ApplicationIndexView.as_view(), name='index'),
     path('before-you-start/', BeforeYouStartView.as_view(), name='before-you-start'),
+    path(
+        'new-application-email/',
+        StartNewApplicationView.as_view(),
+        name='new-application-email'
+    ),
+    path(
+        'continue-application-email/',
+        ContinueApplicationView.as_view(),
+        name='continue-application-email'
+    ),
+    path(
+        'select-application-progress/',
+        SelectApplicationProgressView.as_view(),
+        name='select-application-progress'
+    ),
+    path('check-your-email/', CheckYourEmailView.as_view(), name='check-your-email'),
+    path('resume/<hash>/', MagicLinkHandlerView.as_view(), name='magic-link'),
+    path('invalid-link/', InvalidMagicLinkView.as_view(), name='invalid-magic-link'),
+    path('expired-link/', ExpiredMagicLinkView.as_view(), name='expired-magic-link'),
+    path('no-application-found/', NoApplicationFoundView.as_view(), name='no-application-found'),
     path(
         '<pk>/previous-applications/',
         PreviousApplicationsView.as_view(),

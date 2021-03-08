@@ -17,6 +17,34 @@ from web.grant_applications.services import (
 )
 
 
+class ApplicationProgressForm(forms.Form):
+    CONTINUE_OPTION = 'continue'
+    START_NEW_OPTION = 'start_new'
+
+    progress_option = forms.TypedChoiceField(
+        empty_value=None,
+        coerce=str,
+        choices=[
+            (CONTINUE_OPTION, _('Yes, resume application')),
+            (START_NEW_OPTION, _('No, start a new TAP grant application'))
+        ],
+        widget=widgets.RadioSelect(),
+        label=_('Would you like to resume the application?'),
+    )
+
+
+class ApplicationEmailForm(forms.Form):
+    email = forms.EmailField(
+        label=_('Enter business email address'),
+        widget=forms.TextInput(
+            attrs={
+                'class': 'govuk-input govuk-!-width-two-thirds',
+                'type': 'email'
+            }
+        )
+    )
+
+
 class EmptyGrantApplicationLinkForm(forms.ModelForm):
 
     class Meta:

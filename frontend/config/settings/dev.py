@@ -13,10 +13,11 @@ LOGGING = {
         'level': 'INFO',
     },
     'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True,
+        'loggers': {
+            '': {  # 'catch all' loggers by referencing it with the empty string
+                'handlers': ['console'],
+                'level': 'DEBUG',
+            },
         },
     },
 }

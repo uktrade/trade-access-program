@@ -150,3 +150,7 @@ SASS_PROCESSOR_INCLUDE_DIRS = [
 BOOLEAN_CHOICES = [(True, 'Yes'), (False, 'No')]
 
 BACKOFFICE_API_URL = env('BACKOFFICE_API_URL', default=None)
+
+MAGIC_LINK_HASH_TTL = 60 * 60 * 24 * 30  # 30 days
+
+FRONTEND_DOMAIN = env('FRONTEND_DOMAIN', default='')

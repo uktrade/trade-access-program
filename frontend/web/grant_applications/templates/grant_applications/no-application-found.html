@@ -1,0 +1,7 @@
+{% extends "grant_applications/generic_form_page.html" %}
+{% block heading_text %}
+  <p class="govuk-body govuk-!-margin-bottom-6">
+    The email <strong>{{ view.user_email }}</strong> didn’t correspond to any TAP grant application.
+    Try entering your email again, or <a href="{% url 'grant_applications:index' %}">start a new application</a>.
+  </p>
+{% endblock %}

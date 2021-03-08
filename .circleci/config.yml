@@ -52,6 +52,7 @@ jobs:
           SECRET_KEY: ci-secret-key
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
+          NOTIFY_API_KEY: NOTIFICATION-SERVICE-KEY
           <<: *db_env
       - image: circleci/postgres:11
         environment:

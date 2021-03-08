@@ -22,6 +22,8 @@ PASSWORD_HASHERS = [
 CAN_ELEVATE_SSO_USER_PERMISSIONS = True
 CAN_CREATE_TEST_USER = True
 
+BASE_URL = 'http://localhost:8000'
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
