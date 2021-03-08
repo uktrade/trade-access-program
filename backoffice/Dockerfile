@@ -1,4 +1,4 @@
-FROM python:3.8.6 AS base
+FROM python:3.8.8 AS base
 
 RUN apt-get update && apt-get install --assume-yes graphviz
 
