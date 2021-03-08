@@ -50,6 +50,7 @@ class BackofficeService:
         self.trade_events_url = urljoin(self.base_url, 'trade-events/')
         self.trade_event_aggregates_url = urljoin(self.base_url, 'trade-events/aggregates/')
         self.sectors_url = urljoin(self.base_url, 'sectors/')
+        self.send_user_email_url = urljoin(self.base_url, 'send-resume-application-email/')
 
         self.session = requests.Session()
 
@@ -178,6 +179,19 @@ class BackofficeService:
         except (BackofficeServiceException, ValueError):
             if raise_exception:
                 raise
+
+    def send_resume_application_email(self, grant_application, magic_link):
+        response = self.session.post(
+            self.send_user_email_url,
+            json={
+                'template_name': 'resume-application',
+                'email': grant_application.email,
+                'personalisation': {
+                    'magic_link': magic_link
+                }
+            }
+        )
+        return response.json()
 
 
 def get_backoffice_choices(object_type, choice_id_key, choice_name_key, request_kwargs=None):

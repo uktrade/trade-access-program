@@ -27,7 +27,8 @@
 
     {% include 'core/govt_uk_details.html' with summary_text='What are DIT trade advisors and TCPs?' text='The DIT offers support to businesses considering international trade through International Trade Advisors. They act as independent mentors to both those new to, and experienced in exporting. They can help with everything from preparing for trade shows, creating an export growth action plan, advising on which markets are best for your business, and putting you touch with contacts who can help your international expansion.<br><br>Trade Challenge Partners, or TCPs, are trade associations and other industry representative organisations focused on overseas trade that are accredited by the DIT. Reflecting every sector and industry in the UK, accreditation allows these DIT partners to work with us to deliver customer-focused trade shows and events.' %}
 
-    {% include "core/govt_uk_form.html" with button_text="Continue" %}
+    {% url 'grant-applications:new-application-email' as application_email_href %}
+    {% include "core/govt_uk_link_button.html" with text="Continue" class="govuk-button" href=application_email_href %}
 
   </div>
 

@@ -15,7 +15,8 @@ class TestNotifyMixin:
     TEMPLATES = [
         {'id': 1, 'name': 'application-submitted'},
         {'id': 2, 'name': 'application-approved'},
-        {'id': 3, 'name': 'application-rejected'}
+        {'id': 3, 'name': 'application-rejected'},
+        {'id': 4, 'name': 'application-resume'}
     ]
 
     def setUp(self):
@@ -113,5 +114,23 @@ class TestNotifyApplicationRejected(TestNotifyMixin, BaseTestCase):
             personalisation={
                 'applicant_full_name': 'test',
                 'application_id': 'A'
+            }
+        )
+
+
+class TestNotifyApplicationResume(TestNotifyMixin, BaseTestCase):
+
+    @override_settings(NOTIFY_ENABLED=True)
+    def test_application_resume_sends_email(self):
+        self.notify_client.send_application_resume_email(
+            email_address='test@test.com',
+            magic_link='http://magic-link.com/hash'
+        )
+        self.assertTrue(self.notifications_api_client.send_email_notification.called)
+        self.notifications_api_client.send_email_notification.assert_called_once_with(
+            email_address='test@test.com',
+            template_id=4,
+            personalisation={
+                'magic_link': 'http://magic-link.com/hash'
             }
         )

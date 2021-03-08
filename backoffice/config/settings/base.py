@@ -221,3 +221,5 @@ GRAPH_MODELS = {
     'output': 'reports/diagrams/models.png',
     'theme': 'django2018',
 }
+
+FRONTEND_DOMAIN = env('FRONTEND_DOMAIN', default='')

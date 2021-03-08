@@ -79,3 +79,12 @@ class NotifyService:
                 'application_id': application_id,
             }
         )
+
+    def send_application_resume_email(self, email_address, magic_link):
+        self.send_email(
+            email_address=email_address,
+            template_name='application-resume',
+            personalisation={
+                'magic_link': magic_link
+            }
+        )
