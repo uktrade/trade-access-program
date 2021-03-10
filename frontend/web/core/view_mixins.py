@@ -160,7 +160,7 @@ class SaveStateMixin:
         application.state_url_name = self.success_url_name
         application.save()
 
-    def form_valid(self, form):
-        form_valid = super().form_valid(form)
+    def form_valid(self, form, *args, **kwargs):
+        form_valid = super().form_valid(form, *args, **kwargs)
         self.save_state(form)
         return form_valid
