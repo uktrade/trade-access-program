@@ -10,6 +10,7 @@ class GrantApplicationLinkAdmin(admin.ModelAdmin):
         'email',
         'backoffice_grant_application_id',
         'has_viewed_review_page',
+        'state_url_name',
         'created',
         'updated'
     )
@@ -18,6 +19,7 @@ class GrantApplicationLinkAdmin(admin.ModelAdmin):
         'email',
         'backoffice_grant_application_id',
         'has_viewed_review_page',
+        'state_url_name',
         'created',
         'updated'
     )
