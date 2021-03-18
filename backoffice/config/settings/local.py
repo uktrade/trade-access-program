@@ -54,3 +54,6 @@ LOGGING = {
         }
     },
 }
+
+MEDIA_ROOT = os.path.join(BACKOFFICE_DIR, 'media/')
+MEDIA_URL = '/media/'

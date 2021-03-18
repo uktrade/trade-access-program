@@ -893,3 +893,19 @@ class ApplicationReviewView(BackContextMixin, BackofficeMixin, SaveStateMixin,
         self.object.has_viewed_review_page = True
         self.object.save()
         return response
+
+
+class EventEvidenceView(SuccessUrlObjectPkMixin, UpdateView):
+    model = GrantApplicationLink
+    form_class = PreviousApplicationsForm
+    template_name = 'grant_applications/previous_applications.html'
+    back_url_name = 'grant-applications:before-you-start'
+    success_url_name = 'grant_applications:upload-completed'
+    extra_context = {
+        'page': {
+            'heading':  _('Previous TAP grants')
+        }
+    }
+
+    def get_back_url(self):
+        return reverse(self.back_url_name)

@@ -128,6 +128,7 @@ class GrantApplication(BaseMetaModel):
     export_experience_description = models.TextField(null=True)
     export_strategy = models.TextField(null=True)
     interest_in_event_description = models.TextField(null=True)
+    evidence_of_event_booking = models.ImageField(blank=True, null=True)
     is_in_contact_with_tcp = models.BooleanField(null=True)
     tcp_name = models.CharField(null=True, max_length=500)
     tcp_email = models.EmailField(null=True)
@@ -163,6 +164,10 @@ class GrantApplication(BaseMetaModel):
     @property
     def company_name(self):
         return self.manual_company_name or self.company.name
+
+    @property
+    def requested_event_commitment(self):
+        pass
 
 
 class StateAid(BaseMetaModel):

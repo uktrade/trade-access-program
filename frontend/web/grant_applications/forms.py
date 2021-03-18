@@ -888,3 +888,7 @@ class EditStateAidForm(AddStateAidForm):
             self.fields[field_name].required = False
             if hasattr(self.fields[field_name], 'empty_value'):
                 self.fields[field_name].empty_value = None
+
+
+class EventEvidenceUploadForm(forms.Form):
+    image = forms.ImageField()
