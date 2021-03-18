@@ -180,6 +180,16 @@ class BackofficeService:
             if raise_exception:
                 raise
 
+    def send_event_evidence_upload_confirmation(self, grant_application_id):
+        response = self.post(
+            urljoin(
+                self.grant_applications_url,
+                f'{grant_application_id}/send-evidence-upload-confirmation/'
+            ),
+            data={}
+        )
+        return response.json()
+
     def send_resume_application_email(self, grant_application, magic_link):
         response = self.session.post(
             self.send_user_email_url,

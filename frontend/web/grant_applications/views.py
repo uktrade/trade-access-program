@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import UpdateView, RedirectView, TemplateView, FormView
-from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.detail import SingleObjectMixin, DetailView
 
 from web.core.forms import FORM_MSGS
 from web.core.view_mixins import (
@@ -18,7 +18,8 @@ from web.grant_applications.forms import (
     CompanyTradingDetailsForm, ExportExperienceForm, FindAnEventForm,
     EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm, ContactDetailsForm,
     ExportDetailsForm, TradeEventDetailsForm, AddStateAidForm, EditStateAidForm,
-    ManualCompanyDetailsForm, ApplicationEmailForm, ApplicationProgressForm
+    ManualCompanyDetailsForm, ApplicationEmailForm, ApplicationProgressForm,
+    EventEvidenceUploadForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -895,17 +896,34 @@ class ApplicationReviewView(BackContextMixin, BackofficeMixin, SaveStateMixin,
         return response
 
 
-class EventEvidenceView(SuccessUrlObjectPkMixin, UpdateView):
+class EventEvidenceUploadView(BackofficeMixin, UpdateView):
     model = GrantApplicationLink
-    form_class = PreviousApplicationsForm
-    template_name = 'grant_applications/previous_applications.html'
-    back_url_name = 'grant-applications:before-you-start'
-    success_url_name = 'grant_applications:upload-completed'
+    form_class = EventEvidenceUploadForm
+    template_name = 'grant_applications/event_evidence_upload.html'
+    success_url_name = 'grant_applications:event-evidence-upload-complete'
     extra_context = {
         'page': {
-            'heading':  _('Previous TAP grants')
+            'heading':  _('Event Evidence Upload'),
         }
     }
 
-    def get_back_url(self):
-        return reverse(self.back_url_name)
+    def get_success_url(self):
+        return reverse('grant_applications:event-evidence-upload-complete', args=(self.object.pk,))
+
+    def form_valid(self, form):
+        del form.cleaned_data['image']
+        super().form_valid(form)
+        BackofficeService().send_event_evidence_upload_confirmation(
+            grant_application_id=self.object.backoffice_grant_application_id
+        )
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class EventEvidenceUploadCompleteView(BackofficeMixin, DetailView):
+    model = GrantApplicationLink
+    template_name = 'grant_applications/event_evidence_upload_complete.html'
+    extra_context = {
+        'page': {
+            'heading':  _('Upload Complete')
+        }
+    }

@@ -3,6 +3,7 @@ from viewflow import flow, frontend
 from viewflow.base import this, Flow
 
 from web.core.notify import NotifyService
+from web.core.utils import generate_frontend_action_magic_link
 from web.grant_management.forms import (
     VerifyPreviousApplicationsForm, VerifyBusinessEntityForm,
     VerifyEventCommitmentForm, VerifyStateAidForm, ProductsAndServicesForm, ExportStrategyForm,
@@ -14,9 +15,12 @@ from web.grant_management.views import BaseGrantManagementView
 
 @frontend.register
 class GrantManagementFlow(Flow):
+    notify_service = NotifyService()
+
     summary_template = "{{ process.grant_application.company.name" \
                        "|default:process.grant_application.manual_company_name }} " \
                        "[{{ process.status }}]"
+
     process_class = GrantManagementProcess
 
     start = flow.StartFunction(
@@ -58,7 +62,7 @@ class GrantManagementFlow(Flow):
     verify_state_aid = flow.View(
         BaseGrantManagementView,
         form_class=VerifyStateAidForm,
-        task_title='Verify event commitment'
+        task_title='Verify state eligibility'
     ).Next(this.finish_verify_tasks)
 
     finish_verify_tasks = flow.Join().Next(this.create_suitability_tasks)
@@ -120,7 +124,7 @@ class GrantManagementFlow(Flow):
         return activation.process
 
     def send_application_submitted_email_callback(self, activation):
-        NotifyService().send_application_submitted_email(
+        self.notify_service.send_application_submitted_email(
             email_address=activation.process.grant_application.applicant_email,
             applicant_full_name=activation.process.grant_application.applicant_full_name,
             application_id=activation.process.grant_application.id_str
@@ -128,14 +132,17 @@ class GrantManagementFlow(Flow):
 
     def send_decision_email_callback(self, activation):
         if activation.process.is_approved:
-            NotifyService().send_application_approved_email(
+            self.notify_service.send_application_approved_email(
                 email_address=activation.process.grant_application.applicant_email,
                 applicant_full_name=activation.process.grant_application.applicant_full_name,
                 application_id=activation.process.grant_application.id_str
             )
         else:
-            NotifyService().send_application_rejected_email(
+            self.notify_service.send_application_rejected_email(
                 email_address=activation.process.grant_application.applicant_email,
                 applicant_full_name=activation.process.grant_application.applicant_full_name,
                 application_id=activation.process.grant_application.id_str
             )
+
+    def send_event_booking_evidence_request_email_callback(self, activation):
+        magic_link = generate_frontend_action_magic_link()

@@ -890,5 +890,9 @@ class EditStateAidForm(AddStateAidForm):
                 self.fields[field_name].empty_value = None
 
 
-class EventEvidenceUploadForm(forms.Form):
-    image = forms.ImageField()
+class EventEvidenceUploadForm(forms.ModelForm):
+    image = forms.ImageField(required=True)
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = ('image', )

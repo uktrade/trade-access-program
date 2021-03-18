@@ -15,6 +15,7 @@ from web.grant_applications.services import GrantApplicationPdf
 
 class GrantApplicationsViewSet(ModelViewSet):
     queryset = GrantApplication.objects.all()
+    notification_service = NotifyService()
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -29,6 +30,20 @@ class GrantApplicationsViewSet(ModelViewSet):
         serializer.save()
         instance.send_for_review()
         return Response(self.get_serializer(instance).data)
+
+    @action(detail=True, methods=['POST'], url_path='send-evidence-upload-confirmation')
+    def send_evidence_upload_confirmation(self, request, pk=None):
+        grant_application = self.get_object()
+        email_data = {
+            'applicant_full_name': grant_application.applicant_full_name,
+            'application_id': grant_application.id_str,
+            'event_name': grant_application.event.name,
+        }
+        self.notification_service.send_event_evidence_upload_confirmation_email(
+            email_address=grant_application.applicant_email,
+            email_data=email_data
+        )
+        return Response({}, status=200)
 
     @action(detail=True, methods=['GET'], url_path='pdf')
     def pdf(self, request, pk=None):

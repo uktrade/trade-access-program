@@ -88,3 +88,20 @@ class NotifyService:
                 'magic_link': magic_link
             }
         )
+
+    def send_event_evidence_request_email(self, email_address, applicant_full_name, magic_link):
+        self.send_email(
+            email_address=email_address,
+            template_name='event-booking-evidence',
+            personalisation={
+                'applicant_full_name': applicant_full_name,
+                'magic_link': magic_link
+            }
+        )
+
+    def send_event_evidence_upload_confirmation_email(self, email_address, email_data):
+        self.send_email(
+            email_address=email_address,
+            template_name='event-evidence-upload-confirmation',
+            personalisation=email_data
+        )

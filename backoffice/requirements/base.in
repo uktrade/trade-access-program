@@ -17,3 +17,4 @@ reportlab==3.5.55
 requests==2.24.0
 sentry-sdk==0.17.8
 whitenoise==5.2.0
+Pillow==8.1.2
