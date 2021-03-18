@@ -36,6 +36,7 @@ urlpatterns = [
     path('', include(viewflow_apps.urls)),
 
     # API
+    path('api/', include('web.core.api_urls')),
     path('api/', include('web.companies.api_urls')),
     path('api/', include('web.grant_applications.api_urls')),
     path('api/', include('web.sectors.api_urls')),
