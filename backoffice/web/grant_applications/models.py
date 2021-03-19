@@ -61,6 +61,7 @@ class GrantApplication(BaseMetaModel):
         null=True, validators=[MinValueValidator(0), MaxValueValidator(6)]
     )
     event = models.ForeignKey('trade_events.Event', on_delete=PROTECT, null=True)
+    event_evidence_upload = models.ForeignKey('core.Image', on_delete=PROTECT, null=True)
     is_already_committed_to_event = models.BooleanField(null=True)
     search_term = models.CharField(max_length=500, null=True)
     company = models.ForeignKey('companies.Company', on_delete=PROTECT, null=True)

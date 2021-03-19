@@ -51,6 +51,7 @@ class BackofficeService:
         self.trade_event_aggregates_url = urljoin(self.base_url, 'trade-events/aggregates/')
         self.sectors_url = urljoin(self.base_url, 'sectors/')
         self.send_user_email_url = urljoin(self.base_url, 'send-resume-application-email/')
+        self.image_upload_url = urljoin(self.base_url, 'image-upload/')
 
         self.session = requests.Session()
 
@@ -72,6 +73,20 @@ class BackofficeService:
 
     def patch(self, url, data):
         return self.request('PATCH', url, data)
+
+    def upload_image(self, file, extra_data=None):
+        if extra_data is None:
+            extra_data = {}
+
+        files_data = {
+            'file': file
+        }
+        response = self.session.post(
+            self.image_upload_url,
+            data=extra_data,
+            files=files_data
+        )
+        return response.json()
 
     def create_company(self, duns_number, registration_number, name):
         response = self.session.post(

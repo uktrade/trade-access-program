@@ -6,4 +6,4 @@ from web.core.models import Image
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ('file', 'uploaded_at')
+        fields = ('id', 'file', 'uploaded_at')

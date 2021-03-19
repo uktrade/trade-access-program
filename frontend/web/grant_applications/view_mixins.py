@@ -24,16 +24,17 @@ class BackofficeMixin:
         return obj
 
     def form_valid(self, form, extra_grant_application_data=None):
-        if form.cleaned_data and form.instance.backoffice_grant_application_id:
+        if (form.cleaned_data or extra_grant_application_data) and form.instance.backoffice_grant_application_id:
             extra_grant_application_data = extra_grant_application_data or {}
             fields = self.grant_application_fields or form.cleaned_data.keys()
             grant_application_data = {f: form.cleaned_data[f] for f in fields}
+            grant_application_data.update(extra_grant_application_data)
             if grant_application_data:
                 try:
                     self.backoffice_grant_application = \
                         self.backoffice_service.update_grant_application(
                             grant_application_id=str(form.instance.backoffice_grant_application_id),
-                            **grant_application_data, **extra_grant_application_data
+                            **grant_application_data
                         )
                 except BackofficeServiceException:
                     form.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))

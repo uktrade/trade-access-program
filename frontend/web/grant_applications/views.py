@@ -1,6 +1,6 @@
 from django import forms
 from django.core.signing import SignatureExpired, BadSignature
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.urls import reverse, resolve
 from django.utils import timezone
 from django.utils.http import urlencode
@@ -901,19 +901,46 @@ class EventEvidenceUploadView(BackofficeMixin, UpdateView):
     form_class = EventEvidenceUploadForm
     template_name = 'grant_applications/event_evidence_upload.html'
     success_url_name = 'grant_applications:event-evidence-upload-complete'
+    backoffice_service = BackofficeService()
     extra_context = {
         'page': {
             'heading':  _('Event Evidence Upload'),
         }
     }
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.backoffice_grant_application:
+            is_event_evidence_requested = self.backoffice_grant_application.get('is_event_evidence_requested')
+            is_event_evidence_uploaded = self.backoffice_grant_application.get('is_event_evidence_uploaded')
+            if not is_event_evidence_requested:
+                raise Http404
+
+            if is_event_evidence_uploaded:
+                return HttpResponseRedirect(
+                    reverse('grant_applications:event-evidence-upload-complete', args=(self.object.pk,))
+                )
+        return super().get(request, *args, **kwargs)
+
+    def get_template_names(self):
+        return super().get_template_names()
+
     def get_success_url(self):
         return reverse('grant_applications:event-evidence-upload-complete', args=(self.object.pk,))
 
     def form_valid(self, form):
-        del form.cleaned_data['image']
-        super().form_valid(form)
-        BackofficeService().send_event_evidence_upload_confirmation(
+        try:
+            image_file = form.cleaned_data.pop('image')
+            image_data = self.backoffice_service.upload_image(file=image_file)
+        except BackofficeServiceException:
+            form.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))
+            return super().form_invalid(form)
+        extra_grant_application_data = {
+            'event_evidence_upload': image_data['id'],
+            'is_event_evidence_uploaded': True
+        }
+        super().form_valid(form, extra_grant_application_data=extra_grant_application_data)
+        self.backoffice_service.send_event_evidence_upload_confirmation(
             grant_application_id=self.object.backoffice_grant_application_id
         )
         return HttpResponseRedirect(self.get_success_url())
@@ -925,5 +952,7 @@ class EventEvidenceUploadCompleteView(BackofficeMixin, DetailView):
     extra_context = {
         'page': {
             'heading':  _('Upload Complete')
-        }
+        },
+        'button_text': 'Upload'
     }
+
