@@ -71,6 +71,17 @@ class VerifyStateAidForm(forms.ModelForm):
     )
 
 
+class EventBookingDocumentRenewForm(forms.ModelForm):
+
+    class Meta:
+        model = GrantManagementProcess
+        fields = ['event_booking_document_renew_decision']
+
+    event_booking_document_renew_decision = forms.CharField(
+        widget=forms.RadioSelect(choices=GrantManagementProcess.Decision.choices)
+    )
+
+
 class ProductsAndServicesForm(forms.ModelForm):
     layout = Layout(
         Row('products_and_services_score'),

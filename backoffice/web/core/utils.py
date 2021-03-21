@@ -5,19 +5,21 @@ from django.conf import settings
 
 
 def encrypt_data(data):
-    """
-        Converting the data into a hash value
-    """
-    return signing.dumps(data)
+    return signing.dumps(data, key=settings.FRONTEND_SECRET_KEY)
 
 
 def decrypting_data(hashed_value, max_age=None):
     if max_age is None:
         max_age = settings.MAGIC_LINK_HASH_TTL
-    return signing.loads(hashed_value, max_age=max_age)
+
+    return signing.loads(
+        hashed_value,
+        max_age=max_age,
+        key=settings.FRONTEND_SECRET_KEY
+    )
 
 
-FRONTEND_MAGIC_LINK_VIEW_URL = '/resume/{hash}'
+FRONTEND_MAGIC_LINK_VIEW_URL = '/grant-applications/resume/{hash}'
 
 
 def generate_frontend_action_magic_link(data):

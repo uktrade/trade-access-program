@@ -1,0 +1,23 @@
+{% extends "viewflow/flow/task.html" %}
+{% load i18n viewflow material_frontend %}
+
+
+{% block information_cards %}
+<div class="card">
+  <div class="card-content">
+    <div class="row">
+      <p>The applicant has passed the initial eligibility checks and must now provide proof of their event booking</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block task_actions %}
+<div class="col s4">
+  <a class="btn btn-flat" href="{% flowurl activation.task 'detail' %}?{{ request|query_back }}">{% trans 'View task detail' %}</a>
+</div>
+<div class="col s8 right-align">
+  <button type="submit" name="_done" class="btn primary green darken-4 white-text">{% trans 'request event booking document' %}</button>
+</div>
+{% endblock %}

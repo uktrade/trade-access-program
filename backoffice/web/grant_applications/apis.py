@@ -11,6 +11,7 @@ from web.grant_applications.serializers import (
 )
 from web.core.notify import NotifyService
 from web.grant_applications.services import GrantApplicationPdf
+from web.grant_management.flows import GrantManagementFlow
 
 
 class GrantApplicationsViewSet(ModelViewSet):
@@ -31,18 +32,24 @@ class GrantApplicationsViewSet(ModelViewSet):
         instance.send_for_review()
         return Response(self.get_serializer(instance).data)
 
-    @action(detail=True, methods=['POST'], url_path='send-evidence-upload-confirmation')
-    def send_evidence_upload_confirmation(self, request, pk=None):
+    @action(detail=True, methods=['POST'], url_path='event-evidence-upload-confirmation')
+    def event_evidence_upload_confirmation(self, request, pk=None):
         grant_application = self.get_object()
-        email_data = {
-            'applicant_full_name': grant_application.applicant_full_name,
-            'application_id': grant_application.id_str,
-            'event_name': grant_application.event.name,
-        }
-        self.notification_service.send_event_evidence_upload_confirmation_email(
-            email_address=grant_application.applicant_email,
-            email_data=email_data
-        )
+        if not grant_application.is_event_evidence_uploaded:
+            email_data = {
+                'applicant_full_name': grant_application.applicant_full_name,
+                'application_id': grant_application.id_str,
+                'event_name': grant_application.event.name,
+            }
+            self.notification_service.send_event_evidence_upload_confirmation_email(
+                email_address=grant_application.applicant_email,
+                email_data=email_data
+            )
+
+            # Initialise grant management tasks
+            GrantManagementFlow.create_review_evidence_task.run(
+                grant_application=grant_application
+            )
         return Response({}, status=200)
 
     @action(detail=True, methods=['GET'], url_path='pdf')

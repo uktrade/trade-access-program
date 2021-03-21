@@ -27,7 +27,8 @@ from web.grant_applications.services import (
     get_state_aid_summary_table, ApplicationReviewService
 )
 from web.grant_applications.utils import (
-    send_resume_application_email, decrypting_data, RESUME_APPLICATION_ACTION
+    send_resume_application_email, decrypting_data, RESUME_APPLICATION_ACTION,
+    UPLOAD_EVENT_BOOKING_EVIDENCE_ACTION
 )
 
 from web.grant_applications.view_mixins import (
@@ -64,6 +65,19 @@ class MagicLinkHandlerView(RedirectView):
 
         if data.get('action-type') == RESUME_APPLICATION_ACTION:
             return data.get('redirect-url', invalid_link_url)
+
+        if data.get('action-type') == UPLOAD_EVENT_BOOKING_EVIDENCE_ACTION:
+            application_backoffice_id = data.get('application-backoffice-id')
+            try:
+                grant_application_link = GrantApplicationLink.objects.get(
+                    backoffice_grant_application_id=application_backoffice_id
+                )
+                return reverse(
+                    'grant_applications:event-evidence-upload',
+                    args=(grant_application_link.id,)
+                )
+            except GrantApplicationLink.DoesNotExist:
+                pass
 
         return invalid_link_url
 
@@ -937,7 +951,6 @@ class EventEvidenceUploadView(BackofficeMixin, UpdateView):
             return super().form_invalid(form)
         extra_grant_application_data = {
             'event_evidence_upload': image_data['id'],
-            'is_event_evidence_uploaded': True
         }
         super().form_valid(form, extra_grant_application_data=extra_grant_application_data)
         self.backoffice_service.send_event_evidence_upload_confirmation(

@@ -199,7 +199,7 @@ class BackofficeService:
         response = self.post(
             urljoin(
                 self.grant_applications_url,
-                f'{grant_application_id}/send-evidence-upload-confirmation/'
+                f'{grant_application_id}/event-evidence-upload-confirmation/'
             ),
             data={}
         )

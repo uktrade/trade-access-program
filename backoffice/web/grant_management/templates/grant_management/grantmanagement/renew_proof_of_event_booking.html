@@ -1,0 +1,14 @@
+{% extends "viewflow/flow/task.html" %}
+{% load i18n %}
+
+{% block information_cards %}
+<div class="card">
+  <div class="card-content">
+    <span class="card-title">{{ information_card_title }}</span>
+    <div class="row">
+      <img src="{{ activation.process.grant_application.event_evidence_upload.file.url }}" class="card-image">
+      <p class="govuk-!-margin-4">Application submitted: <strong>{{ activation.process.grant_application.created }}</strong></p>
+    </div>
+  </div>
+</div>
+{% endblock %}

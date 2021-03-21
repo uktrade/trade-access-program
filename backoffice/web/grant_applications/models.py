@@ -8,6 +8,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from web.core.abstract_models import BaseMetaModel
 from web.grant_management.flows import GrantManagementFlow
+from web.grant_management.models import GrantManagementProcess
 
 
 class GrantApplication(BaseMetaModel):
@@ -169,8 +170,8 @@ class GrantApplication(BaseMetaModel):
         return self.manual_company_name or self.company.name
 
     @property
-    def requested_event_commitment(self):
-        pass
+    def flow_process(self):
+        return GrantManagementProcess.objects.get(grant_application_id=self.id)
 
 
 class StateAid(BaseMetaModel):
