@@ -1,6 +1,6 @@
 from django import forms
 from django.core.signing import SignatureExpired, BadSignature
-from django.http import HttpResponseRedirect, HttpResponse, Http404
+from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse, resolve
 from django.utils import timezone
 from django.utils.http import urlencode
@@ -968,4 +968,3 @@ class EventEvidenceUploadCompleteView(BackofficeMixin, DetailView):
             'heading':  _('Event confirmation shared successfully')
         },
     }
-
