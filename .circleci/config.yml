@@ -56,7 +56,6 @@ jobs:
           <<: *db_env
       - image: circleci/postgres:11
         environment:
-          NOTIFY_API_KEY: NOTIFICATION-SERVICE-KEY
           <<: *db_env
 
     steps:
