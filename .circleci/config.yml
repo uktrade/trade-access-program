@@ -109,15 +109,15 @@ jobs:
       - run:
           name: Migrate DB
           command: |
-          echo "DJANGO_SETTINGS_MODULE=config.settings.ci
-          SECRET_KEY=ci-secret-key
-          POSTGRES_HOST=backoffice_db
-          POSTGRES_PORT=5432
-          NOTIFY_API_KEY=NOTIFICATION-SERVICE-KEY
-          POSTGRES_USER=tap
-          POSTGRES_DB=tap
-          POSTGRES_PASSWORD=tap" > backoffice/.env
-          make -C backoffice django-migrate
+            echo "DJANGO_SETTINGS_MODULE=config.settings.ci
+            SECRET_KEY=ci-secret-key
+            POSTGRES_HOST=backoffice_db
+            POSTGRES_PORT=5432
+            NOTIFY_API_KEY=NOTIFICATION-SERVICE-KEY
+            POSTGRES_USER=tap
+            POSTGRES_DB=tap
+            POSTGRES_PASSWORD=tap" > backoffice/.env
+            make -C backoffice django-migrate
       - run:
           name: Generate ERDs
           command: |
