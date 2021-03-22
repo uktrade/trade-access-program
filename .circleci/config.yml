@@ -56,6 +56,7 @@ jobs:
           <<: *db_env
       - image: circleci/postgres:11
         environment:
+          NOTIFY_API_KEY: NOTIFICATION-SERVICE-KEY
           <<: *db_env
 
     steps:
@@ -108,7 +109,16 @@ jobs:
           command: make build-backoffice
       - run:
           name: Migrate DB
-          command: make -C backoffice django-migrate
+          command: |
+          echo "DJANGO_SETTINGS_MODULE=config.settings.ci
+          SECRET_KEY=ci-secret-key
+          POSTGRES_HOST=backoffice_db
+          POSTGRES_PORT=5432
+          NOTIFY_API_KEY=NOTIFICATION-SERVICE-KEY
+          POSTGRES_USER=tap
+          POSTGRES_DB=tap
+          POSTGRES_PASSWORD=tap" > backoffice/.env
+          make -C backoffice django-migrate
       - run:
           name: Generate ERDs
           command: |
