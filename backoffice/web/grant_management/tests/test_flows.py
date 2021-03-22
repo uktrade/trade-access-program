@@ -1,9 +1,7 @@
-from unittest.mock import patch, create_autospec
+from unittest.mock import patch
 
 from web.companies.services import DnbServiceClient
-from web.core.notify import NotifyService
 from web.grant_management.flows import GrantManagementFlow
-from web.grant_management.models import GrantManagementProcess
 from web.grant_management.tests.helpers import GrantManagementFlowTestHelper
 from web.tests.factories.grant_applications import CompletedGrantApplicationFactory
 from web.tests.factories.users import UserFactory
