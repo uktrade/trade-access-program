@@ -6,6 +6,8 @@ from web.grant_applications.models import GrantApplication
 
 
 class GrantApplicationFactory(factory.django.DjangoModelFactory):
+    applicant_full_name = factory.Sequence(lambda n: f'name-{n}')
+
     class Meta:
         model = GrantApplication
 

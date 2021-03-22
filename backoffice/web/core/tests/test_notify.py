@@ -16,7 +16,11 @@ class TestNotifyMixin:
         {'id': 1, 'name': 'application-submitted'},
         {'id': 2, 'name': 'application-approved'},
         {'id': 3, 'name': 'application-rejected'},
-        {'id': 4, 'name': 'application-resume'}
+        {'id': 4, 'name': 'application-resume'},
+        {'id': 5, 'name': 'event-booking-document-approved'},
+        {'id': 6, 'name': 'event-booking-document-rejected'},
+        {'id': 7, 'name': 'event-booking-evidence'},
+        {'id': 8, 'name': 'event-evidence-upload-confirmation'}
     ]
 
     def setUp(self):
