@@ -918,8 +918,9 @@ class EventEvidenceUploadView(BackofficeMixin, UpdateView):
     backoffice_service = BackofficeService()
     extra_context = {
         'page': {
-            'heading':  _('Event Evidence Upload'),
-        }
+            'heading':  _('Share event confirmation'),
+        },
+        'button_text': 'Submit'
     }
 
     def get(self, request, *args, **kwargs):
@@ -964,8 +965,7 @@ class EventEvidenceUploadCompleteView(BackofficeMixin, DetailView):
     template_name = 'grant_applications/event_evidence_upload_complete.html'
     extra_context = {
         'page': {
-            'heading':  _('Upload Complete')
+            'heading':  _('Event confirmation shared successfully')
         },
-        'button_text': 'Upload'
     }
 

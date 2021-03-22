@@ -891,7 +891,10 @@ class EditStateAidForm(AddStateAidForm):
 
 
 class EventEvidenceUploadForm(forms.ModelForm):
-    image = forms.ImageField(required=True)
+    image = forms.ImageField(
+        required=True,
+        label=_('Upload a receipt showing confirmation of your exhibition space booking')
+    )
 
     class Meta:
         model = GrantApplicationLink
