@@ -17,6 +17,7 @@ import environ
 from django.urls import reverse_lazy
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BACKOFFICE_DIR = os.path.dirname(BASE_DIR)
 
 env = environ.Env()
 
@@ -223,3 +224,5 @@ GRAPH_MODELS = {
 }
 
 FRONTEND_DOMAIN = env('FRONTEND_DOMAIN', default='')
+FRONTEND_SECRET_KEY = env('FRONTEND_SECRET_KEY', default='')
+MAGIC_LINK_HASH_TTL = 60 * 60 * 24 * 30  # 30 days

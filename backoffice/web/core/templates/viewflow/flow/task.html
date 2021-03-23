@@ -16,9 +16,9 @@
   <div class="card">
     <div class="card-content">
       <span class="card-title">{{ activation.task.flow_task.task_title|default:activation.task.flow_task }}</span>
-      <p>Application ID {{ activation.process.grant_application.id }}</p>
-      <p>Business name {{ activation.process.grant_application.company.name }}</p>
-      <p>Application status {{ activation.process.status }}</p>
+      <p>Application ID: <strong>{{ activation.process.grant_application.id_str }}</strong></p>
+      <p>Business name: <strong>{{ activation.process.grant_application.company_name }}</strong></p>
+      <p>Application status: <strong>{{ activation.process.status }}</strong></p>
     </div>
   </div>
   {% endblock %}

@@ -8,9 +8,6 @@ from web.grant_applications.services import BackofficeService
 
 
 def encrypt_data(data):
-    """
-        Converting the data into a hash value
-    """
     return signing.dumps(data)
 
 
@@ -27,6 +24,7 @@ def generate_action_magic_link(data):
 
 
 RESUME_APPLICATION_ACTION = 'resume-application-link'
+UPLOAD_EVENT_BOOKING_EVIDENCE_ACTION = 'upload-event-evidence'
 
 
 def send_resume_application_email(grant_application):

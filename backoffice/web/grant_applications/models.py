@@ -8,6 +8,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from web.core.abstract_models import BaseMetaModel
 from web.grant_management.flows import GrantManagementFlow
+from web.grant_management.models import GrantManagementProcess
 
 
 class GrantApplication(BaseMetaModel):
@@ -61,6 +62,7 @@ class GrantApplication(BaseMetaModel):
         null=True, validators=[MinValueValidator(0), MaxValueValidator(6)]
     )
     event = models.ForeignKey('trade_events.Event', on_delete=PROTECT, null=True)
+    event_evidence_upload = models.ForeignKey('core.Image', on_delete=PROTECT, null=True)
     is_already_committed_to_event = models.BooleanField(null=True)
     search_term = models.CharField(max_length=500, null=True)
     company = models.ForeignKey('companies.Company', on_delete=PROTECT, null=True)
@@ -128,6 +130,9 @@ class GrantApplication(BaseMetaModel):
     export_experience_description = models.TextField(null=True)
     export_strategy = models.TextField(null=True)
     interest_in_event_description = models.TextField(null=True)
+    is_event_evidence_requested = models.BooleanField(default=False)
+    is_event_evidence_uploaded = models.BooleanField(default=False)
+    is_event_evidence_approved = models.BooleanField(default=False)
     is_in_contact_with_tcp = models.BooleanField(null=True)
     tcp_name = models.CharField(null=True, max_length=500)
     tcp_email = models.EmailField(null=True)
@@ -163,6 +168,10 @@ class GrantApplication(BaseMetaModel):
     @property
     def company_name(self):
         return self.manual_company_name or self.company.name
+
+    @property
+    def flow_process(self):
+        return GrantManagementProcess.objects.get(grant_application_id=self.id)
 
 
 class StateAid(BaseMetaModel):

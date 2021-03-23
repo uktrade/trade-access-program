@@ -888,3 +888,14 @@ class EditStateAidForm(AddStateAidForm):
             self.fields[field_name].required = False
             if hasattr(self.fields[field_name], 'empty_value'):
                 self.fields[field_name].empty_value = None
+
+
+class EventEvidenceUploadForm(forms.ModelForm):
+    image = forms.ImageField(
+        required=True,
+        label=_('Upload a receipt showing confirmation of your exhibition space booking')
+    )
+
+    class Meta:
+        model = GrantApplicationLink
+        fields = ('image', )

@@ -88,3 +88,44 @@ class NotifyService:
                 'magic_link': magic_link
             }
         )
+
+    def send_event_evidence_request_email(self, email_address, applicant_full_name, magic_link):
+        self.send_email(
+            email_address=email_address,
+            template_name='event-booking-evidence',
+            personalisation={
+                'applicant_full_name': applicant_full_name,
+                'magic_link': magic_link
+            }
+        )
+
+    def send_event_evidence_upload_confirmation_email(self, email_address, email_data):
+        self.send_email(
+            email_address=email_address,
+            template_name='event-evidence-upload-confirmation',
+            personalisation={
+                'applicant_full_name': email_data.get('applicant_full_name'),
+                'application_id': email_data.get('application_id'),
+                'event_name': email_data.get('event_name')
+            }
+        )
+
+    def send_event_booking_document_approved_email(self, email_address, applicant_full_name, application_id):
+        self.send_email(
+            email_address=email_address,
+            template_name='event-booking-document-approved',
+            personalisation={
+                'applicant_full_name': applicant_full_name,
+                'application_id': application_id,
+            }
+        )
+
+    def send_event_booking_document_rejected_email(self, email_address, applicant_full_name, application_id):
+        self.send_email(
+            email_address=email_address,
+            template_name='event-booking-document-approved',
+            personalisation={
+                'applicant_full_name': applicant_full_name,
+                'application_id': application_id,
+            }
+        )

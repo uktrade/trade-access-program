@@ -36,6 +36,7 @@ urlpatterns = [
     path('', include(viewflow_apps.urls)),
 
     # API
+    path('api/', include('web.core.api_urls')),
     path('api/', include('web.companies.api_urls')),
     path('api/', include('web.grant_applications.api_urls')),
     path('api/', include('web.sectors.api_urls')),
@@ -44,6 +45,10 @@ urlpatterns = [
 
 if settings.DEBUG:
     import debug_toolbar
+    from django.views.static import serve
     urlpatterns = [
         url('^__debug__/', include(debug_toolbar.urls)),
+        url(r'^media/(?P<path>.*)$', serve, {
+            'document_root': settings.MEDIA_ROOT,
+        }),
     ] + urlpatterns

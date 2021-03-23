@@ -1,0 +1,17 @@
+{% extends 'grant_applications/generic_form_page.html' %}
+
+{% block heading_text %}
+
+    <div class="govuk-body">
+      <p>Application reference number: {{ button_text }} <strong>{{ view.backoffice_grant_application.id }}</strong></p>
+      <p>Business name: <strong>{{ view.backoffice_grant_application.company.name }}</strong></p>
+      <p class="govuk-!-margin-1">{{ view.backoffice_grant_application.event.name }}</p>
+      <div class="govuk-hint">
+        {{ view.backoffice_grant_application.event.tcp }}<br>
+        {{ view.backoffice_grant_application.event.sector }}<br>
+        {{ view.backoffice_grant_application.event.sub_sector }}<br>
+        {{ view.backoffice_grant_application.event.city }}, {{ view.backoffice_grant_application.event.country }}<br>
+        {{ view.backoffice_grant_application.event.start_date }} to {{ view.backoffice_grant_application.event.end_date }}
+      </div>
+    </div>
+{% endblock heading_text %}

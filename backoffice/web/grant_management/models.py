@@ -26,6 +26,11 @@ class GrantManagementProcess(Process):
     event_commitment_is_verified = models.BooleanField(null=True)
     business_entity_is_verified = models.BooleanField(null=True)
     state_aid_is_verified = models.BooleanField(null=True)
+    event_booking_document_renew_decision = models.CharField(
+        null=True,
+        choices=Decision.choices,
+        max_length=10
+    )
     products_and_services_score = models.IntegerField(
         null=True, choices=ScoreChoices.choices,
         validators=[MinValueValidator(1), MaxValueValidator(5)]
@@ -53,6 +58,14 @@ class GrantManagementProcess(Process):
     @property
     def is_rejected(self):
         return self.decision == self.Decision.REJECTED
+
+    @property
+    def is_event_booking_document_approved(self):
+        return self.event_booking_document_renew_decision == self.Decision.APPROVED
+
+    @property
+    def is_event_booking_document_rejected(self):
+        return self.event_booking_document_renew_decision == self.Decision.REJECTED
 
     @property
     def total_verified(self):

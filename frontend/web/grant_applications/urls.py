@@ -9,7 +9,8 @@ from web.grant_applications.views import (
     DeleteStateAidView, DuplicateStateAidView, ManualCompanyDetailsView,
     StartNewApplicationView, MagicLinkHandlerView, SelectApplicationProgressView,
     CheckYourEmailView, InvalidMagicLinkView, ExpiredMagicLinkView,
-    NoApplicationFoundView, ContinueApplicationView, ApplicationIndexView
+    NoApplicationFoundView, ContinueApplicationView, ApplicationIndexView, EventEvidenceUploadView,
+    EventEvidenceUploadCompleteView
 )
 
 app_name = 'grant_applications'
@@ -86,4 +87,15 @@ urlpatterns = [
         TemplateView.as_view(template_name='grant_applications/ineligible.html'),
         name='ineligible'
     ),
+
+    path(
+        '<pk>/event-booking-evidence-upload/',
+        EventEvidenceUploadView.as_view(),
+        name='event-evidence-upload'
+    ),
+    path(
+        '<pk>/event-booking-evidence-complete/',
+        EventEvidenceUploadCompleteView.as_view(),
+        name='event-evidence-upload-complete'
+    )
 ]

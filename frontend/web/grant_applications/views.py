@@ -1,12 +1,12 @@
 from django import forms
 from django.core.signing import SignatureExpired, BadSignature
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.urls import reverse, resolve
 from django.utils import timezone
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import UpdateView, RedirectView, TemplateView, FormView
-from django.views.generic.detail import SingleObjectMixin
+from django.views.generic.detail import SingleObjectMixin, DetailView
 
 from web.core.forms import FORM_MSGS
 from web.core.view_mixins import (
@@ -18,7 +18,8 @@ from web.grant_applications.forms import (
     CompanyTradingDetailsForm, ExportExperienceForm, FindAnEventForm,
     EmptyGrantApplicationLinkForm, EventCommitmentForm, CompanyDetailsForm, ContactDetailsForm,
     ExportDetailsForm, TradeEventDetailsForm, AddStateAidForm, EditStateAidForm,
-    ManualCompanyDetailsForm, ApplicationEmailForm, ApplicationProgressForm
+    ManualCompanyDetailsForm, ApplicationEmailForm, ApplicationProgressForm,
+    EventEvidenceUploadForm
 )
 from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import (
@@ -26,7 +27,8 @@ from web.grant_applications.services import (
     get_state_aid_summary_table, ApplicationReviewService
 )
 from web.grant_applications.utils import (
-    send_resume_application_email, decrypting_data, RESUME_APPLICATION_ACTION
+    send_resume_application_email, decrypting_data, RESUME_APPLICATION_ACTION,
+    UPLOAD_EVENT_BOOKING_EVIDENCE_ACTION
 )
 
 from web.grant_applications.view_mixins import (
@@ -63,6 +65,19 @@ class MagicLinkHandlerView(RedirectView):
 
         if data.get('action-type') == RESUME_APPLICATION_ACTION:
             return data.get('redirect-url', invalid_link_url)
+
+        if data.get('action-type') == UPLOAD_EVENT_BOOKING_EVIDENCE_ACTION:
+            application_backoffice_id = data.get('application-backoffice-id')
+            try:
+                grant_application_link = GrantApplicationLink.objects.get(
+                    backoffice_grant_application_id=application_backoffice_id
+                )
+                return reverse(
+                    'grant_applications:event-evidence-upload',
+                    args=(grant_application_link.id,)
+                )
+            except GrantApplicationLink.DoesNotExist:
+                pass
 
         return invalid_link_url
 
@@ -893,3 +908,63 @@ class ApplicationReviewView(BackContextMixin, BackofficeMixin, SaveStateMixin,
         self.object.has_viewed_review_page = True
         self.object.save()
         return response
+
+
+class EventEvidenceUploadView(BackofficeMixin, UpdateView):
+    model = GrantApplicationLink
+    form_class = EventEvidenceUploadForm
+    template_name = 'grant_applications/event_evidence_upload.html'
+    success_url_name = 'grant_applications:event-evidence-upload-complete'
+    backoffice_service = BackofficeService()
+    extra_context = {
+        'page': {
+            'heading':  _('Share event confirmation'),
+        },
+        'button_text': 'Submit'
+    }
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.backoffice_grant_application:
+            is_event_evidence_requested = self.backoffice_grant_application.get('is_event_evidence_requested')
+            is_event_evidence_uploaded = self.backoffice_grant_application.get('is_event_evidence_uploaded')
+            if not is_event_evidence_requested:
+                raise Http404
+
+            if is_event_evidence_uploaded:
+                return HttpResponseRedirect(
+                    reverse('grant_applications:event-evidence-upload-complete', args=(self.object.pk,))
+                )
+        return super().get(request, *args, **kwargs)
+
+    def get_template_names(self):
+        return super().get_template_names()
+
+    def get_success_url(self):
+        return reverse('grant_applications:event-evidence-upload-complete', args=(self.object.pk,))
+
+    def form_valid(self, form):
+        try:
+            image_file = form.cleaned_data.pop('image')
+            image_data = self.backoffice_service.upload_image(file=image_file)
+        except BackofficeServiceException:
+            form.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))
+            return super().form_invalid(form)
+        extra_grant_application_data = {
+            'event_evidence_upload': image_data['id'],
+        }
+        super().form_valid(form, extra_grant_application_data=extra_grant_application_data)
+        self.backoffice_service.send_event_evidence_upload_confirmation(
+            grant_application_id=self.object.backoffice_grant_application_id
+        )
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class EventEvidenceUploadCompleteView(BackofficeMixin, DetailView):
+    model = GrantApplicationLink
+    template_name = 'grant_applications/event_evidence_upload_complete.html'
+    extra_context = {
+        'page': {
+            'heading':  _('Event confirmation shared successfully')
+        },
+    }

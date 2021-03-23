@@ -136,3 +136,5 @@ static/
 reports/
 node_modules/
 *.csv
+docker-compose.override.yml
+/backoffice/media/
