@@ -52,7 +52,7 @@ jobs:
           SECRET_KEY: ci-secret-key
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-          NOTIFY_API_KEY: NOTIFICATION-SERVICE-KEY
+          NOTIFY_API_KEY: NOTIFY_API_KEY
           <<: *db_env
       - image: circleci/postgres:11
         environment:
@@ -92,7 +92,7 @@ jobs:
             SECRET_KEY=ci-secret-key
             POSTGRES_HOST=backoffice_db
             POSTGRES_PORT=5432
-            NOTIFY_API_KEY=NOTIFICATION-SERVICE-KEY
+            NOTIFY_API_KEY=NOTIFY_API_KEY
             POSTGRES_USER=tap
             POSTGRES_DB=tap
             POSTGRES_PASSWORD=tap" > backoffice/.env
@@ -113,7 +113,7 @@ jobs:
             SECRET_KEY=ci-secret-key
             POSTGRES_HOST=backoffice_db
             POSTGRES_PORT=5432
-            NOTIFY_API_KEY=NOTIFICATION-SERVICE-KEY
+            NOTIFY_API_KEY=NOTIFY_API_KEY
             POSTGRES_USER=tap
             POSTGRES_DB=tap
             POSTGRES_PASSWORD=tap" > backoffice/.env
