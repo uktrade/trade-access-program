@@ -17,6 +17,7 @@ from django.conf import settings
 from django.conf.urls import url
 from django.urls import path, include
 from django.views.generic import RedirectView
+from django.views.static import serve
 from material.frontend.urls import modules as viewflow_apps
 
 from web.core.views import IndexView
@@ -41,14 +42,13 @@ urlpatterns = [
     path('api/', include('web.grant_applications.api_urls')),
     path('api/', include('web.sectors.api_urls')),
     path('api/', include('web.trade_events.api_urls')),
+    url(r'^media/(?P<path>.*)$', serve, {
+        'document_root': settings.MEDIA_ROOT,
+    })
 ]
 
 if settings.DEBUG:
     import debug_toolbar
-    from django.views.static import serve
     urlpatterns = [
         url('^__debug__/', include(debug_toolbar.urls)),
-        url(r'^media/(?P<path>.*)$', serve, {
-            'document_root': settings.MEDIA_ROOT,
-        }),
     ] + urlpatterns
