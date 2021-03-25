@@ -66,32 +66,7 @@ class GrantManagementFlow(Flow):
         task_title='Verify state eligibility'
     ).Next(this.finish_verify_tasks)
 
-    finish_verify_tasks = flow.Join().Next(this.request_event_booking_evidence)
-
-    request_event_booking_evidence = flow.View(
-        BaseGrantManagementView,
-        task_title='Request proof of event booking'
-    ).Next(this.send_event_booking_evidence_request_email_handler)
-
-    send_event_booking_evidence_request_email_handler = flow.Handler(
-        this.send_event_booking_evidence_request_email_callback
-    ).Next(this.create_review_evidence_task)
-
-    create_review_evidence_task = flow.Function(
-        this.create_review_evidence_of_event_booking,
-        task_loader=this.get_create_review_evidence_task,
-        task_title='Review proof of event booking'
-    ).Next(this.renew_proof_of_event_booking)
-
-    renew_proof_of_event_booking = flow.View(
-        BaseGrantManagementView,
-        form_class=EventBookingDocumentRenewForm,
-        task_title='Review proof of event booking'
-    ).Next(this.renew_proof_of_event_booking_handler)
-
-    renew_proof_of_event_booking_handler = flow.Handler(
-        this.send_renew_proof_of_event_booking_response_email_callback
-    ).Next(this.create_suitability_tasks)
+    finish_verify_tasks = flow.Join().Next(this.create_suitability_tasks)
 
     # Suitability tasks
     create_suitability_tasks = (
@@ -127,7 +102,32 @@ class GrantManagementFlow(Flow):
         task_title='Event is appropriate'
     ).Next(this.finish_suitability_tasks)
 
-    finish_suitability_tasks = flow.Join().Next(this.decision)
+    finish_suitability_tasks = flow.Join().Next(this.request_event_booking_evidence)
+
+    request_event_booking_evidence = flow.View(
+        BaseGrantManagementView,
+        task_title='Request proof of event booking'
+    ).Next(this.send_event_booking_evidence_request_email_handler)
+
+    send_event_booking_evidence_request_email_handler = flow.Handler(
+        this.send_event_booking_evidence_request_email_callback
+    ).Next(this.create_review_evidence_task)
+
+    create_review_evidence_task = flow.Function(
+        this.create_review_evidence_of_event_booking,
+        task_loader=this.get_create_review_evidence_task,
+        task_title='Review proof of event booking'
+    ).Next(this.renew_proof_of_event_booking)
+
+    renew_proof_of_event_booking = flow.View(
+        BaseGrantManagementView,
+        form_class=EventBookingDocumentRenewForm,
+        task_title='Review proof of event booking'
+    ).Next(this.renew_proof_of_event_booking_handler)
+
+    renew_proof_of_event_booking_handler = flow.Handler(
+        this.send_renew_proof_of_event_booking_response_email_callback
+    ).Next(this.decision)
 
     # Decision task
     decision = flow.View(
