@@ -1,11 +1,6 @@
 from config.settings.base import *
 
 ALLOWED_HOSTS = ['localhost', '0.0.0.0', '127.0.0.1', 'backoffice']
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-AWS_STORAGE_BUCKET_NAME = env.str('AWS_S3_BUCKET_NAME')
-AWS_ACCESS_KEY_ID = env.str('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = env.str('AWS_SECRET_ACCESS_KEY')
-AWS_S3_FILE_OVERWRITE = False
 # This is required on mac to allow django-debug-toolbar to
 # show up when django server is run inside docker.
 INTERNAL_IPS = type(str('c'), (), {'__contains__': lambda *a: True})()
