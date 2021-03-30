@@ -166,6 +166,13 @@ class GrantApplication(BaseMetaModel):
         return hasattr(self, 'grant_management_process')
 
     @property
+    def is_completed(self):
+        grant_management_process = getattr(self, 'grant_management_process', None)
+        if grant_management_process and grant_management_process.decision:
+            return True
+        return False
+
+    @property
     def company_name(self):
         return self.manual_company_name or self.company.name
 

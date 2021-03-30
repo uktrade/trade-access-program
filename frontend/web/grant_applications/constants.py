@@ -1,1 +1,1 @@
-APPLICATION_EMAIL_SESSION_KEY = 'user_application_email'
+APPLICATION_BACKOFFICE_ID_SESSION_KEY = 'user_application_reference'

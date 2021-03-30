@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core import signing
 from django.urls import reverse
 
+from web.grant_applications.models import GrantApplicationLink
 from web.grant_applications.services import BackofficeService
 
 
@@ -34,3 +35,17 @@ def send_resume_application_email(grant_application):
     }
     magic_link = generate_action_magic_link(data)
     BackofficeService().send_resume_application_email(grant_application, magic_link)
+
+
+def get_active_backoffice_application(email):
+    grant_application_links = GrantApplicationLink.objects.filter(email__iexact=email).order_by('-updated')
+    backoffice_service = BackofficeService()
+    if grant_application_links.exists():
+        active_grant_application_link = grant_application_links.first()
+        backoffice_grant_application = backoffice_service.get_grant_application(
+            active_grant_application_link.backoffice_grant_application_id
+        )
+        if not backoffice_grant_application.get('is_completed', False):
+            return backoffice_grant_application
+
+    return None

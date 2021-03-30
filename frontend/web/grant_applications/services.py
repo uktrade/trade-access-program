@@ -134,7 +134,7 @@ class BackofficeService:
         return response.json()
 
     def get_grant_application(self, grant_application_id):
-        url = urljoin(self.grant_applications_url, f'{grant_application_id}/')
+        url = urljoin(self.grant_applications_url, f'{str(grant_application_id)}/')
         response = self.session.get(url)
         return response.json()
 
