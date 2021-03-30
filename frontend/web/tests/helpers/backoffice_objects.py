@@ -97,7 +97,8 @@ FAKE_GRANT_APPLICATION = {
     'stand_trade_name': 'A Name',
     'trade_show_experience_description': 'A description',
     'additional_guidance': 'Some additional guidance',
-    'sent_for_review': False
+    'sent_for_review': False,
+    'is_completed': False
 }
 
 FAKE_STATE_AID = {

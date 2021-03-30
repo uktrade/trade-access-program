@@ -12,7 +12,7 @@ from web.core.forms import FORM_MSGS
 from web.core.view_mixins import (
     SuccessUrlObjectPkMixin, BackContextMixin, PaginationMixin, SaveStateMixin
 )
-from web.grant_applications.constants import APPLICATION_EMAIL_SESSION_KEY
+from web.grant_applications.constants import APPLICATION_BACKOFFICE_ID_SESSION_KEY
 from web.grant_applications.forms import (
     SearchCompanyForm, SelectCompanyForm, SelectAnEventForm, PreviousApplicationsForm,
     CompanyTradingDetailsForm, ExportExperienceForm, FindAnEventForm,
@@ -27,8 +27,8 @@ from web.grant_applications.services import (
     get_state_aid_summary_table, ApplicationReviewService
 )
 from web.grant_applications.utils import (
-    send_resume_application_email, decrypting_data, RESUME_APPLICATION_ACTION,
-    UPLOAD_EVENT_BOOKING_EVIDENCE_ACTION
+    send_resume_application_email, decrypting_data, get_active_backoffice_application,
+    RESUME_APPLICATION_ACTION, UPLOAD_EVENT_BOOKING_EVIDENCE_ACTION
 )
 
 from web.grant_applications.view_mixins import (
@@ -40,7 +40,7 @@ class ApplicationIndexView(TemplateView):
     template_name = 'grant_applications/index.html'
 
     def clean_session_data(self):
-        self.request.session.pop(APPLICATION_EMAIL_SESSION_KEY, None)
+        self.request.session.pop(APPLICATION_BACKOFFICE_ID_SESSION_KEY, None)
 
     def get(self, request, *args, **kwargs):
         self.clean_session_data()
@@ -98,24 +98,29 @@ class InvalidMagicLinkView(FormView):
     }
 
     @property
-    def user_email(self):
-        return self.request.session.get(APPLICATION_EMAIL_SESSION_KEY)
+    def user_application_backoffice_id(self):
+        return self.request.session.get(APPLICATION_BACKOFFICE_ID_SESSION_KEY)
 
-    def set_application_email_session(self, email):
-        self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
+    def set_application_reference_session(self, backoffice_id):
+        self.request.session[APPLICATION_BACKOFFICE_ID_SESSION_KEY] = backoffice_id
 
     def form_valid(self, form):
         email = form.cleaned_data.get('email')
-        self.set_application_email_session(email)
-        try:
-            grant_application_link = GrantApplicationLink.objects.get(email=email)
-            send_resume_application_email(grant_application_link)
-        except (
-                GrantApplicationLink.DoesNotExist,
-                GrantApplicationLink.MultipleObjectsReturned
-        ):
-            return HttpResponseRedirect(reverse('grant_applications:no-application-found'))
-        return HttpResponseRedirect(reverse(self.success_url_name))
+        backoffice_application = get_active_backoffice_application(email=email)
+        if backoffice_application:
+            self.request.session[APPLICATION_BACKOFFICE_ID_SESSION_KEY] = backoffice_application['id']
+            try:
+                grant_application_link = GrantApplicationLink.objects.get(
+                    backoffice_grant_application_id=backoffice_application['id']
+                )
+                send_resume_application_email(grant_application_link)
+                self.set_application_reference_session(
+                    str(grant_application_link.backoffice_grant_application_id)
+                )
+                return HttpResponseRedirect(reverse(self.success_url_name))
+            except GrantApplicationLink.DoesNotExist:
+                pass
+        return HttpResponseRedirect(reverse('grant_applications:no-application-found'))
 
 
 class ExpiredMagicLinkView(InvalidMagicLinkView):
@@ -159,21 +164,20 @@ class CheckYourEmailView(BackContextMixin, TemplateView):
     @property
     def linked_application(self):
         try:
-            return GrantApplicationLink.objects.get(email=self.user_email)
-        except (
-            GrantApplicationLink.DoesNotExist,
-            GrantApplicationLink.MultipleObjectsReturned
-        ):
+            return GrantApplicationLink.objects.get(
+                backoffice_grant_application_id=self.user_application_backoffice_id
+            )
+        except GrantApplicationLink.DoesNotExist:
             pass
 
         return None
 
     @property
-    def user_email(self):
-        return self.request.session.get(APPLICATION_EMAIL_SESSION_KEY)
+    def user_application_backoffice_id(self):
+        return self.request.session.get(APPLICATION_BACKOFFICE_ID_SESSION_KEY)
 
     def get(self, request, *args, **kwargs):
-        if not self.user_email:
+        if not self.user_application_backoffice_id:
             return HttpResponseRedirect(reverse('grant_applications:index'))
         return super().get(request, *args, **kwargs)
 
@@ -209,16 +213,17 @@ class StartNewApplicationView(BackContextMixin, SuccessUrlObjectPkMixin, FormVie
 
     def form_valid(self, form):
         email = form.cleaned_data.get('email')
-        self.request.session.pop(APPLICATION_EMAIL_SESSION_KEY, None)
-        if self.model.objects.filter(email__iexact=email).exists():
-            self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
+        self.request.session.pop(APPLICATION_BACKOFFICE_ID_SESSION_KEY, None)
+        backoffice_application = get_active_backoffice_application(email=email)
+        if backoffice_application:
+            self.request.session[APPLICATION_BACKOFFICE_ID_SESSION_KEY] = backoffice_application['id']
             return HttpResponseRedirect(
                reverse('grant_applications:select-application-progress')
             )
 
         try:
             backoffice_grant_application = BackofficeService().create_grant_application()
-            self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
+            self.request.session[APPLICATION_BACKOFFICE_ID_SESSION_KEY] = backoffice_grant_application['id']
         except BackofficeServiceException:
             form.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))
             return super().form_invalid(form)
@@ -248,10 +253,16 @@ class ContinueApplicationView(StartNewApplicationView):
 
     def form_valid(self, form):
         email = form.cleaned_data.get('email')
-        self.request.session[APPLICATION_EMAIL_SESSION_KEY] = email
-        if GrantApplicationLink.objects.filter(email=email).exists():
-            grant_application_link = GrantApplicationLink.objects.get(email=email)
-            send_resume_application_email(grant_application_link)
+        backoffice_application = get_active_backoffice_application(email=email)
+        if backoffice_application:
+            self.request.session[APPLICATION_BACKOFFICE_ID_SESSION_KEY] = backoffice_application['id']
+            try:
+                grant_application_link = GrantApplicationLink.objects.get(
+                    backoffice_grant_application_id=backoffice_application['id']
+                )
+                send_resume_application_email(grant_application_link)
+            except GrantApplicationLink.DoesNotExist:
+                pass
             return HttpResponseRedirect(
                reverse('grant_applications:check-your-email')
             )
@@ -270,23 +281,27 @@ class SelectApplicationProgressView(BackContextMixin, FormView):
     }
 
     @property
-    def user_email(self):
-        return self.request.session.get(APPLICATION_EMAIL_SESSION_KEY)
+    def user_application_backoffice_id(self):
+        return self.request.session.get(APPLICATION_BACKOFFICE_ID_SESSION_KEY)
+
+    def get(self, request, *args, **kwargs):
+        if not self.user_application_backoffice_id:
+            return HttpResponseRedirect(reverse('grant-applications:index'))
+        return super().get(request, *args, **kwargs)
 
     @property
     def linked_application(self):
         try:
-            return GrantApplicationLink.objects.get(email=self.user_email)
-        except (
-            GrantApplicationLink.DoesNotExist,
-            GrantApplicationLink.MultipleObjectsReturned
-        ):
+            return GrantApplicationLink.objects.get(
+                backoffice_grant_application_id=self.user_application_backoffice_id
+            )
+        except GrantApplicationLink.DoesNotExist:
             pass
 
         return None
 
     def form_valid(self, form):
-        if not self.user_email:  # redirect application email view if the session flush.
+        if not self.user_application_backoffice_id:  # redirect application email view if the session flush.
             return HttpResponseRedirect(reverse('grant_applications:new-application-email'))
 
         progress_option = form.cleaned_data.get('progress_option')
@@ -294,14 +309,14 @@ class SelectApplicationProgressView(BackContextMixin, FormView):
             send_resume_application_email(self.linked_application)
             return HttpResponseRedirect(reverse('grant_applications:check-your-email'))
 
-        GrantApplicationLink.objects.filter(email=self.user_email).delete()
+        # GrantApplicationLink.objects.filter(email=self.user_email).delete()
         try:
             backoffice_grant_application = BackofficeService().create_grant_application()
         except BackofficeServiceException:
             form.add_error(None, forms.ValidationError(FORM_MSGS['resubmit']))
             return super().form_invalid(form)
         grant_application_link = GrantApplicationLink(
-            email=self.user_email,
+            email=self.linked_application.email,
             backoffice_grant_application_id=backoffice_grant_application['id'],
             state_url_name=GrantApplicationLink.APPLICATION_FIRST_STEP_URL_NAME
         )

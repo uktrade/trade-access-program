@@ -31,3 +31,15 @@ class GrantApplicationLinkAdmin(admin.ModelAdmin):
         'created',
         'updated'
     )
+
+    list_filter = (
+        'has_viewed_review_page',
+        'updated'
+    )
+
+    search_fields = (
+        'email',
+        'backoffice_grant_application_id',
+    )
+
+    ordering = ('-updated', )

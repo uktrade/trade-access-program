@@ -5,6 +5,7 @@ from django.urls import reverse
 from web.grant_applications.views import ContinueApplicationView
 from web.grant_applications.services import BackofficeService
 from web.tests.factories.grant_application_link import GrantApplicationLinkFactory
+from web.tests.helpers.backoffice_objects import FAKE_GRANT_APPLICATION
 from web.tests.helpers.testcases import BaseTestCase
 
 
@@ -28,10 +29,15 @@ class TestContinueApplicationView(BaseTestCase):
 
     @patch.object(
         BackofficeService,
+        'get_grant_application',
+        return_value=FAKE_GRANT_APPLICATION
+    )
+    @patch.object(
+        BackofficeService,
         'send_resume_application_email',
         return_value={}
     )
-    def test_post_email_matching_with_grant_application(self, mocks):
+    def test_post_email_matching_with_grant_application(self, *mocks):
         response = self.client.post(
             self.url,
             data={
