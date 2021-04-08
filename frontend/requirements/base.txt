@@ -13,38 +13,38 @@ chardet==3.0.4
 django-appconf==1.0.4
     # via django-compressor
 django-compressor==2.4
-    # via -r requirements/base.in
+    # via -r base.in
 django-environ==0.4.5
-    # via -r requirements/base.in
+    # via -r base.in
 django-filter==2.3.0
-    # via -r requirements/base.in
+    # via -r base.in
 django-phonenumber-field==5.0.0
-    # via -r requirements/base.in
+    # via -r base.in
 django-sass-processor==0.8.2
-    # via -r requirements/base.in
-django==3.1.1
+    # via -r base.in
+django==3.1.8
     # via
-    #   -r requirements/base.in
+    #   -r base.in
     #   django-filter
     #   django-phonenumber-field
 gunicorn==20.0.4
-    # via -r requirements/base.in
+    # via -r base.in
 idna==2.10
     # via requests
 libsass==0.20.1
-    # via -r requirements/base.in
+    # via -r base.in
 phonenumbers==8.12.10
-    # via -r requirements/base.in
+    # via -r base.in
 pillow==8.1.2
-    # via -r requirements/base.in
+    # via -r base.in
 psycopg2==2.8.6
-    # via -r requirements/base.in
+    # via -r base.in
 pytz==2020.1
     # via django
 rcssmin==1.0.6
     # via django-compressor
 requests==2.24.0
-    # via -r requirements/base.in
+    # via -r base.in
 rjsmin==1.1.0
     # via django-compressor
 six==1.15.0
@@ -56,7 +56,7 @@ sqlparse==0.3.1
 urllib3==1.25.9
     # via requests
 whitenoise==5.2.0
-    # via -r requirements/base.in
+    # via -r base.in
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
