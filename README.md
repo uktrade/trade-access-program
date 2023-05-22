@@ -1,6 +1,9 @@
 [![CircleCI](https://circleci.com/gh/uktrade/trade-access-program/tree/master.svg?style=shield)](https://circleci.com/gh/uktrade/trade-access-program/tree/master)
 
 # trade-access-program
+
+**N.B. 22nd May 2023 - This is not in use, or intended to be in use anytime soon, so it is being archived.**
+
 TAP is an initiative to provide small grants to SME businesses and sole traders to help them start or grow their 
 exports.  
 
